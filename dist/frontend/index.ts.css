@@ -1,0 +1,77 @@
+/*!*******************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/frontend/styles/index.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************/
+.dmn-widget {
+  --dmn-accent: #0a7ea4;
+  --dmn-bg: #fff;
+  --dmn-fg: #101010;
+  --dmn-muted: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--dmn-bg);
+  color: var(--dmn-fg);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  line-height: 1.4;
+}
+.dmn-widget__title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+.dmn-widget__step {
+  display: grid;
+  gap: 12px;
+}
+.dmn-widget__field {
+  display: grid;
+  gap: 6px;
+}
+.dmn-widget__label {
+  font-weight: 600;
+}
+.dmn-widget__input, .dmn-widget__select, .dmn-widget__btn {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+.dmn-widget__select {
+  -webkit-appearance: auto;
+     -moz-appearance: auto;
+          appearance: auto;
+}
+.dmn-widget__btn {
+  background: var(--dmn-accent);
+  color: #fff;
+  border-color: transparent;
+  cursor: pointer;
+}
+.dmn-widget__btn--ghost {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+.dmn-widget__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.dmn-widget__error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 8px;
+  border-radius: 8px;
+}
+.dmn-widget__hint {
+  color: var(--dmn-muted);
+}
+.dmn-widget__summary {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+/*# sourceMappingURL=index.ts.css.map*/

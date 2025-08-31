@@ -1,0 +1,42 @@
+{
+  "name": "dmn-booking-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start:admin": "wp-scripts start src/admin/index.ts --output-path=dist/admin",
+    "start:frontend": "wp-scripts start src/frontend/index.ts --output-path=dist/frontend",
+    "watch:types": "tsc -w --noEmit",
+    "start": "concurrently -c auto -n TYPES,ADMIN,FRONT \"npm:watch:types\" \"npm:start:admin\" \"npm:start:frontend\"",
+    "build:admin": "wp-scripts build src/admin/index.ts --output-path=dist/admin",
+    "build:frontend": "wp-scripts build src/frontend/index.ts --output-path=dist/frontend",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && npm run build:admin && npm run build:frontend",
+    "lint:ts": "eslint --ext .ts,.tsx,.js,.jsx src/admin src/frontend",
+    "lint:scss": "stylelint \"src/{admin,frontend}/**/*.scss\"",
+    "lint": "npm run lint:ts && npm run lint:scss",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,scss,css,md,json,yml,yaml}\""
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.1.0",
+    "@typescript-eslint/parser": "^8.1.0",
+    "@wordpress/eslint-plugin": "^19.0.0",
+    "@wordpress/scripts": "^30.22.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "sass": "^1.77.0",
+    "stylelint": "^16.7.0",
+    "stylelint-config-recess-order": "^5.0.1",
+    "stylelint-config-standard-scss": "^13.1.0",
+    "stylelint-scss": "^6.4.0",
+    "stylelint-selector-bem-pattern": "^4.0.1",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

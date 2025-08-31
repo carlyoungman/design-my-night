@@ -1,0 +1,65 @@
+.dmn-admin {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+
+  .card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 840px;
+  }
+
+  .grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grid label {
+    display: grid;
+    gap: 6px;
+  }
+
+  .grid input, .grid select {
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    grid-column: 1 / -1;
+  }
+
+  button {
+    background: #2271b1;
+    border: 1px solid #2271b1;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button[disabled] {
+    opacity: .6;
+    cursor: default;
+  }
+
+  .ok {
+    color: #027a48;
+    margin-top: 8px;
+  }
+
+  .err {
+    color: #b00020;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 980px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
