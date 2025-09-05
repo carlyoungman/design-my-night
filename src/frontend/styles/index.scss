@@ -1,82 +1,28 @@
-.dmn-widget {
-  --dmn-accent: #0a7ea4;
-  --dmn-bg: #fff;
-  --dmn-fg: #101010;
-  --dmn-muted: #6b7280;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px;
-  background: var(--dmn-bg);
-  color: var(--dmn-fg);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  line-height: 1.4;
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+@import '../../styles/variables';
 
-  &__title {
-    margin: 0 0 8px;
-    font-size: 1.1rem;
+
+.dmn-widget-root {
+  @import "css-reset-and-normalize/scss/reset-and-normalize";
+  font-size: var(--font-base-size);
+
+  :where(*, *::before, *::after) {
+    font-size: inherit;
   }
 
-  &__step {
-    display: grid;
-    gap: 12px;
+  * {
+    box-sizing: border-box;
   }
 
-  &__field {
-    display: grid;
-    gap: 6px;
-  }
 
-  &__label {
-    font-weight: 600;
-  }
+  @import "components/accordion";
+  @import "components/calendar";
+  @import "components/radio";
+  @import "components/select";
+  @import "components/steps";
+  @import "components/timepicker";
+  @import "components/typography";
+  @import "components/widget";
 
-  &__input, &__select, &__btn {
-    font: inherit;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-  }
-
-  &__select {
-    appearance: auto;
-  }
-
-  &__btn {
-    background: var(--dmn-accent);
-    color: #fff;
-    border-color: transparent;
-    cursor: pointer;
-  }
-
-  &__btn--ghost {
-    background: #f9fafb;
-    color: #111827;
-    border-color: #e5e7eb;
-  }
-
-  &__actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
-
-  &__error {
-    color: #b91c1c;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    padding: 8px;
-    border-radius: 8px;
-  }
-
-  &__hint {
-    color: var(--dmn-muted);
-  }
-
-  &__summary {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 4px;
-  }
 }
+

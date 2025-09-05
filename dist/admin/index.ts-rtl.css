@@ -1,8 +1,39 @@
-/*!**********************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/admin/styles.scss ***!
-  \**********************************************************************************************************************************************************************************************************************************************/
+/*!*****************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/admin/styles/styles.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************/
+:root {
+  --border-radius: 15px;
+  --font-base-size: 18px;
+  --font-base-line-height: 1.6;
+  --font-base-font-weight: 400;
+  --font--family: "Michroma";
+  --transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  --universal-space: 15px;
+  --universal-space-2: calc(var(--universal-space) * 2);
+  --universal-space-3: calc(var(--universal-space) * 3);
+  --universal-space-4: calc(var(--universal-space) * 4);
+  --universal-space-half: calc(var(--universal-space) / 2);
+  --c-white: #ffffff;
+  --c-black: #020000;
+  --c-theme-primary: #FF00FF;
+  --c-dark-blue: #000056;
+  --c-light-blue: #0000FF;
+  --c-error: #FF3B3B;
+  box-sizing: border-box;
+}
+
 .dmn-admin {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+.dmn-admin__grid {
+  display: grid;
+  gap: var(--universal-space-2);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media screen and (min-width: 992px) {
+  .dmn-admin__grid {
+    grid-template-columns: 1fr 30%;
+  }
 }
 .dmn-admin .card {
   background: #fff;
@@ -13,8 +44,7 @@
 }
 .dmn-admin .grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr 1fr;
+  gap: var(--universal-space);
 }
 .dmn-admin .grid label {
   display: grid;
@@ -50,9 +80,4 @@
 .dmn-admin .err {
   color: #b00020;
   margin-top: 8px;
-}
-@media (max-width: 980px) {
-  .dmn-admin .grid {
-    grid-template-columns: 1fr;
-  }
 }

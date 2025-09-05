@@ -1,0 +1,71 @@
+@import "../../../styles/mixins";
+
+.calendar {
+  border: 1px solid var(--c-white);
+  padding: var(--universal-space);
+
+  &__quick-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: var(--universal-space);
+    gap: var(--universal-space);
+  }
+
+  &__quick-btn {
+    @include button-reset;
+    padding: var(--universal-space);
+    border: 1px solid var(--c-white);
+    flex: 1;
+    transition: var(--transition);
+
+    &:hover {
+      background-color: var(--c-theme-primary);
+      border: 1px solid var(--c-theme-primary);
+    }
+  }
+
+}
+
+.css-1dedkb6-MuiDateCalendar-root {
+  max-height: unset;
+  height: unset;
+}
+
+.css-1n1xn3x-MuiPickersSlideTransition-root-MuiDayCalendar-slideTransition {
+  min-height: 306px;
+}
+
+.MuiPickersCalendarHeader-root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.MuiPickersCalendarHeader-labelContainer {
+  position: absolute;
+}
+
+.MuiPickersArrowSwitcher-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .MuiButtonBase-root {
+
+    border: none !important;
+    outline: none !important;
+  }
+}
+
+.MuiDayCalendar-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid var(--c-white);
+  border-bottom: 1px solid var(--c-white);
+  margin: var(--universal-space) 0;
+
+}

@@ -19,3 +19,15 @@ export type AvailabilityRes = {
   };
   status: number;
 };
+export type Venue = {
+  _id: string;
+  title: string;
+  name?: string;
+};
+
+export type VenueStepProps = {
+  venues: Venue[];
+  initialLoading: boolean;
+  error: string | null;
+  forcedVenueId?: string;
+};

@@ -1,4 +1,4 @@
-const DEBUG = true; // flip to false to disable logging
+const DEBUG = false; // flip to false to disable logging
 
 function getHeadersAsRecord(headers: Headers): Record<string, string> {
   const out: Record<string, string> = {};

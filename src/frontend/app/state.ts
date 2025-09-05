@@ -3,7 +3,6 @@
 // ---- Steps in DMN-recommended order ----
 export type Step =
   | 'venue' // pre-step (only shown if multi-venue)
-  | 'stage1' // guests + date
   | 'type' // experience / booking type
   | 'time' // time selection
   | 'packages' // add-on packages
@@ -51,23 +50,14 @@ export type State = {
 };
 
 // Single source of truth for flow order
-export const FLOW_ORDER: Step[] = [
-  'venue',
-  'stage1',
-  'type',
-  'time',
-  'packages',
-  'details',
-  'review',
-];
+export const FLOW_ORDER: Step[] = ['venue', 'type', 'time', 'packages', 'details', 'review'];
 
 // ---- Defaults ----
 // NOTE: Widget sets the first step dynamically:
 // - forcedVenueId ? 'stage1' : 'venue'
 export const initialState: State = {
-  step: 'stage1',
+  step: 'venue',
   venueId: null,
-
   partySize: 2,
   date: null,
   time: null,
@@ -85,11 +75,13 @@ export const initialState: State = {
   submitting: false,
 };
 
+// ---- Actions ----
 export type Action =
   | { type: 'SET_VENUE'; id: string | null }
-  | { type: 'SET_GUESTS_DATE'; size: number; date: string } // Stage 1
-  | { type: 'SET_TYPE'; value: string | null } // Stage 2
-  | { type: 'SET_TIME'; value: string | null } // Stage 3
+  | { type: 'SET_PARTY_SIZE'; size: number } // size only
+  | { type: 'SET_DATE'; date: string | null } // date only
+  | { type: 'SET_TYPE'; value: string | null }
+  | { type: 'SET_TIME'; value: string | null }
   | { type: 'SET_AVAIL'; value: State['avail'] }
   | { type: 'SET_SUGGESTIONS'; value: string[] }
   | { type: 'SET_PACKAGES'; value: State['packages'] }
@@ -102,29 +94,42 @@ export type Action =
   | { type: 'NEXT' }
   | { type: 'BACK' };
 
+// ---- Reducer ----
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'SET_VENUE':
       return { ...s, venueId: a.id, avail: null, suggestions: [] };
 
-    case 'SET_GUESTS_DATE': {
-      const dateChanged = a.date !== s.date;
+    case 'SET_PARTY_SIZE': {
+      const size = Math.max(1, a.size);
+      // Capacity affects availability/time; clear them
       return {
         ...s,
-        partySize: Math.max(1, a.size),
-        date: a.date,
-        // Reset time/availability if the date changed
-        time: dateChanged ? null : s.time,
-        avail: dateChanged ? null : s.avail,
+        partySize: size,
+        time: null,
+        avail: null,
+        suggestions: [],
+      };
+    }
+
+    case 'SET_DATE': {
+      const dateChanged = a.date !== s.date;
+      if (!dateChanged) return s;
+      // Date change invalidates previously selected time/availability
+      return {
+        ...s,
+        date: a.date, // YYYY-MM-DD or null
+        time: null,
+        avail: null,
         suggestions: [],
       };
     }
 
     case 'SET_TYPE':
+      // Changing type usually affects availability/time
       return {
         ...s,
         bookingType: a.value,
-        // Changing type invalidates previous time/availability
         time: null,
         avail: null,
         suggestions: [],

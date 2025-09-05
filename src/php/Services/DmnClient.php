@@ -15,24 +15,20 @@ class DmnClient
     if (empty($params['fields'])) {
       $params['fields'] = 'path,name,title';
     }
-    return $this->request('GET', '/venues', $params, null, ['cache_ttl' => 60]);
+    return $this->request('GET', '/venues', $params);
   }
 
   /**
    * Core HTTP wrapper for DMN v4.
    *
-   * @return array{
-   *   ok:bool,
-   *   status:int,
-   *   data?:mixed,
-   *   error?:string|null,
-   *   raw_body?:string|null,
-   *   headers:array<string,string|null>,
-   *   response_headers:array<string,mixed>,
-   *   validation?:array|null
-   * }
+   * Returns a minimal, de-duplicated structure:
+   * - ok: bool
+   * - status: int
+   * - data: mixed (decoded JSON or null)
+   * - error: ?string
+   * - validation: ?array
    */
-  public function request(string $method, string $path, array $query = [], $body = null, array $opts = []): array
+  public function request(string $method, string $path, array $query = [], $body = null): array
   {
     $base = rtrim($this->base_url(), '/');
     $path = '/' . ltrim($path, '/');
@@ -42,32 +38,29 @@ class DmnClient
       $url = add_query_arg($query, $url);
     }
 
+    $headers = array_filter([
+      'Authorization' => $this->auth_header(),                            // DMN expects APP_ID:API_KEY
+      'Accept' => 'application/json; charset=utf-8',
+      // Only send Content-Type when we actually have a body
+      'Content-Type' => $body !== null ? 'application/json; charset=utf-8' : null,
+      'User-Agent' => $this->user_agent(),
+    ]);
+
     $args = [
       'method' => $method,
-      'timeout' => $opts['timeout'] ?? 20,
-      'redirection' => $opts['redirection'] ?? 3,
-      'headers' => array_filter([
-        'Authorization' => $this->auth_header(),
-        'Accept' => 'application/json; charset=utf-8',
-        'Content-Type' => 'application/json; charset=utf-8',
-        'User-Agent' => $this->user_agent(),
-      ]),
+      'timeout' => 20,
+      'redirection' => 3,
+      'headers' => $headers,
     ];
 
     if ($body !== null) {
       $args['body'] = is_string($body) ? $body : wp_json_encode($body);
     }
 
-    // --- Debug: log request (redact auth) ---
-    $logArgs = $args;
-    if (isset($logArgs['headers']['Authorization'])) {
-      $logArgs['headers']['Authorization'] = '***redacted***';
-    }
-    $this->log_debug('REQUEST', ['url' => $url, 'args' => $logArgs]);
-
-    // Optional cache
-    $cache_ttl = isset($opts['cache_ttl']) ? (int)$opts['cache_ttl'] : (($method === 'GET') ? 60 : 0);
+    // Cache GETs briefly to ease rate limits
+    $cache_ttl = ($method === 'GET') ? 60 : 0;
     $cache_key = null;
+
     if ($cache_ttl > 0) {
       $cache_key = 'dmn:' . md5($method . ' ' . $url);
       $cached = wp_cache_get($cache_key, 'dmn');
@@ -76,12 +69,10 @@ class DmnClient
       }
     }
 
-    // One soft retry on 429
-    $do_request = function () use ($url, $args) {
-      return wp_remote_request($url, $args);
-    };
-
+    // One soft retry on 429 (<=5s)
+    $do_request = fn() => wp_remote_request($url, $args);
     $res = $do_request();
+
     if (!is_wp_error($res) && (int)wp_remote_retrieve_response_code($res) === 429) {
       $retry = (int)(wp_remote_retrieve_header($res, 'retry-after') ?: 0);
       if ($retry > 0 && $retry <= 5) {
@@ -94,66 +85,46 @@ class DmnClient
       $out = [
         'ok' => false,
         'status' => 0,
+        'data' => null,
         'error' => $res->get_error_message(),
-        'headers' => [],
-        'response_headers' => [],
+        'validation' => null,
       ];
-      $this->log_debug('RESPONSE', $out);
       if ($cache_ttl > 0 && $cache_key) wp_cache_set($cache_key, $out, 'dmn', $cache_ttl);
       return $out;
     }
 
     $code = (int)wp_remote_retrieve_response_code($res);
-    $headers = wp_remote_retrieve_headers($res);
-    $rawBody = wp_remote_retrieve_body($res);
-    $json = json_decode($rawBody, true);
+    $raw = wp_remote_retrieve_body($res);
+    $json = json_decode($raw, true);
 
-    // Normalize headers to lower-case
-    $hdrsArr = is_object($headers) && method_exists($headers, 'getAll')
-      ? array_change_key_case($headers->getAll())
-      : array_change_key_case((array)$headers);
-
-    $errorMessage = null;
+    // Extract a concise error + validation when present (common DMN payload shape)
+    $error = null;
     $validation = null;
 
     if ($code >= 400 && is_array($json)) {
       $payload = $json['payload'] ?? null;
-      if (is_array($payload)) {
-        $errorMessage = $payload['message'] ?? null;
-        $validation = $payload['validation'] ?? null;
+      $error = is_array($payload) ? ($payload['message'] ?? null) : null;
+      $validation = is_array($payload) ? ($payload['validation'] ?? null) : null;
+
+      if (!$error) {
+        $error = $json['message'] ?? ($json['error'] ?? null);
       }
-      if (!$errorMessage) {
-        $errorMessage = $json['message'] ?? ($json['error'] ?? null);
-      }
-      if (!$errorMessage && isset($json['errors']) && is_array($json['errors'])) {
-        $errorMessage = implode('; ', array_map(
-          fn($e) => is_array($e) ? ($e['message'] ?? wp_json_encode($e)) : (string)$e,
-          $json['errors']
-        ));
+      if (!$error && isset($json['errors']) && is_array($json['errors'])) {
+        $parts = [];
+        foreach ($json['errors'] as $e) {
+          $parts[] = is_array($e) ? ($e['message'] ?? wp_json_encode($e)) : (string)$e;
+        }
+        $error = implode('; ', array_filter($parts));
       }
     }
 
     $out = [
       'ok' => ($code >= 200 && $code < 300),
       'status' => $code,
-      'data' => $json,
-      'error' => $errorMessage,
-      'raw_body' => ($code >= 400 ? $rawBody : null),
-      'headers' => [
-        'X-RateLimit-Limit' => $hdrsArr['x-ratelimit-limit'] ?? 'N/A',
-        'X-RateLimit-Remaining' => $hdrsArr['x-ratelimit-remaining'] ?? 'N/A',
-        'X-RateLimit-Reset' => $hdrsArr['x-ratelimit-reset'] ?? 'N/A',
-      ],
-      'response_headers' => $hdrsArr,
+      'data' => $json ?? null,
+      'error' => $error,
       'validation' => $validation,
     ];
-
-    // --- Debug: log response ---
-    $this->log_debug('RESPONSE', [
-      'status' => $code,
-      'headers' => $hdrsArr,
-      'body' => $json ?: $rawBody,
-    ]);
 
     if ($cache_ttl > 0 && $cache_key) {
       wp_cache_set($cache_key, $out, 'dmn', $cache_ttl);
@@ -172,21 +143,16 @@ class DmnClient
   {
     $id = trim((string)Settings::get_app_id());
     $key = trim((string)Settings::get_api_key());
+    // DMN v4 expects APP_ID:API_KEY in Authorization
     return "{$id}:{$key}";
   }
 
   private function user_agent(): string
   {
     $site = parse_url(get_site_url(), PHP_URL_HOST) ?: 'unknown-host';
+    // Fix: reference the correct constant name
     $ver = defined('DMN_PLUGIN_VERSION') ? DMN_BP_VER : 'dev';
     return "DMN-Booking-Plugin/{$ver} (+{$site})";
-  }
-
-  private function log_debug(string $tag, array $context): void
-  {
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-      error_log('[DMN ' . $tag . '] ' . wp_json_encode($context));
-    }
   }
 
   /**

@@ -1,0 +1,26 @@
+.step {
+  padding: 0 var(--universal-space) var(--universal-space-2) var(--universal-space);
+
+  &__error {
+    display: inline-block;
+    color: var(--c-error);
+    background: color-mix(in oklab, var(--c-error) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--c-error) 40%, transparent);
+    padding: var(--universal-space);
+  }
+
+  &__label {
+    margin: 0 0 var(--universal-space) 0;
+  }
+
+  &--party-size {
+    display: grid;
+    align-items: center;
+    gap: var(--universal-space);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .step__label {
+      margin: 0;
+    }
+  }
+}

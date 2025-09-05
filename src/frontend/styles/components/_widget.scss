@@ -1,0 +1,11 @@
+@import "../../../styles/mixins";
+
+
+.dmn-widget {
+  background-color: var(--c-black);
+  color: var(--c-white);
+  padding: var(--universal-space);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+

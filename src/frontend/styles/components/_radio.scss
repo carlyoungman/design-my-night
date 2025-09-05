@@ -1,0 +1,66 @@
+@import "../../../styles/mixins";
+
+/* ============ Container ============ */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space);
+}
+
+/* ============ Item label ============ */
+.radio {
+  position: relative;
+  width: 100%;
+  color: var(--c-white);
+  border-radius: 12px;
+  transition: var(--transition);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &__radio {
+    @include button-reset;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--universal-space);
+    width: 100%;
+    padding: var(--universal-space);
+    cursor: pointer;
+    border: 1px solid var(--c-white);
+    background: transparent;
+    transition: var(--transition);
+
+    &[aria-disabled='true'],
+    &[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Focus ring */
+    &:focus-visible {
+      outline: 0;
+      border-color: var(--c-theme-primary);
+    }
+
+    /* Hover ring via parent hover */
+    .radio:hover & {
+      border-color: color-mix(in oklab, var(--c-white) 75%, transparent);
+    }
+
+    /* ---------- Active / Roving focus ---------- */
+    &[data-composite-item-active] {
+      border-color: var(--c-theme-primary);
+    }
+
+    /* ---------- Checked (selected) ---------- */
+    &[data-state='checked'] {
+      border-color: var(--c-theme-primary);
+    }
+  }
+}

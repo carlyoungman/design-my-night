@@ -1,0 +1,45 @@
+.timepicker {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  &__decrement,
+  &__increment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--universal-space);
+    border: 1px solid var(--c-white);
+    background: var(--c-theme-primary);
+    color: var(--c-black);
+    cursor: pointer;
+    user-select: none;
+    transition: var(--transition);
+    height: 50px;
+
+    &:hover {
+      background: var(--c-white);
+    }
+  }
+
+  &__input {
+    flex: 1;
+    text-align: center;
+    padding: var(--universal-space);
+    max-width: 6rem;
+    border: 1px solid var(--c-white);
+    background: none;
+    color: var(--c-white);
+    height: 50px;
+
+    &:focus, &:hover {
+      background: rgba(244, 244, 244, 0.1);
+    }
+  }
+}

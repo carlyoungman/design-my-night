@@ -1,5 +1,19 @@
+@import '../../styles/variables';
+@import '../../styles/breakpoints';
+
+
 .dmn-admin {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+
+  &__grid {
+    display: grid;
+    gap: var(--universal-space-2);
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    @include large-screen-min {
+      grid-template-columns:  1fr 30%;
+    }
+  }
+
 
   .card {
     background: #fff;
@@ -11,8 +25,7 @@
 
   .grid {
     display: grid;
-    gap: 12px;
-    grid-template-columns: 1fr 1fr;
+    gap: var(--universal-space);
   }
 
   .grid label {
@@ -56,10 +69,5 @@
     color: #b00020;
     margin-top: 8px;
   }
-
-  @media (max-width: 980px) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
-  }
+  
 }

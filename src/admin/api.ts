@@ -1,5 +1,39 @@
 const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
+type FetchOpts = { method?: string; body?: any };
 
+/**
+ * Performs a fetch request to the WordPress REST API using the provided path and options.
+ *
+ * @param path - The API endpoint path to request.
+ * @param opts - Optional fetch options including method and body.
+ * @returns A promise resolving to the parsed JSON response.
+ * @throws If the response is not OK, throws an error with the response message or HTTP status.
+ */
+function wpFetch(path: string, opts: FetchOpts = {}) {
+  const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
+  return fetch(`${restUrl}${path}`, {
+    method: opts.method || 'GET',
+    headers: {
+      'X-WP-Nonce': nonce,
+      'Content-Type': 'application/json',
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  }).then(async (r) => {
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
+    return json;
+  });
+}
+
+/**
+ * Performs a fetch request to the backend REST API and parses the JSON response.
+ *
+ * @template T - The expected response type.
+ * @param path - The API endpoint path to request.
+ * @param init - Optional fetch initialization options.
+ * @returns A promise resolving to the parsed JSON response of type T.
+ * @throws If the response is not OK, throws an error with the HTTP status.
+ */
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(restUrl + path, {
     ...init,
@@ -10,6 +44,12 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+/**
+ * Retrieves the current plugin settings from the backend.
+ *
+ * @returns A promise resolving to an object containing:
+ *   app_id, api_key_mask, environment, venue_group, debug_mode, and has_key.
+ */
 export function getSettings() {
   return json<{
     app_id: string;
@@ -20,6 +60,14 @@ export function getSettings() {
     has_key: boolean;
   }>('settings');
 }
+
+/**
+ * Saves the provided settings to the backend via a POST request.
+ *
+ * @param payload - An object containing optional settings fields to update:
+ *   app_id, api_key, environment, venue_group, debug_mode.
+ * @returns A promise resolving to the updated settings response from the backend.
+ */
 export function saveSettings(payload: {
   app_id?: string;
   api_key?: string;
@@ -35,6 +83,13 @@ export function saveSettings(payload: {
   }>('settings', { method: 'POST', body: JSON.stringify(payload) });
 }
 
+/**
+ * Tests the API connection to the backend.
+ * Optionally enables debug mode to receive additional debug information.
+ *
+ * @param debug - If true, includes debug information in the response.
+ * @returns A promise resolving to the connection test result and optional debug details.
+ */
 export function testConnection(debug = false) {
   const path = debug ? 'test?debug=1' : 'test';
   return json<{
@@ -58,4 +113,90 @@ export function testConnection(debug = false) {
       sample_count?: number;
     };
   }>(path);
+}
+
+/**
+ * Represents a venue in the admin API.
+ *
+ * @property id - The unique identifier for the venue.
+ * @property title - The display name of the venue.
+ * @property dmn_id - The DMN system identifier for the venue.
+ */
+export type AdminVenue = { id: number; title: string; dmn_id: string };
+
+/**
+ * Represents an activity associated with a venue in the admin API.
+ *
+ * @property id - The unique identifier for the activity.
+ * @property dmn_type_id - The DMN system type identifier for the activity.
+ * @property name - The name of the activity.
+ * @property description - Optional description of the activity.
+ * @property priceText - Optional price information as text.
+ * @property image_id - Optional image identifier.
+ * @property image_url - Optional image URL.
+ * @property gallery_ids - Optional array of gallery image IDs.
+ */
+
+export type AdminActivity = {
+  id: number;
+  dmn_type_id: string;
+  name: string;
+  description?: string;
+  priceText?: string;
+  image_id?: number | null;
+  image_url?: string | null;
+  gallery_ids?: number[];
+};
+
+/**
+ * Retrieves the list of venues from the admin API.
+ *
+ * @returns A promise resolving to an object containing an array of venues.
+ */
+export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
+  return wpFetch('dmn/v1/admin/venues');
+}
+
+/**
+ * Synchronizes venues with the backend and returns the count of updated venues.
+ *
+ * @returns A promise resolving to an object with ok status and count of venues.
+ */
+export async function adminSyncVenues(): Promise<{ ok: true; count: number }> {
+  return wpFetch('dmn/v1/admin/sync/venues', { method: 'POST' });
+}
+
+/**
+ * Synchronizes all activity types with the backend and returns the count of updated types.
+ *
+ * @returns A promise resolving to an object with ok status and count of types.
+ */
+export async function adminSyncTypesAll(): Promise<{ ok: true; count: number }> {
+  return wpFetch('dmn/v1/admin/sync/types', { method: 'POST' });
+}
+
+/**
+ * Retrieves the list of activities for a specific venue from the admin API.
+ *
+ * @param venuePostId - The unique identifier of the venue.
+ * @returns A promise resolving to an object containing an array of activities.
+ */
+export async function adminListActivities(
+  venuePostId: number,
+): Promise<{ activities: AdminActivity[] }> {
+  return wpFetch(`dmn/v1/admin/venues/${venuePostId}/activities`);
+}
+
+/**
+ * Saves updates to a specific activity in the admin API.
+ *
+ * @param activityPostId - The unique identifier of the activity.
+ * @param patch - Partial activity data to update.
+ * @returns A promise resolving to an object with ok status.
+ */
+export async function adminSaveActivity(
+  activityPostId: number,
+  patch: Partial<AdminActivity>,
+): Promise<{ ok: true }> {
+  return wpFetch(`dmn/v1/admin/activities/${activityPostId}`, { method: 'POST', body: patch });
 }
