@@ -14,6 +14,7 @@ export const darkTheme = createTheme({
   },
   components: {
     // Inline calendar wrapper
+    // @ts-ignore
     MuiDateCalendar: {
       styleOverrides: {
         root: {

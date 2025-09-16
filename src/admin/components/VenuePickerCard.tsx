@@ -63,7 +63,7 @@ export default function VenuePickerCard() {
       )}
 
       <p className="dmn-admin__help">
-        This selection applies across Activities and Add-on Packages.
+        Note: This selection applies across Activities and Add-on Packages.
       </p>
     </section>
   );

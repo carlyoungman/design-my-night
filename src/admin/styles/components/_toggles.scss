@@ -1,0 +1,21 @@
+.MuiFormControlLabel-root {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+
+  > span {
+    margin: 0;
+  }
+
+  .css-tj8d99-MuiSwitch-track {
+    display: block;
+  }
+}
+
+.css-rehya9-MuiSwitch-root {
+  width: var(--universal-space-4);
+}
+
+.css-aqlqb4-MuiButtonBase-root-MuiSwitchBase-root-MuiSwitch-switchBase.Mui-checked {
+  color: var(--c-blue)
+}

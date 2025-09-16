@@ -14,18 +14,27 @@
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
   --c-white: #ffffff;
-  --c-off-black: #1D2327;
+  --c-off-black: #040403;
   --c-black: #000000;
-  --c-blue: #2271B1;
-  --c-green: #3e942c;
-  --c-off-white: #bdbdbd;
-  --c-red: #b02929;
+  --c-blue: #3A5683;
+  --c-green: #379f70;
+  --c-off-white: #d9d9d9;
+  --c-red: #bb3d3d;
 }
 
 
 .dmn-admin {
+  * {
+    box-sizing: border-box;
+  }
+
+  .MuiBox-root.css-19kzrtu {
+    padding: var(--universal-space) 0;
+  }
+
   @import './components/buttons';
   @import './components/dmn-admin';
   @import './components/forms';
   @import './components/table';
+  @import './components/toggles';
 }

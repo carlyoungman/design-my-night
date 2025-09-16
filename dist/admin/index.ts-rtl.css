@@ -17,14 +17,20 @@
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
   --c-white: #ffffff;
-  --c-off-black: #1D2327;
+  --c-off-black: #040403;
   --c-black: #000000;
-  --c-blue: #2271B1;
-  --c-green: #3e942c;
-  --c-off-white: #bdbdbd;
-  --c-red: #b02929;
+  --c-blue: #3A5683;
+  --c-green: #379f70;
+  --c-off-white: #d9d9d9;
+  --c-red: #bb3d3d;
 }
 
+.dmn-admin * {
+  box-sizing: border-box;
+}
+.dmn-admin .MuiBox-root.css-19kzrtu {
+  padding: var(--universal-space) 0;
+}
 .dmn-admin .actions {
   display: flex;
   flex-wrap: wrap;
@@ -51,12 +57,13 @@
   background: var(--c-blue);
   color: var(--c-white);
   box-shadow: var(--box-shadow-1);
+  text-transform: capitalize;
 }
 .dmn-admin .button--sub {
   background: var(--c-off-black);
 }
 .dmn-admin .button--action {
-  background: var(--c-blue);
+  background: var(--c-green);
 }
 .dmn-admin .button--remove {
   background: var(--c-red);
@@ -64,6 +71,9 @@
 .dmn-admin .button:hover {
   background: var(--c-black);
   color: var(--c-white);
+}
+.dmn-admin .button[disabled] {
+  border: 1px dotted var(--c-black);
 }
 .dmn-admin .dmn-admin__help {
   opacity: 0.7;
@@ -125,6 +135,14 @@
 .dmn-admin .dmn-admin__header__ok {
   color: var(--c-green);
   margin: 0;
+}
+.dmn-admin .dmn-admin__button-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--universal-space);
+  margin-top: var(--universal-space-2);
 }
 .dmn-admin select, .dmn-admin input:not([type=checkbox]) {
   height: 50px;
@@ -194,4 +212,27 @@
 }
 .dmn-admin .table__image-picker__btn {
   flex: 1;
+}
+.dmn-admin .table__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space);
+  align-items: center;
+}
+.dmn-admin .MuiFormControlLabel-root {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.dmn-admin .MuiFormControlLabel-root > span {
+  margin: 0;
+}
+.dmn-admin .MuiFormControlLabel-root .css-tj8d99-MuiSwitch-track {
+  display: block;
+}
+.dmn-admin .css-rehya9-MuiSwitch-root {
+  width: var(--universal-space-4);
+}
+.dmn-admin .css-aqlqb4-MuiButtonBase-root-MuiSwitchBase-root-MuiSwitch-switchBase.Mui-checked {
+  color: var(--c-blue);
 }

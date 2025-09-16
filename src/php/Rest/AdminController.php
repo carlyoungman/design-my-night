@@ -95,6 +95,34 @@ class AdminController
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_all'],
     ]);
+
+    // GET /wp-json/dmn/v1/admin/packages?venue_id=XXX&search=foo
+    register_rest_route('dmn/v1/admin', '/packages', [
+      'methods' => 'GET',
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_list_packages'],
+      'args' => [
+        'venue_id' => ['type' => 'string', 'required' => false],
+        'search' => ['type' => 'string', 'required' => false],
+      ],
+    ]);
+
+    // POST /wp-json/dmn/v1/admin/packages  (bulk upsert)
+    register_rest_route('dmn/v1/admin', '/packages', [
+      'methods' => 'POST',
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_packages_bulk_save'],
+    ]);
+
+    // DELETE /wp-json/dmn/v1/admin/packages/{id}
+    register_rest_route('dmn/v1/admin', '/packages/(?P<id>\d+)', [
+      'methods' => 'DELETE',
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_delete_package'],
+      'args' => ['id' => ['type' => 'integer', 'required' => true]],
+    ]);
+
+
   }
 
   // -------------------------
@@ -372,14 +400,12 @@ class AdminController
       $venuePostId = (int)$venuePostId;
       $ext_id = (string)get_post_meta($venuePostId, 'dmn_venue_id', true);
       if (!$ext_id) continue;
-
-      // Any reasonable date/party-size works here; we just need type suggestions
+      
       $payload = [
         'num_people' => 2,
         'date' => gmdate('Y-m-d'),
       ];
 
-      // ✅ venue-scoped + fields=type (faster + recommended)
       $resp = $client->request(
         'POST',
         "/venues/{$ext_id}/booking-availability",
@@ -447,5 +473,133 @@ class AdminController
       'duration_ms' => $ms,
       'message' => "Imported/updated {$venues_count} venues and {$types_count} activity types.",
     ], 200);
+  }
+
+  /* -------------------------
+ * Admin Packages — List
+ * ------------------------- */
+  public function dmn_admin_list_packages(WP_REST_Request $r): WP_REST_Response
+  {
+    $venueId = (string)($r->get_param('venue_id') ?? '');
+    $search = (string)($r->get_param('search') ?? '');
+
+    $args = [
+      'post_type' => 'dmn_package',
+      'post_status' => ['publish', 'draft'],
+      's' => $search ?: '',
+      'posts_per_page' => 200,
+      'no_found_rows' => true,
+      'orderby' => 'date',
+      'order' => 'DESC',
+    ];
+
+    if ($venueId !== '') {
+      $args['meta_query'] = [
+        [
+          'key' => '_dmn_pkg_venue_ids',
+          'value' => '"' . $venueId . '"', // match serialized array containing venueId
+          'compare' => 'LIKE',
+        ],
+      ];
+    }
+
+    $posts = get_posts($args);
+    $out = array_map([$this, 'dmn_format_package_admin'], $posts);
+
+    return new WP_REST_Response(['packages' => $out], 200);
+  }
+
+  /* -------------------------
+   * Admin Packages — Bulk Save
+   * Body: { packages: [ {id?, name, description?, priceText?, visible?, image_id?, venueIds?: string[]} ] }
+   * ------------------------- */
+  public function dmn_admin_packages_bulk_save(WP_REST_Request $r): WP_REST_Response
+  {
+    $body = $r->get_json_params();
+    $items = is_array($body['packages'] ?? null) ? $body['packages'] : [];
+
+    $updated = [];
+
+    foreach ($items as $it) {
+      $id = isset($it['id']) ? (int)$it['id'] : 0;
+      $name = sanitize_text_field($it['name'] ?? '');
+      $desc = wp_kses_post($it['description'] ?? '');
+      $priceText = sanitize_text_field($it['priceText'] ?? '');
+      $visible = !empty($it['visible']);
+      $imageId = isset($it['image_id']) ? (int)$it['image_id'] : 0;
+      $venueIds = array_values(array_filter(array_map('sanitize_text_field', (array)($it['venueIds'] ?? []))));
+
+      $postarr = [
+        'ID' => $id,
+        'post_type' => 'dmn_package',
+        'post_title' => $name ?: __('Untitled', 'dmn'),
+        'post_content' => $desc,
+        'post_status' => $visible ? 'publish' : 'draft',
+      ];
+
+      if ($id) {
+        $id = wp_update_post($postarr, true);
+      } else {
+        $id = wp_insert_post($postarr, true);
+      }
+
+      if (is_wp_error($id)) {
+        return new WP_REST_Response(['error' => $id->get_error_message()], 400);
+      }
+
+      update_post_meta($id, '_dmn_pkg_price_text', $priceText);
+      update_post_meta($id, '_dmn_pkg_visible', (bool)$visible);
+      update_post_meta($id, '_dmn_pkg_venue_ids', $venueIds);
+
+      if ($imageId > 0) {
+        set_post_thumbnail($id, $imageId);
+      }
+
+      $updated[] = $this->dmn_format_package_admin(get_post($id));
+    }
+
+    return new WP_REST_Response(['packages' => $updated], 200);
+  }
+
+  /* -------------------------
+   * Admin Packages — Delete
+   * ------------------------- */
+
+  private function dmn_format_package_admin(WP_Post $p): array
+  {
+    $price = (string)get_post_meta($p->ID, '_dmn_pkg_price_text', true);
+    $visible = (bool)get_post_meta($p->ID, '_dmn_pkg_visible', true);
+    $venueIds = (array)get_post_meta($p->ID, '_dmn_pkg_venue_ids', true);
+    $imgId = (int)get_post_thumbnail_id($p->ID);
+    $imgUrl = $imgId ? wp_get_attachment_image_url($imgId, 'large') : null;
+
+    return [
+      'id' => (int)$p->ID,
+      'name' => (string)get_the_title($p),
+      'description' => (string)$p->post_content,
+      'image_id' => $imgId ?: null,
+      'image_url' => $imgUrl,
+      'priceText' => $price ?: null,
+      'visible' => $p->post_status === 'publish' ? (bool)$visible : false,
+      'venueIds' => array_values(array_map('strval', $venueIds)),
+    ];
+  }
+
+  /* -------------------------
+   * Helper: normalize a package row for admin UI
+   * ------------------------- */
+
+  public function dmn_admin_delete_package(WP_REST_Request $r): WP_REST_Response
+  {
+    $id = (int)$r['id'];
+    if ($id <= 0) {
+      return new WP_REST_Response(['error' => 'Invalid ID'], 400);
+    }
+    $p = get_post($id);
+    if (!$p || $p->post_type !== 'dmn_package') {
+      return new WP_REST_Response(['error' => 'Not found'], 404);
+    }
+    wp_delete_post($id, true);
+    return new WP_REST_Response(['deleted' => $id], 200);
   }
 }

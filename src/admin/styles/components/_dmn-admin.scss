@@ -65,4 +65,13 @@
       margin: 0;
     }
   }
+
+  &__button-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--universal-space);
+    margin-top: var(--universal-space-2);
+  }
 }

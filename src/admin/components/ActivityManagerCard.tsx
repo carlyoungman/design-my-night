@@ -145,8 +145,12 @@ export default function ActivityManagerCard() {
             </p>
           )}
           {ok && <p className="dmn-admin__header__ok">{ok}</p>}
-          <button className="button" onClick={saveAll} disabled={saving || dirty.size === 0}>
-            {saving ? 'Saving…' : 'Save all changes'}
+          <button
+            className="button button--action"
+            onClick={saveAll}
+            disabled={saving || dirty.size === 0}
+          >
+            {saving ? 'Saving…' : 'Save activity changes'}
           </button>
         </span>
       </div>
@@ -205,11 +209,11 @@ export default function ActivityManagerCard() {
                     </button>
                     {r.image_id ? (
                       <button
-                        className="table__image-picker__btn  button button--remove"
+                        className="table__image-picker__btn  button button--sub"
                         type="button"
                         onClick={() => clearImage(r.id)}
                       >
-                        Remove
+                        Clear image
                       </button>
                     ) : null}
                   </div>

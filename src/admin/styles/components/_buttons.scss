@@ -13,13 +13,14 @@
   background: var(--c-blue);
   color: var(--c-white);
   box-shadow: var(--box-shadow-1);
+  text-transform: capitalize;
 
   &--sub {
     background: var(--c-off-black);
   }
 
   &--action {
-    background: var(--c-blue);
+    background: var(--c-green);
   }
 
   &--remove {
@@ -30,5 +31,8 @@
     background: var(--c-black);
     color: var(--c-white);
   }
-  
+
+  &[disabled] {
+    border: 1px dotted var(--c-black);
+  }
 }

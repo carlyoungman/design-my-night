@@ -37635,6 +37635,7 @@ const darkTheme = (0,_mui_material__WEBPACK_IMPORTED_MODULE_0__["default"])({
   },
   components: {
     // Inline calendar wrapper
+    // @ts-ignore
     MuiDateCalendar: {
       styleOverrides: {
         root: {

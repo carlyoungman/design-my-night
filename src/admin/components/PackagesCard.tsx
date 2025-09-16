@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import { adminBulkSavePackages, adminDeletePackage, adminGetPackages } from '../api';
 import type { AdminPackage } from '../../frontend/app/types';
+import { FormControlLabel, FormGroup, Switch } from '@mui/material';
 
 type Busy = false | 'loading' | 'saving' | `delete:${number}`;
 declare const wp: any; // WordPress media
@@ -46,7 +47,7 @@ export default function PackagesCard() {
   const addRow = () => {
     setRows((r) => [
       {
-        name: 'New add-on',
+        name: '',
         description: '',
         priceText: '',
         visible: true,
@@ -136,7 +137,7 @@ export default function PackagesCard() {
   }, [rows, orig]);
 
   return (
-    <section className="dmn-admin__card" style={{ marginTop: 16 }}>
+    <section className="dmn-admin__card">
       <div className="dmn-admin__header">
         <h2 className="dmn-admin__header__headline">Add-on Packages</h2>
         <span className="dmn-admin__header__inner">
@@ -146,15 +147,13 @@ export default function PackagesCard() {
             </p>
           )}
           {ok && <p className="dmn-admin__header__ok">{ok}</p>}
-          <button className="button" onClick={addRow} disabled={!venueId}>
-            + New
-          </button>
+
           <button
-            className="button button-primary"
+            className="button button--action"
             onClick={save}
             disabled={busy === 'saving' || dirtyCount === 0}
           >
-            {busy === 'saving' ? 'Saving…' : 'Save changes'}
+            {busy === 'saving' ? 'Saving…' : 'Save package changes'}
           </button>
         </span>
       </div>
@@ -167,7 +166,6 @@ export default function PackagesCard() {
         </div>
       )}
 
-      {/* list, using the same div-based layout as Activity Manager */}
       {venueId && busy !== 'loading' && rows.length === 0 && <p>No add-ons found.</p>}
 
       {rows.length > 0 && (
@@ -198,14 +196,28 @@ export default function PackagesCard() {
                   />
                 </div>
                 <div className="table__cell">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={!!row.visible}
-                      onChange={(e) => setField(i, 'visible', e.target.checked)}
-                    />{' '}
-                    Visible
-                  </label>
+                  <div className="table__options">
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            defaultChecked
+                            checked={!!row.visible}
+                            onChange={(e) => setField(i, 'visible', e.target.checked)}
+                          />
+                        }
+                        label="Enable package"
+                      />
+                    </FormGroup>
+                    <button
+                      className="button button--remove"
+                      type="button"
+                      onClick={() => del(row)}
+                      disabled={busy === `delete:${row.id}`}
+                    >
+                      Delete package
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -227,22 +239,13 @@ export default function PackagesCard() {
                     </button>
                     {row.image_id ? (
                       <button
-                        className="table__image-picker__btn button button--remove"
+                        className="table__image-picker__btn button button button--sub"
                         type="button"
                         onClick={() => clearImage(i)}
                       >
-                        Remove
+                        Clear image
                       </button>
                     ) : null}
-                    <button
-                      className="table__image-picker__btn button-link-delete"
-                      type="button"
-                      onClick={() => del(row)}
-                      disabled={busy === `delete:${row.id}`}
-                      style={{ marginLeft: 8 }}
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
               </div>
@@ -250,6 +253,11 @@ export default function PackagesCard() {
           ))}
         </div>
       )}
+      <div className="dmn-admin__button-wrapper dmn-admin__button-wrapper--end">
+        <button className="button button--action" onClick={addRow} disabled={!venueId}>
+          + New package
+        </button>
+      </div>
     </section>
   );
 }
