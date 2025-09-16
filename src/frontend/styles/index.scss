@@ -1,5 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
-@import '../../styles/variables';
+
+:root {
+  --border-radius: 15px;
+  --font-base-size: 18px;
+  --font-base-line-height: 1.6;
+  --font-base-font-weight: 400;
+  --font--family: "Michroma";
+  --transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  --universal-space: 15px;
+  --universal-space-2: calc(var(--universal-space) * 2);
+  --universal-space-3: calc(var(--universal-space) * 3);
+  --universal-space-4: calc(var(--universal-space) * 4);
+  --universal-space-half: calc(var(--universal-space) / 2);
+  --c-white: #ffffff;
+  --c-black: #020000;
+  --c-theme-primary: #FF00FF;
+  --c-off-black: #1D2327;
+  --c-dark-blue: #000056;
+  --c-light-blue: #0000FF;
+  --c-error: #FF3B3B;
+  box-sizing: border-box;
+}
 
 
 .dmn-widget-root {
@@ -20,6 +41,8 @@
   @import "components/radio";
   @import "components/select";
   @import "components/steps";
+  @import "components/time";
+  @import "components/type-card";
   @import "components/timepicker";
   @import "components/typography";
   @import "components/widget";

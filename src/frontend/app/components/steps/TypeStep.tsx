@@ -6,22 +6,14 @@ import { useBookingTypes } from '../../hooks/useBookingTypes';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 
-// Use the shape returned by your hook
-type BookingTypeItem = {
-  id: string;
-  name: string;
-  description?: string;
-  priceText?: string;
-};
-
 export function TypeStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const { runAvailability } = useAvailability();
 
   const { types, loading, error } = useBookingTypes({
-    venueId: state.venueId,
-    partySize: state.partySize,
+    venueId: state.venueId ?? null,
+    partySize: state.partySize ?? null,
     enabled: Boolean(state.venueId && state.partySize),
   });
 
@@ -30,7 +22,6 @@ export function TypeStep() {
     if (state.bookingType) {
       dispatch({ type: 'SET_TYPE', value: null });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.venueId]);
 
   // Auto-continue if there’s only one option
@@ -43,7 +34,6 @@ export function TypeStep() {
         await runAvailability();
       })();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.step, types, state.bookingType]);
 
   const captionId = useId();
@@ -55,10 +45,6 @@ export function TypeStep() {
 
       {!loading && !error && (
         <div className="step_field">
-          <p className="step__label" id={captionId}>
-            Choose your Activity
-          </p>
-
           {types.length === 0 && <p>No experiences configured.</p>}
 
           {types.length > 0 && (
@@ -73,17 +59,55 @@ export function TypeStep() {
               }}
               className="radio-group"
             >
-              {types.map((t) => (
-                <label key={t.id} className="radio">
-                  <Radio.Root value={t.id} className="radio__radio" disabled={loading}>
-                    <span className="radio__span">
-                      <strong>{t.name}</strong>
-                      {t.priceText ? ` — ${t.priceText}` : ''}
-                      {t.description ? <em> — {t.description}</em> : ''}
-                    </span>
-                  </Radio.Root>
-                </label>
-              ))}
+              {types.map((t) => {
+                const isDisabled = loading || t.valid === false;
+                return (
+                  <label
+                    key={t.id}
+                    className={`radio${isDisabled ? ' radio--disabled' : ''}`}
+                    data-disabled={isDisabled ? 'true' : 'false'}
+                  >
+                    <Radio.Root
+                      value={t.id}
+                      className="radio__radio"
+                      disabled={isDisabled}
+                      aria-disabled={isDisabled}
+                    >
+                      <div className={`type-card${isDisabled ? ' type-card--disabled' : ''}`}>
+                        {t.image_url && (
+                          <div className="type-card__image-wrapper">
+                            <img src={t.image_url} alt={t.name} className="type-card__image" />
+                          </div>
+                        )}
+
+                        <article className="type-card__article">
+                          {t.name && (
+                            <h6
+                              className="type-card__name"
+                              dangerouslySetInnerHTML={{ __html: t.name }}
+                            />
+                          )}
+                          {t.description && (
+                            <p
+                              className="type-card__description"
+                              dangerouslySetInnerHTML={{ __html: t.description }}
+                            />
+                          )}
+                          <div className="type-card__article-footer">
+                            <h6 className="type-card__price">{t.priceText}</h6>
+                            <span
+                              className={`type-card__button${isDisabled ? ' type-card__button--disabled' : ''}`}
+                              aria-hidden={isDisabled}
+                            >
+                              {isDisabled ? 'Unavailable' : 'Select'}
+                            </span>
+                          </div>
+                        </article>
+                      </div>
+                    </Radio.Root>
+                  </label>
+                );
+              })}
             </RadioGroup>
           )}
         </div>

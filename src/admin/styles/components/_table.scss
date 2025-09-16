@@ -1,0 +1,49 @@
+.table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space-2);
+
+  &__row {
+    display: grid;
+    align-items: start;
+    gap: var(--universal-space-2);
+    grid-template-columns: 1fr 30%;
+    padding-bottom: var(--universal-space-2);
+    border-bottom: 1px solid var(--c-off-white);
+    width: 100%;
+  }
+
+
+  &__label {
+    margin-bottom: var(--universal-space-half);
+  }
+
+  &__left {
+    display: grid;
+    gap: var(--universal-space);
+  }
+
+  &__image-picker {
+    &__image, &__image-preview {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+      margin-bottom: var(--universal-space-half);
+    }
+
+    &__image-preview {
+      background-color: var(--c-off-white);
+    }
+
+    &__button-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--universal-space-half);
+    }
+
+    &__btn {
+      flex: 1;
+    }
+  }
+}

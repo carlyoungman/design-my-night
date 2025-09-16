@@ -1,0 +1,123 @@
+@mixin font-size($min-multiplier, $max-multiplier) {
+  font-size: clamp(
+    calc(var(--font-base-size) * #{$min-multiplier}),
+    calc(1em + 1vw),
+    calc(var(--font-base-size) * #{$max-multiplier})
+  );
+}
+
+
+@mixin headline-settings {
+  font-weight: var(--font-headline-weight);
+  line-height: var(--font--headline-line-height);
+  font-family: var(--font--family), serif;
+  text-wrap: balance;
+}
+
+@mixin base-settings {
+  font-size: 18px;
+  font-weight: var(--font-base-font-weight);
+  line-height: var(--font--base-line-height);
+  font-family: var(--font--family), serif;
+}
+
+@mixin super-size {
+  @include font-size(1.8, 4);
+}
+
+@mixin headline-h1 {
+  @include font-size(1.8, 3.5);
+}
+
+@mixin headline-h2 {
+  @include font-size(1.7, 3);
+}
+
+@mixin headline-h3 {
+  @include font-size(1.6, 2.5);
+}
+
+@mixin headline-h4 {
+  @include font-size(1.4, 1.8);
+}
+
+@mixin headline-h5 {
+  @include font-size(1.2, 1.4);
+}
+
+@mixin headline-h6 {
+  @include font-size(1, 1.1);
+}
+
+@mixin font-large {
+  @include font-size(1, 1.1);
+}
+
+@mixin font-small {
+  @include font-size(0.8, 0.9);
+}
+
+@mixin font-xsmall {
+  @include font-size(0.7, 0.8);
+}
+
+@mixin paragraph-settings {
+  @include base-settings;
+}
+
+
+@mixin button-reset {
+  all: unset;
+  display: inline-block;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none !important;
+  text-align: center;
+  line-height: 1;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+}
+
+@mixin aspect-ratio-1-1 {
+  @include aspect-ratio-settings;
+
+  padding-top: 100%;
+}
+
+@mixin aspect-ratio-16-9 {
+  @include aspect-ratio-settings;
+
+  padding-top: 56.25%;
+}
+
+@mixin aspect-ratio-4-3 {
+  @include aspect-ratio-settings;
+
+  padding-top: 75%;
+}
+
+@mixin aspect-ratio-3-2 {
+  @include aspect-ratio-settings;
+
+  padding-top: 66.66%;
+}
+
+@mixin aspect-ratio-settings {
+  position: relative;
+  img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    object-fit: cover;
+  }
+}

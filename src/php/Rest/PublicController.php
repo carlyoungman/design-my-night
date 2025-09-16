@@ -3,33 +3,62 @@
 namespace DMN\Booking\Rest;
 
 use DMN\Booking\Services\DmnClient;
+use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 
 class PublicController
 {
+  /**
+   * Registers all public REST API routes for the DMN Booking plugin.
+   * Each route is mapped to a callback for handling requests.
+   * This includes endpoints for venues, booking availability, bookings, packages, and booking types.
+   */
   public function register_routes(): void
   {
+    /**
+     * Registers the /venues REST API endpoint for retrieving venue data.
+     *
+     * Method: GET
+     * Callback: PublicController::venues
+     * Permission: Public (no authentication required) */
     register_rest_route('dmn/v1', '/venues', [
       'methods' => 'GET',
       'permission_callback' => '__return_true',
       'callback' => [$this, 'venues'],
     ]);
-
+    /**
+     * Registers the /booking-availability REST API endpoint for retrieving booking slot availability.
+     *
+     * Method: POST
+     * Callback: PublicController::availability
+     * Permission: Public (no authentication required) */
     register_rest_route('dmn/v1', '/booking-availability', [
       'methods' => 'POST',
       'permission_callback' => '__return_true',
       'callback' => [$this, 'availability'],
     ]);
 
-    // Optional for API submission (we’ll default to web redirect in the frontend)
+
+    /**
+     * Registers the /bookings REST API endpoint for creating a new booking via the DMN API.
+     *
+     * Method: POST
+     * Callback: PublicController::create_booking
+     * Permission: Public (no authentication required) */
     register_rest_route('dmn/v1', '/bookings', [
       'methods' => 'POST',
       'permission_callback' => '__return_true',
       'callback' => [$this, 'create_booking'],
     ]);
 
+    /**
+     * Registers the /packages REST API endpoint for retrieving packages associated with a specific venue.
+     *
+     * Method: GET
+     * Callback: Anonymous function querying dmn_package CPTs by venue_id
+     * Permission: Public (no authentication required) */
     register_rest_route('dmn/v1', '/packages', [
       'methods' => 'GET',
       'callback' => function (WP_REST_Request $req) {
@@ -57,27 +86,12 @@ class PublicController
       'permission_callback' => '__return_true',
     ]);
 
-    register_rest_route('dmn/v1', '/booking-types', [
-      'methods' => 'GET',
-      'callback' => function (WP_REST_Request $req) {
-        $venue_id = sanitize_text_field($req->get_param('venue_id'));
-        // Pull from ACF options / CPT / static config as you prefer:
-        $types = get_option('dmn_booking_types_' . $venue_id, []);
-        // Expected format: [ [id, name, description, priceText], ... ]
-        $data = array_map(function ($t) {
-          return [
-            'id' => (string)($t['id'] ?? ''),
-            'name' => (string)($t['name'] ?? ''),
-            'description' => (string)($t['description'] ?? ''),
-            'priceText' => (string)($t['priceText'] ?? ''),
-          ];
-        }, is_array($types) ? $types : []);
-        return new WP_REST_Response(['data' => $data], 200);
-      },
-      'permission_callback' => '__return_true',
-    ]);
-
-    // Simple proxy that creates a booking via DMN and returns full debug payload
+    /**
+     * Registers the /create-booking REST API endpoint for creating a booking using the DMN API via an inline callback.
+     *
+     * Method: POST
+     * Callback: Anonymous function calling DmnClient::create_booking
+     * Permission: Public (no authentication required) */
     register_rest_route('dmn/v1', '/create-booking', [
       'methods' => 'POST',
       'callback' => function (WP_REST_Request $req) {
@@ -90,13 +104,45 @@ class PublicController
           'data' => $resp['data'] ?? null,
           'status' => $resp['status'] ?? 0,
           'error' => $resp['error'] ?? null,
-          'debug' => $resp, // <-- full request/response as seen by the client
+          'debug' => $resp,
         ], $resp['ok'] ? 200 : ($resp['status'] ?: 500));
       },
       'permission_callback' => '__return_true',
     ]);
+
+    /**
+     * Registers the /booking-types REST API endpoint for retrieving available booking types for a specific venue.
+     *
+     * Method: GET
+     * Callback: PublicController::get_booking_types
+     * Permission: Public (no authentication required)
+     * Args:
+     * venue_id (string, required)
+     * date (string, optional)
+     * num_people (integer, optional)
+     * party_size (integer, optional) */
+    register_rest_route('dmn/v1', '/booking-types', [
+      'methods' => 'GET',
+      'permission_callback' => '__return_true',
+      'callback' => [$this, 'get_booking_types'],
+      'args' => [
+        'venue_id' => ['type' => 'string', 'required' => true],
+        'date' => ['type' => 'string', 'required' => false],
+        'num_people' => ['type' => 'integer', 'required' => false],
+        'party_size' => ['type' => 'integer', 'required' => false],
+      ],
+    ]);
   }
 
+  /**
+   * Handles the creation of a booking via the DMN API.
+   *
+   * Extracts allowed booking fields from the request payload, sends them to the DMN API,
+   * and returns the API response as a WP_REST_Response.
+   *
+   * @param WP_REST_Request $req The REST request containing booking data.
+   * @return WP_REST_Response The response from the DMN API, including debug info.
+   */
   public function create_booking(WP_REST_Request $req): WP_REST_Response
   {
     $p = (array)($req->get_json_params() ?? []);
@@ -125,6 +171,12 @@ class PublicController
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
 
+  /**
+   * Retrieves a list of venues from the DMN API, optionally filtered by venue group.
+   *
+   * @param WP_REST_Request $req The REST request containing optional query parameters.
+   * @return WP_REST_Response The response with venue data, status, error, and debug info.
+   */
   public function venues(WP_REST_Request $req): WP_REST_Response
   {
     $query = [];
@@ -145,6 +197,15 @@ class PublicController
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
 
+  /**
+   * Retrieves booking availability for a given venue from the DMN API.
+   *
+   * Validates the required `venue_id`, builds the request payload from provided parameters,
+   * and returns available booking slots, validation info, and debug data.
+   *
+   * @param WP_REST_Request $req The REST request containing booking search parameters.
+   * @return WP_REST_Response The response with availability data, status, error, validation, and debug info.
+   */
   public function availability(WP_REST_Request $req): WP_REST_Response
   {
     $p = (array)($req->get_json_params() ?? []);
@@ -182,4 +243,168 @@ class PublicController
       'debug' => $res, // include full debug blob
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
+
+
+  /**
+   * Retrieves available booking types for a given venue by merging DMN API suggestions with WordPress-configured activities.
+   *
+   * Fetches suggested booking types from the DMN API and overlays them with local activity data configured in WordPress,
+   * including additional metadata such as description, price text, and images. Falls back to local configuration if the API returns no suggestions.
+   *
+   * @param WP_REST_Request $r The REST request containing venue and optional filter parameters.
+   * @return WP_REST_Response The response with merged booking type data.
+   */
+  /**
+   * Retrieves available booking types for a given venue by merging DMN API suggestions with WordPress-configured activities.
+   *
+   * I now preserve DMN's `auto confirmable` flag on each type so the front-end can check/label/sort accordingly.
+   *
+   * @param WP_REST_Request $r The REST request containing venue and optional filter parameters.
+   * @return WP_REST_Response The response with merged booking type data.
+   */
+  function get_booking_types(WP_REST_Request $r): WP_REST_Response
+  {
+    $venueExtId = sanitize_text_field((string)$r->get_param('venue_id'));
+    if (!$venueExtId) {
+      return new WP_REST_Response(['data' => [], 'reason' => 'missing_venue_id'], 200);
+    }
+
+    $date = $r->get_param('date') ?: gmdate('Y-m-d');
+    // allow either num_people or party_size
+    $numPeople = (int)($r->get_param('num_people') ?: $r->get_param('party_size') ?: 2);
+
+    // 1) DMN suggestions (venue-scoped + fields=type)
+    $client = new DmnClient();
+    $payload = ['num_people' => $numPeople, 'date' => $date];
+
+    $dmnResp = $client->request(
+      'POST',
+      "/venues/{$venueExtId}/booking-availability",
+      ['fields' => 'type'],
+      $payload
+    );
+
+    // Use `valid` + `message` from DMN instead of `auto confirmable`
+    $suggested = []; // [typeId => ['id','name','valid','message']]
+    if (!empty($dmnResp['ok'])) {
+      $data = $dmnResp['data'] ?? [];
+      $validation = $data['payload']['validation'] ?? null;
+      $sv = $validation['type']['suggestedValues'] ?? [];
+      if (is_array($sv)) {
+        foreach ($sv as $item) {
+          // supports { value:{id,name,...}, valid, message } OR {id,name} OR "id"
+          $v = (is_array($item) && isset($item['value'])) ? $item['value'] : $item;
+
+          $id = is_array($v) ? (string)($v['id'] ?? '') : (string)$v;
+          if (!$id) continue;
+
+          $name = is_array($v) ? (string)($v['name'] ?? $id) : $id;
+          $valid = is_array($item) && array_key_exists('valid', $item) ? (bool)$item['valid'] : null;
+          $message = is_array($item) && array_key_exists('message', $item) ? (string)($item['message'] ?? '') : null;
+
+          $suggested[$id] = [
+            'id' => $id,
+            'name' => $name,
+            'valid' => $valid,
+            'message' => $message,
+          ];
+        }
+      }
+    }
+
+    // 2) WP-configured activities under the matching venue post
+    $venuePosts = get_posts([
+      'post_type' => 'dmn_venue',
+      'numberposts' => 1,
+      'fields' => 'ids',
+      'meta_key' => 'dmn_venue_id',
+      'meta_value' => $venueExtId,
+    ]);
+    $configuredById = [];
+
+    if ($venuePosts) {
+      $venuePostId = (int)$venuePosts[0];
+      $acts = get_posts([
+        'post_type' => 'dmn_activity',
+        'post_parent' => $venuePostId,
+        'numberposts' => 100,
+        'orderby' => 'menu_order title',
+        'order' => 'ASC',
+      ]);
+
+      foreach ($acts as $p) {
+        /** @var WP_Post $p */
+        $typeId = (string)get_post_meta($p->ID, 'dmn_type_id', true);
+        if (!$typeId) continue;
+
+        $imgId = (int)get_post_thumbnail_id($p->ID);
+
+        $configuredById[$typeId] = [
+          'id' => $typeId,
+          'name' => get_the_title($p->ID),
+          'description' => (string)get_post_meta($p->ID, 'short_description', true),
+          'priceText' => (string)get_post_meta($p->ID, 'price_text', true),
+          'image_id' => $imgId ?: null,
+          'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
+        ];
+      }
+    }
+
+    // 3) Merge DMN + WP
+    $out = [];
+    if (!empty($suggested)) {
+      foreach ($suggested as $id => $base) {
+        $conf = $configuredById[$id] ?? null;
+
+
+        $valid = array_key_exists('valid', $base) ? $base['valid'] : null;
+        $msg = array_key_exists('message', $base) ? ($base['message'] ?? '') : '';
+
+        // If invalid and DMN provided a message → show that message in place of WP description
+        $description = ($valid === false && $msg) ? $msg : ($conf['description'] ?? '');
+
+        $out[] = [
+          'id' => $id,
+          'name' => $conf['name'] ?? $base['name'],
+          'description' => $description,
+          'priceText' => $conf['priceText'] ?? '',
+          'image_id' => $conf['image_id'] ?? null,
+          'image_url' => $conf['image_url'] ?? null,
+          'valid' => $valid,
+          'message' => $msg ?: null,
+        ];
+      }
+    } else {
+      // fallback: configured only
+      foreach ($configuredById as $conf) {
+        $out[] = [
+          'id' => $conf['id'],
+          'name' => $conf['name'],
+          'description' => $conf['description'],
+          'priceText' => $conf['priceText'],
+          'image_id' => $conf['image_id'],
+          'image_url' => $conf['image_url'],
+          'valid' => null,
+          'message' => null,
+        ];
+      }
+    }
+
+    // Sort: invalid (valid === false) to the end; A–Z within group
+    usort($out, static function (array $a, array $b): int {
+      $aInvalid = array_key_exists('valid', $a) && $a['valid'] === false;
+      $bInvalid = array_key_exists('valid', $b) && $b['valid'] === false;
+      if ($aInvalid !== $bInvalid) return $aInvalid ? 1 : -1;
+
+      $an = (string)($a['name'] ?? '');
+      $bn = (string)($b['name'] ?? '');
+      $cmp = strcasecmp($an, $bn);
+      if ($cmp !== 0) return $cmp;
+
+      return strcasecmp((string)($a['id'] ?? ''), (string)($b['id'] ?? ''));
+    });
+
+    return new WP_REST_Response(['data' => $out], 200);
+  }
+
 }

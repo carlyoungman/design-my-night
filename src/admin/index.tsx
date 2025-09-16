@@ -15,11 +15,12 @@ function App() {
   return (
     <div className="dmn-admin">
       <div className="dmn-admin__grid">
-        <div className="dmn-admin__main"></div>
+        <div className="dmn-admin__main">
+          <ActivityManagerCard />
+        </div>
         <div className="dmn-admin__side">
           <SettingsCard />
           <DataSyncCard />
-          <ActivityManagerCard />
         </div>
       </div>
     </div>

@@ -77,8 +77,8 @@ export const initialState: State = {
 
 // ---- Actions ----
 export type Action =
-  | { type: 'SET_VENUE'; id: string | null }
   | { type: 'SET_PARTY_SIZE'; size: number } // size only
+  | { type: 'SET_VENUE'; id: string | null }
   | { type: 'SET_DATE'; date: string | null } // date only
   | { type: 'SET_TYPE'; value: string | null }
   | { type: 'SET_TIME'; value: string | null }

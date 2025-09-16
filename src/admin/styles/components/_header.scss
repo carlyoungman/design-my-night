@@ -1,0 +1,30 @@
+.dmn-admin {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--universal-space-2);
+    padding: var(--universal-space) 0;
+    background: var(--c-white);
+    position: sticky;
+    top: var(--universal-space-2);
+
+    &__inner {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--universal-space-2);
+
+    }
+
+    &__dirty {
+      color: var(--c-red);
+      margin: 0;
+    }
+
+    &__ok {
+      color: var(--c-green);
+      margin: 0;
+    }
+  }
+}

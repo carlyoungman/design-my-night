@@ -9,20 +9,21 @@ type FetchOpts = { method?: string; body?: any };
  * @returns A promise resolving to the parsed JSON response.
  * @throws If the response is not OK, throws an error with the response message or HTTP status.
  */
-function wpFetch(path: string, opts: FetchOpts = {}) {
+async function wpFetch(path: string, opts: FetchOpts = {}) {
   const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
-  return fetch(`${restUrl}${path}`, {
+  const base = restUrl.endsWith('/') ? restUrl : restUrl + '/';
+  const url = path.startsWith('http') ? path : base + path.replace(/^\//, ''); // strip any leading slash on path
+  const r = await fetch(url, {
     method: opts.method || 'GET',
     headers: {
       'X-WP-Nonce': nonce,
       'Content-Type': 'application/json',
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
-  }).then(async (r) => {
-    const json = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
-    return json;
   });
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
+  return await json;
 }
 
 /**
@@ -154,7 +155,7 @@ export type AdminActivity = {
  * @returns A promise resolving to an object containing an array of venues.
  */
 export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
-  return wpFetch('dmn/v1/admin/venues');
+  return wpFetch('venues');
 }
 
 /**
@@ -163,7 +164,7 @@ export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
  * @returns A promise resolving to an object with ok status and count of venues.
  */
 export async function adminSyncVenues(): Promise<{ ok: true; count: number }> {
-  return wpFetch('dmn/v1/admin/sync/venues', { method: 'POST' });
+  return wpFetch('sync/venues', { method: 'POST' });
 }
 
 /**
@@ -172,7 +173,7 @@ export async function adminSyncVenues(): Promise<{ ok: true; count: number }> {
  * @returns A promise resolving to an object with ok status and count of types.
  */
 export async function adminSyncTypesAll(): Promise<{ ok: true; count: number }> {
-  return wpFetch('dmn/v1/admin/sync/types', { method: 'POST' });
+  return wpFetch('sync/types', { method: 'POST' });
 }
 
 /**
@@ -184,7 +185,7 @@ export async function adminSyncTypesAll(): Promise<{ ok: true; count: number }> 
 export async function adminListActivities(
   venuePostId: number,
 ): Promise<{ activities: AdminActivity[] }> {
-  return wpFetch(`dmn/v1/admin/venues/${venuePostId}/activities`);
+  return wpFetch(`venues/${venuePostId}/activities`);
 }
 
 /**
@@ -198,5 +199,21 @@ export async function adminSaveActivity(
   activityPostId: number,
   patch: Partial<AdminActivity>,
 ): Promise<{ ok: true }> {
-  return wpFetch(`dmn/v1/admin/activities/${activityPostId}`, { method: 'POST', body: patch });
+  return wpFetch(`activities/${activityPostId}`, { method: 'POST', body: patch });
+}
+
+/**
+ * Synchronizes all venues and activity types with the backend.
+ *
+ * @returns A promise resolving to an object containing:
+ *   ok status, number of venues and types synchronized, duration in milliseconds, and a message.
+ */
+export async function adminSyncAll(): Promise<{
+  ok: true;
+  venues_count: number;
+  types_count: number;
+  duration_ms: number;
+  message: string;
+}> {
+  return wpFetch('sync/all', { method: 'POST' });
 }

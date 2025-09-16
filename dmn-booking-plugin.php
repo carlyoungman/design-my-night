@@ -69,6 +69,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
     'restUrl' => esc_url_raw(rest_url('dmn/v1/admin/')),
     'nonce' => wp_create_nonce('wp_rest'),
   ]);
+  wp_enqueue_media(); // <-- needed for wp.media
 });
 
 

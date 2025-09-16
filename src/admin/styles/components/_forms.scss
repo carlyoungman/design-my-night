@@ -1,0 +1,34 @@
+select, input:not([type="checkbox"]) {
+  height: 50px;
+  min-width: 100%;
+  padding: 0 var(--universal-space);
+  border: 1px solid var(--c-off-black);
+}
+
+textarea {
+  padding: var(--universal-space);
+  border: 1px solid var(--c-off-black);
+  min-height: 50px;
+  width: 100%;
+  max-width: 100%;
+}
+
+label {
+  display: block;
+
+  > span {
+    margin-bottom: var(--universal-space-half);
+    display: block;
+  }
+}
+
+form.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space);
+
+  > label {
+    flex: 1 1 100%;
+    min-width: 250px;
+  }
+}

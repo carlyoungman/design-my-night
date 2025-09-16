@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type BookingTypeItem = {
+type Params = {
+  venueId: string | null;
+  date?: string | null;
+  partySize: number | null | undefined;
+  enabled?: boolean;
+};
+
+type BookingTypeItem = {
   id: string;
   name: string;
   description?: string;
   priceText?: string;
-};
-
-type Params = {
-  venueId?: string | null;
-  date?: string | null;
-  partySize?: number | null;
-  enabled?: boolean;
+  image_url?: string | null;
+  image_id?: number | null;
+  valid: boolean | null;
+  message?: string | null;
 };
 
 type Return = {
@@ -43,61 +47,45 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
     setError(null);
 
     try {
-      // 1) Try configured booking types
-      const configRes = await fetch(
-        `/wp-json/dmn/v1/booking-types?venue_id=${encodeURIComponent(venueId)}`,
-        { signal: ctrl.signal },
-      );
-      const configJson = await configRes.json();
-      const configured = Array.isArray(configJson?.data) ? configJson.data : [];
+      const params = new URLSearchParams({
+        venue_id: String(venueId),
+        num_people: String(partySize),
+      });
+      if (date) params.set('date', String(date));
 
-      if (configured.length > 0) {
-        const mapped = configured.map((t: any) => ({
-          id: String(t.id),
-          name: t.name || String(t.id),
-          description: t.description || '',
-          priceText: t.priceText || '',
-        })) as BookingTypeItem[];
-        setTypes(mapped);
-        return;
-      }
-
-      // 2) Fallback to availability suggestions
-      const avRes = await fetch(`/wp-json/dmn/v1/booking-availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`/wp-json/dmn/v1/booking-types?${params.toString()}`, {
         signal: ctrl.signal,
-        body: JSON.stringify({
-          venue_id: venueId,
-          num_people: partySize,
-          date,
-        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+
+      const data = Array.isArray(json?.data) ? json.data : [];
+      const mapped: BookingTypeItem[] = data.map((t: any) => ({
+        id: String(t.id),
+        name: t.name || String(t.id),
+        description: t.description || '',
+        priceText: t.priceText || '',
+        image_url: t.image_url ?? null,
+        image_id: t.image_id ?? null,
+        valid: typeof t.valid === 'boolean' ? t.valid : null,
+        message: t.message ?? null,
+      }));
+
+      // Sort: invalid last, then A–Z
+      mapped.sort((a, b) => {
+        const aInvalid = a.valid === false;
+        const bInvalid = b.valid === false;
+        if (aInvalid !== bInvalid) return aInvalid ? 1 : -1;
+
+        const byName = (a.name ?? '').localeCompare(b.name ?? '', undefined, {
+          sensitivity: 'base',
+        });
+        if (byName !== 0) return byName;
+
+        return String(a.id).localeCompare(String(b.id), undefined, { sensitivity: 'base' });
       });
 
-      const avJson = await avRes.json();
-      const rawSuggested =
-        avJson?.validation?.type?.suggestedValues ??
-        avJson?.data?.payload?.validation?.type?.suggestedValues ??
-        [];
-
-      const suggested = (Array.isArray(rawSuggested) ? rawSuggested : [])
-        .map((item: any) => {
-          const v = item && typeof item === 'object' && 'value' in item ? item.value : item;
-          return v && typeof v === 'object'
-            ? { id: String(v.id), name: v.name || String(v.id) }
-            : typeof v === 'string'
-              ? { id: v, name: v }
-              : null;
-        })
-        .filter(Boolean) as Array<{ id: string; name: string }>;
-
-      // Dedupe and normalize to BookingTypeItem
-      const seen = new Set<string>();
-      const deduped: BookingTypeItem[] = suggested
-        .filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)))
-        .map((t) => ({ id: t.id, name: t.name, description: '', priceText: '' }));
-
-      setTypes(deduped);
+      setTypes(mapped);
     } catch (e: any) {
       if (e?.name === 'AbortError') return;
       setError(e?.message || 'Failed to load booking types.');
@@ -107,7 +95,6 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
     }
   }, [enabled, venueId, date, partySize]);
 
-  // Auto-run when inputs change or when caller requests reload
   useEffect(() => {
     fetchTypes();
     return () => ctrlRef.current?.abort();

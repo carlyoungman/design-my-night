@@ -1,0 +1,51 @@
+$breakpoints: (
+  x-small: 320px,
+  small: 576px,
+  medium: 768px,
+  large: 992px,
+  x-large: 1200px,
+  xx-large:1440px
+);
+// Generic mixin
+@mixin bp($key) {
+  $val: map-get($breakpoints, $key);
+  @media screen and (min-width: $val) {
+    @content;
+  }
+}
+
+@mixin x-small-screen-min {
+  @include bp(x-small) {
+    @content;
+  }
+}
+
+@mixin small-screen-min {
+  @include bp(small) {
+    @content;
+  }
+}
+
+@mixin medium-screen-min {
+  @include bp(medium) {
+    @content;
+  }
+}
+
+@mixin large-screen-min {
+  @include bp(large) {
+    @content;
+  }
+}
+
+@mixin x-large-screen-min {
+  @include bp(x-large) {
+    @content;
+  }
+}
+
+@mixin xx-large-screen-min {
+  @include bp(xx-large) {
+    @content;
+  }
+}

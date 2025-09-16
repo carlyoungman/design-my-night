@@ -1,4 +1,4 @@
-@import "../../../styles/mixins";
+@import "../settings/mixins";
 
 /* ============ Container ============ */
 .radio-group {
@@ -30,9 +30,7 @@
     align-items: center;
     gap: var(--universal-space);
     width: 100%;
-    padding: var(--universal-space);
     cursor: pointer;
-    border: 1px solid var(--c-white);
     background: transparent;
     transition: var(--transition);
 
@@ -45,22 +43,40 @@
     /* Focus ring */
     &:focus-visible {
       outline: 0;
-      border-color: var(--c-theme-primary);
-    }
 
-    /* Hover ring via parent hover */
-    .radio:hover & {
-      border-color: color-mix(in oklab, var(--c-white) 75%, transparent);
+      .type-card {
+        border-color: var(--c-theme-primary);
+
+        .type-card__button {
+          background: var(--c-theme-primary);
+        }
+      }
     }
+    
 
     /* ---------- Active / Roving focus ---------- */
     &[data-composite-item-active] {
-      border-color: var(--c-theme-primary);
+      .type-card {
+        border-color: var(--c-theme-primary);
+
+        .type-card__button {
+          background: var(--c-theme-primary);
+        }
+      }
     }
 
     /* ---------- Checked (selected) ---------- */
     &[data-state='checked'] {
-      border-color: var(--c-theme-primary);
+
+      .type-card {
+        border-color: var(--c-theme-primary);
+
+        .type-card__button {
+          background: var(--c-theme-primary);
+        }
+      }
+
+
     }
   }
 }

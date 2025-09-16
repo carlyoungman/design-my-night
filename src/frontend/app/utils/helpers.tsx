@@ -91,7 +91,7 @@ export const darkTheme = createTheme({
             // selected state
             backgroundColor: '#FF00FF',
             border: '1px solid #fff',
-            color: '#000',
+            color: '#fff',
             '&:hover': {
               backgroundColor: '#ff33ff',
               border: '1px solid #fff',

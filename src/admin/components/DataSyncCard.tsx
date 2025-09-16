@@ -1,41 +1,33 @@
 // src/admin/components/DataSyncCard.tsx
 import React, { useState } from 'react';
-import { adminSyncTypesAll, adminSyncVenues } from '../api';
+import { adminSyncAll } from '../api';
 
 export default function DataSyncCard() {
-  const [busy, setBusy] = useState<'v' | 't' | null>(null);
+  const [busy, setBusy] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const run = async (which: 'v' | 't') => {
-    setBusy(which);
+  const run = async () => {
+    setBusy(true);
     setOk(null);
     setErr(null);
     try {
-      if (which === 'v') {
-        const r = await adminSyncVenues();
-        setOk(`Imported/updated ${r.count} venues.`);
-      } else {
-        const r = await adminSyncTypesAll();
-        setOk(`Imported/updated ${r.count} activity types across venues.`);
-      }
+      const r = await adminSyncAll();
+      setOk(r.message || `Imported ${r.venues_count} venues and ${r.types_count} activity types.`);
     } catch (e: any) {
       setErr(e.message || 'Sync failed.');
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
   return (
-    <section className="card" style={{ marginTop: 16 }}>
+    <section className="dmn-admin__card" style={{ marginTop: 16 }}>
       <h2>Data Sync</h2>
-      <p>Pull venues and activity types from DesignMyNight into WordPress.</p>
+      <p>Import / update venues and activity types from DesignMyNight into WordPress.</p>
       <div className="actions">
-        <button onClick={() => run('v')} disabled={busy !== null}>
-          {busy === 'v' ? 'Importing venues…' : 'Import Venues'}
-        </button>
-        <button onClick={() => run('t')} disabled={busy !== null}>
-          {busy === 't' ? 'Importing types…' : 'Import Activity Types'}
+        <button className="button button--action" onClick={run} disabled={busy}>
+          {busy ? 'Importing…' : 'Import data'}
         </button>
       </div>
       {ok && (

@@ -1,6 +1,10 @@
 .step {
   padding: 0 var(--universal-space) var(--universal-space-2) var(--universal-space);
 
+  &--type {
+    padding: 0 10px var(--universal-space-2) 10px;
+  }
+
   &__error {
     display: inline-block;
     color: var(--c-error);

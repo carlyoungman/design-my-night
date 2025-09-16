@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StepShell } from '../StepShell';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { createBooking } from '../../../api/public';
 
 export function ReviewStep() {
   const state = useWidgetState();
@@ -8,12 +9,14 @@ export function ReviewStep() {
   const { returnUrl } = useWidgetConfig();
 
   const [now, setNow] = useState(Date.now());
+
   useEffect(() => {
-    const deadline = Date.now() + 10 * 60 * 1000; // 10 min
+    // I start a 10-minute hold when this step mounts.
+    const deadline = Date.now() + 10 * 60 * 1000;
     dispatch({ type: 'START_REVIEW_TIMER', deadline });
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, []); // only when mounted
+  }, [dispatch]);
 
   const remainingSec = Math.max(0, Math.floor(((state.reviewDeadline || 0) - now) / 1000));
   const mm = String(Math.floor(remainingSec / 60)).padStart(2, '0');
@@ -25,40 +28,61 @@ export function ReviewStep() {
       dispatch({ type: 'ERROR', message: 'Your selection expired. Please re-check availability.' });
       return;
     }
-    if (!state.venueId || !state.partySize || !state.date || !state.time || !state.bookingType) {
+
+    if (
+      !state.venueId ||
+      !state.partySize ||
+      !state.date ||
+      !state.time ||
+      !state.bookingType ||
+      !state.customer.name ||
+      !state.customer.email
+    ) {
       dispatch({ type: 'ERROR', message: 'Missing details. Please complete all steps.' });
       return;
     }
+
+    // I split the name into first/last for the DMN API.
+    const [first_name, ...rest] = (state.customer.name || '').trim().split(/\s+/);
+    const last_name = rest.join(' ');
+
+    // I join selected package labels into a single string (shown on the DMN side).
     const packageLabels = state.packages
       .filter((p) => state.packagesSelected.includes(p.id))
       .map((p) => p.label)
       .join(', ');
-    const [first_name, ...rest] = (state.customer.name || '').trim().split(/\s+/);
-    const last_name = rest.join(' ');
 
     try {
-      const resp = await fetch('/wp-json/dmn/v1/create-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          venue_id: state.venueId,
-          type: state.bookingType,
-          date: state.date,
-          time: state.time,
-          num_people: state.partySize,
-          customer: {
-            first_name,
-            last_name,
-            email: state.customer.email,
-            phone: state.customer.phone,
-          },
-          package: packageLabels,
-          custom_field_value: packageLabels,
-          return_url: returnUrl,
-        }),
+      const res = await createBooking({
+        source: 'partner',
+        first_name,
+        last_name,
+        email: state.customer.email,
+        phone: state.customer.phone,
+        notes: state.customer.message || undefined,
+        num_people: state.partySize!,
+        type: state.bookingType!,
+        venue_id: state.venueId!,
+        date: state.date!,
+        time: state.time!,
+        // I mirror packages to both `package` and `custom_field_value` for venue visibility.
+        package: packageLabels || undefined,
+        custom_field_value: packageLabels || undefined,
+        // DMN will redirect here after payment/confirmation.
+        // (Your WP REST layer passes this through to DMN.)
+        // @see public.ts -> createBooking
+        // @see PHP PublicController for request proxy
+        ...(returnUrl ? { return_url: returnUrl } : {}),
       });
-      const json = await resp.json();
-      const nextWeb = json?.data?.next?.web || json?.next?.web;
+
+      const nextWeb =
+        // prefer payload shape
+        (res as any)?.payload?.next?.web ||
+        // some handlers bubble `data` like your old fetch
+        (res as any)?.data?.next?.web ||
+        // extremely defensive
+        (res as any)?.next?.web;
+
       if (nextWeb) {
         window.location.assign(nextWeb);
       } else {
@@ -72,13 +96,12 @@ export function ReviewStep() {
   return (
     <StepShell className="review">
       <h5 className="dmn-widget__title">Review your booking</h5>
-      1. Please confirm your details below.
-      <br />
-      2. Click "Continue to payment" to finalize your booking.
-      <br />
-      3. You will be redirected to our secure payment page.
-      <br />
-      <br />
+      <ol className="dmn-widget__instructions">
+        <li>Please confirm your details below.</li>
+        <li>Click “Continue to payment” to finalise your booking.</li>
+        <li>You’ll be redirected to our secure payment page.</li>
+      </ol>
+
       <ul className="dmn-widget__summary">
         <li>
           Venue: <code>{state.venueId}</code>
@@ -98,6 +121,7 @@ export function ReviewStep() {
           Name/Email: {state.customer.name} / {state.customer.email}
         </li>
       </ul>
+
       <div className="dmn-widget__promo">
         <div className="dmn-widget__promo-item">
           <img src="/path/to/promo1.jpg" alt="" />
@@ -106,20 +130,38 @@ export function ReviewStep() {
           </div>
         </div>
       </div>
+
       <details className="dmn-widget__faq">
         <summary>Can I change my booking later?</summary>
         <p>Contact the venue via your confirmation email.</p>
       </details>
+
       <details className="dmn-widget__faq">
         <summary>What if I’m running late?</summary>
         <p>Please let the venue know; policies vary.</p>
       </details>
-      <p className={`dmn-widget__countdown${expired ? ' is-expired' : ''}`}>
+
+      <p
+        className={`dmn-widget__countdown${expired ? ' is-expired' : ''}`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
         Hold expires in{' '}
         <strong>
           {mm}:{ss}
         </strong>
       </p>
+
+      <div className="dmn-widget__actions">
+        <button
+          type="button"
+          className="dmn-widget__button dmn-widget__button--primary"
+          onClick={onConfirm}
+          disabled={expired}
+        >
+          Continue to payment
+        </button>
+      </div>
     </StepShell>
   );
 }

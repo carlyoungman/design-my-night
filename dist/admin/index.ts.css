@@ -2,6 +2,9 @@
   !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/admin/styles/styles.scss ***!
   \*****************************************************************************************************************************************************************************************************************************************************/
 :root {
+  --box-shadow-1: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; /* Original */
+  --box-shadow-2: rgba(50, 50, 93, 0.30) 0px 4px 8px -2px, rgba(0, 0, 0, 0.35) 0px 2px 4px -2px;
+  --box-shadow-3: rgba(50, 50, 93, 0.35) 0px 8px 16px -3px, rgba(0, 0, 0, 0.4) 0px 4px 6px -3px;
   --border-radius: 15px;
   --font-base-size: 18px;
   --font-base-line-height: 1.6;
@@ -14,72 +17,173 @@
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
   --c-white: #ffffff;
-  --c-black: #020000;
-  --c-theme-primary: #FF00FF;
-  --c-dark-blue: #000056;
-  --c-light-blue: #0000FF;
-  --c-error: #FF3B3B;
-  box-sizing: border-box;
+  --c-off-black: #1D2327;
+  --c-black: #000000;
+  --c-blue: #2271B1;
+  --c-green: #3e942c;
+  --c-off-white: #bdbdbd;
+  --c-red: #b02929;
 }
 
-.dmn-admin {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+.dmn-admin .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space);
 }
-.dmn-admin__grid {
+.dmn-admin .button {
+  all: unset;
+  display: inline-block;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none !important;
+  text-align: center;
+  line-height: 1;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: var(--universal-space) var(--universal-space-2);
+  background: var(--c-blue);
+  color: var(--c-white);
+  box-shadow: var(--box-shadow-1);
+}
+.dmn-admin .button--sub {
+  background: var(--c-off-black);
+}
+.dmn-admin .button--action {
+  background: var(--c-blue);
+}
+.dmn-admin .button--remove {
+  background: var(--c-red);
+}
+.dmn-admin .button:hover {
+  background: var(--c-black);
+  color: var(--c-white);
+}
+.dmn-admin .dmn-admin__card {
+  background: var(--c-white);
+  border: 1px solid var(--c-off-white);
+  border-radius: var(--border-radius);
+  padding: var(--universal-space-2);
+  max-width: unset;
+}
+.dmn-admin select, .dmn-admin input:not([type=checkbox]) {
+  height: 50px;
+  min-width: 100%;
+  padding: 0 var(--universal-space);
+  border: 1px solid var(--c-off-black);
+}
+.dmn-admin textarea {
+  padding: var(--universal-space);
+  border: 1px solid var(--c-off-black);
+  min-height: 50px;
+  width: 100%;
+  max-width: 100%;
+}
+.dmn-admin label {
+  display: block;
+}
+.dmn-admin label > span {
+  margin-bottom: var(--universal-space-half);
+  display: block;
+}
+.dmn-admin form.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space);
+}
+.dmn-admin form.grid > label {
+  flex: 1 1 100%;
+  min-width: 250px;
+}
+.dmn-admin .dmn-admin__grid {
   display: grid;
   gap: var(--universal-space-2);
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 @media screen and (min-width: 992px) {
-  .dmn-admin__grid {
+  .dmn-admin .dmn-admin__grid {
     grid-template-columns: 1fr 30%;
   }
 }
-.dmn-admin .card {
-  background: #fff;
-  border: 1px solid #dcdcde;
-  border-radius: 8px;
-  padding: 16px;
-  max-width: 840px;
+@media screen and (min-width: 1200px) {
+  .dmn-admin .dmn-admin__grid {
+    gap: var(--universal-space-3);
+  }
 }
-.dmn-admin .grid {
+@media screen and (min-width: 1440px) {
+  .dmn-admin .dmn-admin__grid {
+    gap: var(--universal-space-4);
+  }
+}
+.dmn-admin .dmn-admin__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--universal-space-2);
+  padding: var(--universal-space) 0;
+  background: var(--c-white);
+  position: sticky;
+  top: var(--universal-space-2);
+}
+.dmn-admin .dmn-admin__header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--universal-space-2);
+}
+.dmn-admin .dmn-admin__header__dirty {
+  color: var(--c-red);
+  margin: 0;
+}
+.dmn-admin .dmn-admin__header__ok {
+  color: var(--c-green);
+  margin: 0;
+}
+.dmn-admin .table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space-2);
+}
+.dmn-admin .table__row {
+  display: grid;
+  align-items: start;
+  gap: var(--universal-space-2);
+  grid-template-columns: 1fr 30%;
+  padding-bottom: var(--universal-space-2);
+  border-bottom: 1px solid var(--c-off-white);
+  width: 100%;
+}
+.dmn-admin .table__label {
+  margin-bottom: var(--universal-space-half);
+}
+.dmn-admin .table__left {
   display: grid;
   gap: var(--universal-space);
 }
-.dmn-admin .grid label {
-  display: grid;
-  gap: 6px;
+.dmn-admin .table__image-picker__image, .dmn-admin .table__image-picker__image-preview {
+  width: 100%;
+  aspect-ratio: 16/9;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+  margin-bottom: var(--universal-space-half);
 }
-.dmn-admin .grid input, .dmn-admin .grid select {
-  padding: 8px;
-  border: 1px solid #8c8f94;
-  border-radius: 4px;
+.dmn-admin .table__image-picker__image-preview {
+  background-color: var(--c-off-white);
 }
-.dmn-admin .actions {
+.dmn-admin .table__image-picker__button-wrap {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  grid-column: 1/-1;
+  flex-wrap: wrap;
+  gap: var(--universal-space-half);
 }
-.dmn-admin button {
-  background: #2271b1;
-  border: 1px solid #2271b1;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.dmn-admin button[disabled] {
-  opacity: 0.6;
-  cursor: default;
-}
-.dmn-admin .ok {
-  color: #027a48;
-  margin-top: 8px;
-}
-.dmn-admin .err {
-  color: #b00020;
-  margin-top: 8px;
+.dmn-admin .table__image-picker__btn {
+  flex: 1;
 }
 
 /*# sourceMappingURL=index.ts.css.map*/

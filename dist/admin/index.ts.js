@@ -46,6 +46,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   adminListActivities: () => (/* binding */ adminListActivities),
 /* harmony export */   adminListVenues: () => (/* binding */ adminListVenues),
 /* harmony export */   adminSaveActivity: () => (/* binding */ adminSaveActivity),
+/* harmony export */   adminSyncAll: () => (/* binding */ adminSyncAll),
 /* harmony export */   adminSyncTypesAll: () => (/* binding */ adminSyncTypesAll),
 /* harmony export */   adminSyncVenues: () => (/* binding */ adminSyncVenues),
 /* harmony export */   getSettings: () => (/* binding */ getSettings),
@@ -64,23 +65,24 @@ const {
  * @returns A promise resolving to the parsed JSON response.
  * @throws If the response is not OK, throws an error with the response message or HTTP status.
  */
-function wpFetch(path, opts = {}) {
+async function wpFetch(path, opts = {}) {
   const {
     restUrl,
     nonce
   } = window.DMN_ADMIN_BOOT;
-  return fetch(`${restUrl}${path}`, {
+  const base = restUrl.endsWith('/') ? restUrl : restUrl + '/';
+  const url = path.startsWith('http') ? path : base + path.replace(/^\//, ''); // strip any leading slash on path
+  const r = await fetch(url, {
     method: opts.method || 'GET',
     headers: {
       'X-WP-Nonce': nonce,
       'Content-Type': 'application/json'
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined
-  }).then(async r => {
-    const json = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
-    return json;
   });
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
+  return await json;
 }
 
 /**
@@ -169,7 +171,7 @@ function testConnection(debug = false) {
  * @returns A promise resolving to an object containing an array of venues.
  */
 async function adminListVenues() {
-  return wpFetch('dmn/v1/admin/venues');
+  return wpFetch('venues');
 }
 
 /**
@@ -178,7 +180,7 @@ async function adminListVenues() {
  * @returns A promise resolving to an object with ok status and count of venues.
  */
 async function adminSyncVenues() {
-  return wpFetch('dmn/v1/admin/sync/venues', {
+  return wpFetch('sync/venues', {
     method: 'POST'
   });
 }
@@ -189,7 +191,7 @@ async function adminSyncVenues() {
  * @returns A promise resolving to an object with ok status and count of types.
  */
 async function adminSyncTypesAll() {
-  return wpFetch('dmn/v1/admin/sync/types', {
+  return wpFetch('sync/types', {
     method: 'POST'
   });
 }
@@ -201,7 +203,7 @@ async function adminSyncTypesAll() {
  * @returns A promise resolving to an object containing an array of activities.
  */
 async function adminListActivities(venuePostId) {
-  return wpFetch(`dmn/v1/admin/venues/${venuePostId}/activities`);
+  return wpFetch(`venues/${venuePostId}/activities`);
 }
 
 /**
@@ -212,9 +214,21 @@ async function adminListActivities(venuePostId) {
  * @returns A promise resolving to an object with ok status.
  */
 async function adminSaveActivity(activityPostId, patch) {
-  return wpFetch(`dmn/v1/admin/activities/${activityPostId}`, {
+  return wpFetch(`activities/${activityPostId}`, {
     method: 'POST',
     body: patch
+  });
+}
+
+/**
+ * Synchronizes all venues and activity types with the backend.
+ *
+ * @returns A promise resolving to an object containing:
+ *   ok status, number of venues and types synchronized, duration in milliseconds, and a message.
+ */
+async function adminSyncAll() {
+  return wpFetch('sync/all', {
+    method: 'POST'
   });
 }
 
@@ -239,13 +253,34 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// WP media global
+
 function ActivityManagerCard() {
   const [venues, setVenues] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [selected, setSelected] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
   const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [rows, setRows] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [orig, setOrig] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [err, setErr] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [ok, setOk] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const MAX = 200;
+  // Track which rows have changes
+  const dirty = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const d = new Set();
+    const byId = new Map(orig.map(r => [r.id, r]));
+    for (const r of rows) {
+      const o = byId.get(r.id);
+      if (!o) {
+        d.add(r.id);
+        continue;
+      }
+      if (r.name !== o.name || (r.description || '') !== (o.description || '') || (r.priceText || '') !== (o.priceText || '') || (r.image_id || null) !== (o.image_id || null)) {
+        d.add(r.id);
+      }
+    }
+    return d;
+  }, [rows, orig]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     (async () => {
       try {
@@ -259,6 +294,7 @@ function ActivityManagerCard() {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!selected) {
       setRows([]);
+      setOrig([]);
       return;
     }
     (async () => {
@@ -268,6 +304,7 @@ function ActivityManagerCard() {
       try {
         const r = await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminListActivities)(Number(selected));
         setRows(r.activities);
+        setOrig(r.activities);
       } catch (e) {
         setErr(e.message || 'Failed to load activities.');
       } finally {
@@ -279,35 +316,95 @@ function ActivityManagerCard() {
     ...r,
     [key]: value
   } : r));
-  const saveOne = async row => {
-    setOk(null);
+  const openMedia = id => {
+    // Ensure wp.media is availabel (enqueue_media in PHP)
+    if (!wp?.media) {
+      setErr('WordPress media library not available.');
+      return;
+    }
+    const frame = wp.media({
+      title: 'Select image',
+      button: {
+        text: 'Use this image'
+      },
+      multiple: false,
+      library: {
+        type: 'image'
+      }
+    });
+    frame.on('select', () => {
+      const attachment = frame.state().get('selection').first().toJSON();
+      onCell(id, 'image_id', attachment.id);
+      onCell(id, 'image_url', attachment.sizes?.medium?.url || attachment.url);
+    });
+    frame.open();
+  };
+  const clearImage = id => {
+    onCell(id, 'image_id', null);
+    onCell(id, 'image_url', null);
+  };
+  const saveAll = async () => {
+    setSaving(true);
     setErr(null);
+    setOk(null);
     try {
-      var _row$description, _row$priceText, _row$image_id, _row$image_url, _row$gallery_ids;
-      await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminSaveActivity)(row.id, {
-        name: row.name,
-        description: (_row$description = row.description) !== null && _row$description !== void 0 ? _row$description : '',
-        priceText: (_row$priceText = row.priceText) !== null && _row$priceText !== void 0 ? _row$priceText : '',
-        image_id: (_row$image_id = row.image_id) !== null && _row$image_id !== void 0 ? _row$image_id : null,
-        image_url: (_row$image_url = row.image_url) !== null && _row$image_url !== void 0 ? _row$image_url : null,
-        gallery_ids: (_row$gallery_ids = row.gallery_ids) !== null && _row$gallery_ids !== void 0 ? _row$gallery_ids : []
-      });
-      setOk('Saved.');
+      // Only save changed rows
+      const changed = rows.filter(r => dirty.has(r.id));
+      if (changed.length === 0) {
+        setOk('Nothing to save.');
+        return;
+      }
+      const results = await Promise.allSettled(changed.map(r => {
+        var _r$description, _r$priceText, _r$image_id;
+        return (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminSaveActivity)(r.id, {
+          name: r.name,
+          description: (_r$description = r.description) !== null && _r$description !== void 0 ? _r$description : '',
+          priceText: (_r$priceText = r.priceText) !== null && _r$priceText !== void 0 ? _r$priceText : '',
+          image_id: (_r$image_id = r.image_id) !== null && _r$image_id !== void 0 ? _r$image_id : null
+        });
+      }));
+      const failed = results.filter(x => x.status === 'rejected');
+      if (failed.length) {
+        setErr(`Saved ${changed.length - failed.length}/${changed.length}. Last error: ${failed[0].reason?.message || 'Unknown error'}`);
+      } else {
+        setOk(`Saved ${changed.length} activities.`);
+        // Refresh from server so image_url reflects generated sizes/changes
+        const r = await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminListActivities)(Number(selected));
+        setRows(r.activities);
+        setOrig(r.activities);
+      }
     } catch (e) {
       setErr(e.message || 'Save failed.');
+    } finally {
+      setSaving(false);
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
-    className: "card",
-    style: {
-      marginTop: 16
-    },
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
-      children: "Activity Manager"
+    className: "dmn-admin__card",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "dmn-admin__header",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+        className: "dmn-admin__header__headline",
+        children: "Activity Manager"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
+        className: "dmn-admin__header__inner",
+        children: [dirty.size > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+          className: "dmn-admin__header__dirty",
+          children: ["You have unsaved changes (", dirty.size, " ", dirty.size === 1 ? 'activity' : 'activities', ")."]
+        }), ok && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+          className: "dmn-admin__header__ok",
+          children: ok
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          className: "button",
+          onClick: saveAll,
+          disabled: saving || dirty.size === 0,
+          children: saving ? 'Saving…' : 'Save all changes'
+        })]
+      })]
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
       style: {
         display: 'block',
-        marginBottom: 8
+        marginBottom: 30
       },
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
         children: "Select venue"
@@ -316,14 +413,14 @@ function ActivityManagerCard() {
         onChange: e => setSelected(e.target.value ? Number(e.target.value) : ''),
         style: {
           display: 'block',
-          marginTop: 4
+          marginTop: 7.5
         },
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("option", {
           value: "",
           children: "\u2014 Choose a venue \u2014"
         }), venues.map(v => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("option", {
           value: v.id,
-          children: [v.title, " (DMN ", v.dmn_id, ")"]
+          children: [v.title, " ", v.dmn_id ? `(DMN ${v.dmn_id})` : '']
         }, v.id))]
       })]
     }), loading && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
@@ -333,74 +430,76 @@ function ActivityManagerCard() {
       children: err
     }), !loading && selected && rows.length === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
       children: "No activities imported for this venue yet."
-    }), !loading && rows.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-      className: "table",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-        className: "thead",
-        style: {
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 1.8fr .7fr .6fr 1.4fr 1.1fr auto',
-          gap: 8,
-          fontWeight: 600,
-          marginBottom: 8
-        },
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Name"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Description"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Price"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Image ID"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Image URL"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          children: "Gallery IDs (comma)"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {})]
-      }), rows.map(r => {
-        var _r$image_id;
-        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-          className: "tr",
-          style: {
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 1.8fr .7fr .6fr 1.4fr 1.1fr auto',
-            gap: 8,
-            alignItems: 'start',
-            marginBottom: 8
-          },
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
-            value: r.name,
-            onChange: e => onCell(r.id, 'name', e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
-            rows: 2,
-            value: r.description || '',
-            onChange: e => onCell(r.id, 'description', e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
-            value: r.priceText || '',
-            onChange: e => onCell(r.id, 'priceText', e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
-            type: "number",
-            value: (_r$image_id = r.image_id) !== null && _r$image_id !== void 0 ? _r$image_id : '',
-            onChange: e => onCell(r.id, 'image_id', e.target.value ? Number(e.target.value) : null)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
-            value: r.image_url || '',
-            onChange: e => onCell(r.id, 'image_url', e.target.value)
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
-            placeholder: "e.g. 12,34,56",
-            value: (r.gallery_ids || []).join(','),
-            onChange: e => onCell(r.id, 'gallery_ids', e.target.value.split(',').map(s => Number(s.trim())).filter(n => !Number.isNaN(n)))
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
-            onClick: () => saveOne(r),
-            children: "Save"
-          })]
-        }, r.id);
-      })]
-    }), ok && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
-      className: "ok",
-      style: {
-        marginTop: 8
-      },
-      children: ok
+    }), !loading && rows.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "table",
+        children: rows.map(r => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+            className: "table__row",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+              className: "table__left",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                className: "table__cell",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "table__label",
+                  children: "Name"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+                  value: r.name,
+                  onChange: e => onCell(r.id, 'name', e.target.value)
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                className: "table__cell",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "table__label",
+                  children: "Description - (Max 200)"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+                  rows: 2,
+                  maxLength: MAX,
+                  value: r.description || '',
+                  onChange: e => onCell(r.id, 'description', e.target.value)
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                className: "table__cell",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "table__label",
+                  children: "Price"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+                  value: r.priceText || '',
+                  onChange: e => onCell(r.id, 'priceText', e.target.value)
+                })]
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+              className: "table__right",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                className: "table__image-picker",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "table__label",
+                  children: "Image"
+                }), r.image_url ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
+                  src: r.image_url,
+                  alt: "",
+                  className: "table__image-picker__image"
+                }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "table__image-picker__image-preview"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                  className: "table__image-picker__button-wrap",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+                    className: "table__image-picker__btn button",
+                    type: "button",
+                    onClick: () => openMedia(r.id),
+                    children: "Choose image"
+                  }), r.image_id ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+                    className: "table__image-picker__btn  button button--remove",
+                    type: "button",
+                    onClick: () => clearImage(r.id),
+                    children: "Remove"
+                  }) : null]
+                })]
+              })
+            })]
+          })
+        }, r.id))
+      })
     })]
   });
 }
@@ -427,47 +526,39 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function DataSyncCard() {
-  const [busy, setBusy] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [busy, setBusy] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [ok, setOk] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [err, setErr] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const run = async which => {
-    setBusy(which);
+  const run = async () => {
+    setBusy(true);
     setOk(null);
     setErr(null);
     try {
-      if (which === 'v') {
-        const r = await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminSyncVenues)();
-        setOk(`Imported/updated ${r.count} venues.`);
-      } else {
-        const r = await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminSyncTypesAll)();
-        setOk(`Imported/updated ${r.count} activity types across venues.`);
-      }
+      const r = await (0,_api__WEBPACK_IMPORTED_MODULE_1__.adminSyncAll)();
+      setOk(r.message || `Imported ${r.venues_count} venues and ${r.types_count} activity types.`);
     } catch (e) {
       setErr(e.message || 'Sync failed.');
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
-    className: "card",
+    className: "dmn-admin__card",
     style: {
       marginTop: 16
     },
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
       children: "Data Sync"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
-      children: "Pull venues and activity types from DesignMyNight into WordPress."
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      children: "Import / update venues and activity types from DesignMyNight into WordPress."
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
       className: "actions",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
-        onClick: () => run('v'),
-        disabled: busy !== null,
-        children: busy === 'v' ? 'Importing venues…' : 'Import Venues'
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
-        onClick: () => run('t'),
-        disabled: busy !== null,
-        children: busy === 't' ? 'Importing types…' : 'Import Activity Types'
-      })]
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        className: "button button--action",
+        onClick: run,
+        disabled: busy,
+        children: busy ? 'Importing…' : 'Import data'
+      })
     }), ok && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
       className: "ok",
       style: {
@@ -588,7 +679,7 @@ function SettingsCard() {
     children: "Loading\u2026"
   });
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
-    className: "card",
+    className: "dmn-admin__card",
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
       children: "API Credentials"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("form", {
@@ -661,10 +752,12 @@ function SettingsCard() {
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "actions",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          className: "button button--action",
           type: "submit",
           disabled: saving,
           children: saving ? 'Saving…' : 'Save Settings'
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          className: "button button--sub",
           type: "button",
           onClick: onTest,
           disabled: testing,
@@ -734,10 +827,11 @@ function App() {
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
       className: "dmn-admin__grid",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
-        className: "dmn-admin__main"
+        className: "dmn-admin__main",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_ActivityManagerCard__WEBPACK_IMPORTED_MODULE_4__["default"], {})
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
         className: "dmn-admin__side",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_SettingsCard__WEBPACK_IMPORTED_MODULE_2__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_DataSyncCard__WEBPACK_IMPORTED_MODULE_3__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_ActivityManagerCard__WEBPACK_IMPORTED_MODULE_4__["default"], {})]
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_SettingsCard__WEBPACK_IMPORTED_MODULE_2__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_components_DataSyncCard__WEBPACK_IMPORTED_MODULE_3__["default"], {})]
       })]
     })
   });

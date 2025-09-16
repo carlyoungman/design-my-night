@@ -96,7 +96,7 @@ export default function SettingsCard() {
   if (loading) return <p>Loading…</p>;
 
   return (
-    <section className="card">
+    <section className="dmn-admin__card">
       <h2>API Credentials</h2>
       <form onSubmit={onSave} className="grid">
         <label>
@@ -147,10 +147,10 @@ export default function SettingsCard() {
         </label>
 
         <div className="actions">
-          <button type="submit" disabled={saving}>
+          <button className="button button--action" type="submit" disabled={saving}>
             {saving ? 'Saving…' : 'Save Settings'}
           </button>
-          <button type="button" onClick={onTest} disabled={testing}>
+          <button className="button button--sub" type="button" onClick={onTest} disabled={testing}>
             {testing ? 'Testing…' : 'Test Connection'}
           </button>
         </div>
