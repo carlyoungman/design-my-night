@@ -1,5 +1,6 @@
 const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
 type FetchOpts = { method?: string; body?: any };
+import type { AdminPackage } from '../frontend/app/types';
 
 /**
  * Performs a fetch request to the WordPress REST API using the provided path and options.
@@ -216,4 +217,33 @@ export async function adminSyncAll(): Promise<{
   message: string;
 }> {
   return wpFetch('sync/all', { method: 'POST' });
+}
+
+export async function adminGetPackages(
+  params: { venueId?: string | number; search?: string } = {},
+) {
+  const qs = new URLSearchParams();
+  if (params.venueId) qs.set('venue_id', String(params.venueId));
+  if (params.search) qs.set('search', params.search);
+  const r = await fetch(`/wp-json/dmn/v1/admin/packages?${qs.toString()}`);
+  if (!r.ok) throw new Error('Failed to load packages');
+  const j = await r.json();
+  return j.packages as AdminPackage[];
+}
+
+export async function adminBulkSavePackages(items: AdminPackage[]) {
+  const r = await fetch(`/wp-json/dmn/v1/admin/packages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ packages: items }),
+  });
+  if (!r.ok) throw new Error('Failed to save packages');
+  const j = await r.json();
+  return j.packages as AdminPackage[];
+}
+
+export async function adminDeletePackage(id: number) {
+  const r = await fetch(`/wp-json/dmn/v1/admin/packages/${id}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error('Failed to delete package');
+  return true;
 }

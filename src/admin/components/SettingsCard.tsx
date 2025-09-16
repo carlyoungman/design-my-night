@@ -174,11 +174,9 @@ export default function SettingsCard() {
         </pre>
       )}
 
-      <p style={{ opacity: 0.7, marginTop: 8 }}>
-        <small>
-          Note: Test Connection uses the last <em>saved</em> credentials & environment. Click{' '}
-          <strong>Save Settings</strong> after any changes.
-        </small>
+      <p className="dmn-admin__help">
+        Note: Test Connection uses the last <em>saved</em> credentials & environment. Click{' '}
+        <strong>Save Settings</strong> after any changes.
       </p>
     </section>
   );

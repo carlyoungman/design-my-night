@@ -1,8 +1,7 @@
-// src/admin/components/ActivityManagerCard.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { adminListActivities, adminListVenues, adminSaveActivity } from '../api';
+import { adminListActivities, adminSaveActivity } from '../api';
+import { useAdmin } from '../AdminContext';
 
-type AdminVenue = { id: number; title: string; dmn_id: string };
 type AdminActivity = {
   id: number;
   dmn_type_id: string;
@@ -16,18 +15,15 @@ type AdminActivity = {
 declare const wp: any; // WP media global
 
 export default function ActivityManagerCard() {
-  const [venues, setVenues] = useState<AdminVenue[]>([]);
-  const [selected, setSelected] = useState<number | ''>('');
+  const { selectedVenueId } = useAdmin(); // ← follow global venue
   const [loading, setLoading] = useState(false);
-
   const [rows, setRows] = useState<AdminActivity[]>([]);
   const [orig, setOrig] = useState<AdminActivity[]>([]);
-
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const MAX = 200;
-  // Track which rows have changes
+
   const dirty = useMemo(() => {
     const d = new Set<number>();
     const byId = new Map(orig.map((r) => [r.id, r]));
@@ -42,26 +38,14 @@ export default function ActivityManagerCard() {
         (r.description || '') !== (o.description || '') ||
         (r.priceText || '') !== (o.priceText || '') ||
         (r.image_id || null) !== (o.image_id || null)
-      ) {
+      )
         d.add(r.id);
-      }
     }
     return d;
   }, [rows, orig]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const r = await adminListVenues();
-        setVenues(r.venues);
-      } catch (e: any) {
-        setErr(e.message || 'Failed to load venues.');
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!selected) {
+    if (!selectedVenueId) {
       setRows([]);
       setOrig([]);
       return;
@@ -71,7 +55,7 @@ export default function ActivityManagerCard() {
       setErr(null);
       setOk(null);
       try {
-        const r = await adminListActivities(Number(selected));
+        const r = await adminListActivities(Number(selectedVenueId));
         setRows(r.activities);
         setOrig(r.activities);
       } catch (e: any) {
@@ -80,13 +64,12 @@ export default function ActivityManagerCard() {
         setLoading(false);
       }
     })();
-  }, [selected]);
+  }, [selectedVenueId]);
 
   const onCell = (id: number, key: keyof AdminActivity, value: any) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [key]: value } : r)));
 
   const openMedia = (id: number) => {
-    // Ensure wp.media is availabel (enqueue_media in PHP)
     if (!wp?.media) {
       setErr('WordPress media library not available.');
       return;
@@ -98,9 +81,9 @@ export default function ActivityManagerCard() {
       library: { type: 'image' },
     });
     frame.on('select', () => {
-      const attachment = frame.state().get('selection').first().toJSON();
-      onCell(id, 'image_id', attachment.id);
-      onCell(id, 'image_url', attachment.sizes?.medium?.url || attachment.url);
+      const att = frame.state().get('selection').first().toJSON();
+      onCell(id, 'image_id', att.id);
+      onCell(id, 'image_url', att.sizes?.medium?.url || att.url);
     });
     frame.open();
   };
@@ -115,7 +98,6 @@ export default function ActivityManagerCard() {
     setErr(null);
     setOk(null);
     try {
-      // Only save changed rows
       const changed = rows.filter((r) => dirty.has(r.id));
       if (changed.length === 0) {
         setOk('Nothing to save.');
@@ -131,18 +113,18 @@ export default function ActivityManagerCard() {
           }),
         ),
       );
-
       const failed = results.filter((x) => x.status === 'rejected') as PromiseRejectedResult[];
       if (failed.length) {
         setErr(
-          `Saved ${changed.length - failed.length}/${changed.length}. Last error: ${failed[0].reason?.message || 'Unknown error'}`,
+          `Saved ${changed.length - failed.length}/${changed.length}. Last error: ${(failed[0] as any)?.reason?.message || 'Unknown error'}`,
         );
       } else {
         setOk(`Saved ${changed.length} activities.`);
-        // Refresh from server so image_url reflects generated sizes/changes
-        const r = await adminListActivities(Number(selected));
-        setRows(r.activities);
-        setOrig(r.activities);
+        if (selectedVenueId) {
+          const r = await adminListActivities(Number(selectedVenueId));
+          setRows(r.activities);
+          setOrig(r.activities);
+        }
       }
     } catch (e: any) {
       setErr(e.message || 'Save failed.');
@@ -169,92 +151,73 @@ export default function ActivityManagerCard() {
         </span>
       </div>
 
-      <label style={{ display: 'block', marginBottom: 30 }}>
-        <span>Select venue</span>
-        <select
-          value={selected}
-          onChange={(e) => setSelected(e.target.value ? Number(e.target.value) : '')}
-          style={{ display: 'block', marginTop: 7.5 }}
-        >
-          <option value="">— Choose a venue —</option>
-          {venues.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.title} {v.dmn_id ? `(DMN ${v.dmn_id})` : ''}
-            </option>
-          ))}
-        </select>
-      </label>
+      {!selectedVenueId && (
+        <p className="dmn-admin__help">Pick a venue above to manage activities.</p>
+      )}
 
       {loading && <p>Loading activities…</p>}
       {err && <p className="err">{err}</p>}
-      {!loading && selected && rows.length === 0 && (
+      {!loading && selectedVenueId && rows.length === 0 && (
         <p>No activities imported for this venue yet.</p>
       )}
 
       {!loading && rows.length > 0 && (
-        <>
-          <div className="table">
-            {rows.map((r) => (
-              <React.Fragment key={r.id}>
-                <div className="table__row">
-                  <div className="table__left">
-                    <div className="table__cell">
-                      <div className="table__label">Name</div>
-                      <input
-                        value={r.name}
-                        onChange={(e) => onCell(r.id, 'name', e.target.value)}
-                      />
-                    </div>
-                    <div className="table__cell">
-                      <div className="table__label">Description - (Max 200)</div>
-                      <textarea
-                        rows={2}
-                        maxLength={MAX}
-                        value={r.description || ''}
-                        onChange={(e) => onCell(r.id, 'description', e.target.value)}
-                      />
-                    </div>
-                    <div className="table__cell">
-                      <div className="table__label">Price</div>
-                      <input
-                        value={r.priceText || ''}
-                        onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="table__right">
-                    <div className="table__image-picker">
-                      <div className="table__label">Image</div>
-                      {r.image_url ? (
-                        <img src={r.image_url} alt="" className="table__image-picker__image" />
-                      ) : (
-                        <div className="table__image-picker__image-preview"></div>
-                      )}
-                      <div className="table__image-picker__button-wrap">
-                        <button
-                          className="table__image-picker__btn button"
-                          type="button"
-                          onClick={() => openMedia(r.id)}
-                        >
-                          Choose image
-                        </button>
-                        {r.image_id ? (
-                          <button
-                            className="table__image-picker__btn  button button--remove"
-                            type="button"
-                            onClick={() => clearImage(r.id)}
-                          >
-                            Remove
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
+        <div className="table">
+          {rows.map((r) => (
+            <div className="table__row" key={r.id}>
+              <div className="table__left">
+                <div className="table__cell">
+                  <div className="table__label">Name</div>
+                  <input value={r.name} onChange={(e) => onCell(r.id, 'name', e.target.value)} />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Description - (Max 200)</div>
+                  <textarea
+                    rows={2}
+                    maxLength={MAX}
+                    value={r.description || ''}
+                    onChange={(e) => onCell(r.id, 'description', e.target.value)}
+                  />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Price</div>
+                  <input
+                    value={r.priceText || ''}
+                    onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="table__right">
+                <div className="table__image-picker">
+                  <div className="table__label">Image</div>
+                  {r.image_url ? (
+                    <img src={r.image_url} alt="" className="table__image-picker__image" />
+                  ) : (
+                    <div className="table__image-picker__image-preview"></div>
+                  )}
+                  <div className="table__image-picker__button-wrap">
+                    <button
+                      className="table__image-picker__btn button"
+                      type="button"
+                      onClick={() => openMedia(r.id)}
+                    >
+                      Choose image
+                    </button>
+                    {r.image_id ? (
+                      <button
+                        className="table__image-picker__btn  button button--remove"
+                        type="button"
+                        onClick={() => clearImage(r.id)}
+                      >
+                        Remove
+                      </button>
+                    ) : null}
                   </div>
                 </div>
-              </React.Fragment>
-            ))}
-          </div>
-        </>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </section>
   );

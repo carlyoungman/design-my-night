@@ -31,3 +31,22 @@ export type VenueStepProps = {
   error: string | null;
   forcedVenueId?: string;
 };
+export type AddOnPackage = {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string | null;
+  priceText?: string | null;
+  visible?: boolean;
+  dmn_package_id?: string | null;
+};
+export type AdminPackage = {
+  id?: number; // WP post ID
+  name: string;
+  description?: string;
+  priceText?: string | null;
+  visible?: boolean;
+  image_id?: number | null;
+  image_url?: string | null;
+  venueIds: string[]; // DMN venue IDs this add-on applies to
+};
