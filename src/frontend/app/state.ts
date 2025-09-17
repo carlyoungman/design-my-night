@@ -1,13 +1,7 @@
 // state.ts
 
 // ---- Steps in DMN-recommended order ----
-export type Step =
-  | 'venue' // pre-step (only shown if multi-venue)
-  | 'type' // experience / booking type
-  | 'time' // time selection
-  | 'packages' // add-on packages
-  | 'details' // customer details
-  | 'review'; // summary + countdown
+export type Step = 'party' | 'venue' | 'date_time' | 'type' | 'packages' | 'details' | 'review';
 
 // Keep Customer in sync with how it's used in the widget (message + gdpr supported)
 export type Customer = {
@@ -38,6 +32,8 @@ export type State = {
 
   packages: Array<{ id: string; name: string }>;
   packagesSelected: string[]; // ids
+  // internal flag to allow advancing past packages
+  packagesResolved?: boolean;
 
   customer: Customer;
   error: string | null;
@@ -50,14 +46,32 @@ export type State = {
 };
 
 // Single source of truth for flow order
-export const FLOW_ORDER: Step[] = ['venue', 'type', 'time', 'packages', 'details', 'review'];
+export const STEP_FLOW: Step[] = [
+  'party',
+  'venue',
+  'date_time',
+  'type',
+  'packages',
+  'details',
+  'review',
+];
+
+// derive current step from data so order is enforced
+export function computeStep(s: State): Step {
+  if (!s.partySize) return 'party';
+  if (!s.venueId) return 'venue';
+  if (!s.date /* also require time if desired: || !s.time */) return 'date_time';
+  if (!s.bookingType) return 'type';
+  if (!s.packagesResolved) return 'packages';
+  if (!s.customer?.name || !s.customer?.email || !s.customer?.gdpr) return 'details';
+  return 'review';
+}
 
 // ---- Defaults ----
-// NOTE: Widget sets the first step dynamically:
-// - forcedVenueId ? 'stage1' : 'venue'
 export const initialState: State = {
   step: 'venue',
   venueId: null,
+
   partySize: 2,
   date: null,
   time: null,
@@ -68,8 +82,9 @@ export const initialState: State = {
 
   packages: [],
   packagesSelected: [],
+  packagesResolved: false,
 
-  customer: { name: '', email: '' },
+  customer: { name: '', email: '', gdpr: false },
   error: null,
 
   submitting: false,
@@ -97,84 +112,58 @@ export type Action =
 // ---- Reducer ----
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
-    case 'SET_VENUE':
-      return { ...s, venueId: a.id, avail: null, suggestions: [] };
-
     case 'SET_PARTY_SIZE': {
-      const size = Math.max(1, a.size);
-      // Capacity affects availability/time; clear them
-      return {
-        ...s,
-        partySize: size,
-        time: null,
-        avail: null,
-        suggestions: [],
-      };
+      const next = { ...s, partySize: a.size };
+      return { ...next, step: computeStep(next) };
     }
-
+    case 'SET_VENUE': {
+      const next = { ...s, venueId: a.id };
+      return { ...next, step: computeStep(next) };
+    }
     case 'SET_DATE': {
-      const dateChanged = a.date !== s.date;
-      if (!dateChanged) return s;
-      // Date change invalidates previously selected time/availability
-      return {
-        ...s,
-        date: a.date, // YYYY-MM-DD or null
-        time: null,
-        avail: null,
-        suggestions: [],
-      };
+      const next = { ...s, date: a.date, time: null };
+      return { ...next, step: computeStep(next) };
     }
-
-    case 'SET_TYPE':
-      // Changing type usually affects availability/time
-      return {
-        ...s,
-        bookingType: a.value,
-        time: null,
-        avail: null,
-        suggestions: [],
-      };
-
-    case 'SET_TIME':
-      return { ...s, time: a.value ?? null };
-
+    case 'SET_TIME': {
+      const next = { ...s, time: a.value };
+      return { ...next, step: computeStep(next) };
+    }
+    case 'SET_TYPE': {
+      const next = { ...s, bookingType: a.value };
+      return { ...next, step: computeStep(next) };
+    }
     case 'SET_AVAIL':
-      return { ...s, avail: a.value || null };
-
+      return { ...s, avail: a.value };
     case 'SET_SUGGESTIONS':
-      return { ...s, suggestions: a.value || [] };
-
+      return { ...s, suggestions: a.value };
     case 'SET_PACKAGES':
-      return { ...s, packages: a.value || [] };
-
-    case 'SET_PACKAGES_SELECTED':
-      return { ...s, packagesSelected: a.value || [] };
-
-    case 'SET_CUSTOMER':
-      return { ...s, customer: a.value };
-
+      return { ...s, packages: a.value };
+    case 'SET_PACKAGES_SELECTED': {
+      const next = { ...s, packagesSelected: a.value, packagesResolved: true };
+      return { ...next, step: computeStep(next) };
+    }
+    case 'SET_CUSTOMER': {
+      const next = { ...s, customer: a.value };
+      return { ...next, step: computeStep(next) };
+    }
     case 'START_REVIEW_TIMER':
       return { ...s, reviewDeadline: a.deadline };
-
     case 'SUBMIT_START':
       return { ...s, submitting: true, error: null };
-
     case 'SUBMIT_END':
       return { ...s, submitting: false };
-
     case 'ERROR':
       return { ...s, error: a.message };
 
     case 'NEXT': {
-      const idx = FLOW_ORDER.indexOf(s.step);
-      const nextIdx = Math.min(FLOW_ORDER.length - 1, idx + 1);
-      return { ...s, step: FLOW_ORDER[nextIdx] };
+      const i = Math.max(0, STEP_FLOW.indexOf(s.step));
+      const step = STEP_FLOW[Math.min(i + 1, STEP_FLOW.length - 1)];
+      return { ...s, step };
     }
-
     case 'BACK': {
-      const idx = FLOW_ORDER.indexOf(s.step);
-      const prevIdx = Math.max(0, idx - 1);
-      return { ...s, step: FLOW_ORDER[prevIdx] };
+      const i = Math.max(0, STEP_FLOW.indexOf(s.step));
+      const step = STEP_FLOW[Math.max(i - 1, 0)];
+      return { ...s, step };
     }
 
     default:

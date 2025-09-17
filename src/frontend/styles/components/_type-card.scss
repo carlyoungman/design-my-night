@@ -4,7 +4,7 @@
   width: 100%;
   overflow: hidden;
   text-align: left;
-  border: 2px solid var(--c-dark-blue);
+  border: 5px solid var(--c-black);
 
   &__image-wrapper {
     @include aspect-ratio-16-9;

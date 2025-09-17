@@ -1,13 +1,26 @@
 @import '../settings/mixins';
 
+
+.package-grid {
+  display: grid;
+  gap: var(--universal-space-2);
+}
+
+
 .package-card {
-  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   text-align: left;
-  border: 2px solid var(--c-dark-blue);
+  border: 5px solid var(--c-black);
+  display: grid;
+  grid-template-columns: 30% 1fr;
+  background: var(--c-white);
+  margin-left: -5px;
+  margin-right: -5px;
+
 
   &__image-wrapper {
-    @include aspect-ratio-16-9;
+    @include aspect-ratio-1-1;
   }
 
   &__article {
@@ -17,7 +30,7 @@
   }
 
   &__name {
-    margin-top: var(--universal-space);
+    margin-top: 0;
     font-weight: bold;
   }
 
@@ -25,8 +38,13 @@
     margin: 0;
   }
 
+  &__checkbox {
+    display: none;
+  }
+
+
   &__article-footer {
-    padding: var(--universal-space-2) 0 var(--universal-space) 0;
+    padding-top: var(--universal-space);
     margin-top: var(--universal-space);
     border-top: 1px solid var(--c-off-black);
     display: flex;
@@ -37,11 +55,26 @@
   &__button {
     @include button-reset;
     padding: var(--universal-space) var(--universal-space-2);
+    min-width: 120px;
     background: var(--c-black);
     color: var(--c-white);
     box-shadow: var(--box-shadow-1);
 
     &:hover {
+      background: var(--c-theme-primary);
+      cursor: pointer;
+    }
+  }
+
+  &:hover {
+    cursor: pointer;
+    border-color: var(--c-off-black);
+  }
+
+  &.is-selected {
+    border-color: var(--c-theme-primary);
+
+    .package-card__button {
       background: var(--c-theme-primary);
     }
   }

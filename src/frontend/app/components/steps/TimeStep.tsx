@@ -41,7 +41,7 @@ export function TimeStep() {
   // Fetch "fields=time" whenever required inputs exist.
   // (We don't gate on state.step—this prefetches after date pick so the list is ready.)
   useEffect(() => {
-    if (!state.venueId || state.partySize == null || !state.date || !state.bookingType) {
+    if (!state.venueId || state.partySize == null || !state.date) {
       setTimes([]);
       return;
     }
@@ -56,7 +56,6 @@ export function TimeStep() {
             venue_id: state.venueId!,
             ...(state.partySize != null ? { num_people: state.partySize } : {}),
             ...(state.date ? { date: state.date } : {}),
-            ...(state.bookingType ? { type: state.bookingType } : {}),
           },
           'time',
         );
@@ -84,7 +83,7 @@ export function TimeStep() {
     return () => {
       cancelled = true;
     };
-  }, [state.venueId, state.partySize, state.date, state.bookingType, dispatch, parseTimes]);
+  }, [state.venueId, state.partySize, state.date, dispatch, parseTimes]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_TIME', value: e.target.value });

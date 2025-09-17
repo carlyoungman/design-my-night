@@ -9,32 +9,36 @@ import { RadioGroup } from '@base-ui-components/react/radio-group';
 export function TypeStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const { runAvailability } = useAvailability();
 
-  const { types, loading, error } = useBookingTypes({
+  const { types, loading, error, reload } = useBookingTypes({
     venueId: state.venueId ?? null,
+    date: state.date ?? null, // pass date
     partySize: state.partySize ?? null,
-    enabled: Boolean(state.venueId && state.partySize),
+    enabled:
+      state.step === 'type' &&
+      !!state.venueId &&
+      state.partySize != null &&
+      !!state.date &&
+      !!state.time,
   });
 
-  // Clear selected type when venue changes
+  // Refresh types when time changes (type depends on date+time)
   useEffect(() => {
-    if (state.bookingType) {
-      dispatch({ type: 'SET_TYPE', value: null });
-    }
-  }, [state.venueId]);
+    if (state.step === 'type' && state.time) reload();
+  }, [state.time, state.step, reload]);
 
-  // Auto-continue if there’s only one option
+  // Clear selected type when venue/date/time changes to avoid stale selection
+  useEffect(() => {
+    if (state.bookingType) dispatch({ type: 'SET_TYPE', value: null });
+  }, [state.venueId, state.date, state.time]); // keep lean; no extra deps
+
+  // Auto-select if only one option, but do NOT refresh date/time here
   useEffect(() => {
     if (state.bookingType) return;
     if (types.length === 1) {
-      const only = types[0].id;
-      dispatch({ type: 'SET_TYPE', value: only });
-      (async () => {
-        await runAvailability();
-      })();
+      dispatch({ type: 'SET_TYPE', value: types[0].id });
     }
-  }, [state.step, types, state.bookingType]);
+  }, [types, state.bookingType, dispatch]);
 
   const captionId = useId();
 
@@ -51,10 +55,10 @@ export function TypeStep() {
             <RadioGroup
               aria-labelledby={captionId}
               value={state.bookingType ?? ''}
-              onValueChange={(value: unknown, _event: Event) => {
+              onValueChange={(value) => {
                 const next = String(value);
                 if (next !== (state.bookingType ?? '')) {
-                  dispatch({ type: 'SET_TYPE', value: next });
+                  dispatch({ type: 'SET_TYPE', value: next }); // no availability call
                 }
               }}
               className="radio-group"
@@ -79,7 +83,6 @@ export function TypeStep() {
                             <img src={t.image_url} alt={t.name} className="type-card__image" />
                           </div>
                         )}
-
                         <article className="type-card__article">
                           {t.name && (
                             <h6

@@ -12,9 +12,7 @@ export function useAvailability() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
 
-  async function runAvailability(
-    opts: { includeTime?: boolean; field?: 'type' | 'date' | 'time' } = {},
-  ) {
+  async function runAvailability(opts: { includeTime?: boolean; field?: 'date' | 'time' } = {}) {
     // Basic guardrails: require venue + party size at minimum; if we're checking time, also require date
     if (!state.venueId || !state.partySize) {
       dispatch({ type: 'ERROR', message: 'Please choose venue and guests first.' });

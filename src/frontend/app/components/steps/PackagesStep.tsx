@@ -90,8 +90,10 @@ export function PackagesStep() {
                       dangerouslySetInnerHTML={{ __html: pkg.description }}
                     />
                   )}
-                  {pkg.priceText && <p className="package-card__price">{pkg.priceText}</p>}
-                  <span className="package-card__button">{isSelected ? 'Selected' : 'Select'}</span>
+                  <div className="package-card__article-footer">
+                    {pkg.priceText && <p className="package-card__price">{pkg.priceText}</p>}
+                    <span className="package-card__button">{isSelected ? 'Remove' : 'Add'}</span>
+                  </div>
                 </article>
                 <input
                   type="checkbox"

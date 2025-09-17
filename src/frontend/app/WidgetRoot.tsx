@@ -51,40 +51,40 @@ function WidgetInner() {
           />
         </Accordion.Panel>
       </Accordion.Item>
-      {/*<Accordion.Item className="accordion__item" value="step2">*/}
-      {/*  <Accordion.Header className="accordion__header">*/}
-      {/*    <Accordion.Trigger className="accordion__trigger">*/}
-      {/*      2. Choose your experience*/}
-      {/*      <PlusIcon className="accordion__icon" />*/}
-      {/*    </Accordion.Trigger>*/}
-      {/*  </Accordion.Header>*/}
-      {/*  <Accordion.Panel className="accordion__panel">*/}
-      {/*    <TypeStep />*/}
-      {/*  </Accordion.Panel>*/}
-      {/*</Accordion.Item>*/}
       <Accordion.Item className="accordion__item" value="step2">
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
-            3. Choose your Add-ons
+            4. Select date and time
             <PlusIcon className="accordion__icon" />
           </Accordion.Trigger>
         </Accordion.Header>
         <Accordion.Panel className="accordion__panel">
-          <PackagesStep />
+          <DateStep />
+          <TimeStep />
         </Accordion.Panel>
+        <Accordion.Item className="accordion__item" value="step3">
+          <Accordion.Header className="accordion__header">
+            <Accordion.Trigger className="accordion__trigger">
+              2. Choose your experience
+              <PlusIcon className="accordion__icon" />
+            </Accordion.Trigger>
+          </Accordion.Header>
+          <Accordion.Panel className="accordion__panel">
+            <TypeStep />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item className="accordion__item" value="step4">
+          <Accordion.Header className="accordion__header">
+            <Accordion.Trigger className="accordion__trigger">
+              3. Choose your Add-ons
+              <PlusIcon className="accordion__icon" />
+            </Accordion.Trigger>
+          </Accordion.Header>
+          <Accordion.Panel className="accordion__panel">
+            <PackagesStep />
+          </Accordion.Panel>
+        </Accordion.Item>
       </Accordion.Item>
-      {/*<Accordion.Item className="accordion__item" value="step3">*/}
-      {/*  <Accordion.Header className="accordion__header">*/}
-      {/*    <Accordion.Trigger className="accordion__trigger">*/}
-      {/*      4. Select date and time*/}
-      {/*      <PlusIcon className="accordion__icon" />*/}
-      {/*    </Accordion.Trigger>*/}
-      {/*  </Accordion.Header>*/}
-      {/*  <Accordion.Panel className="accordion__panel">*/}
-      {/*    <DateStep />*/}
-      {/*    <TimeStep />*/}
-      {/*  </Accordion.Panel>*/}
-      {/*</Accordion.Item>*/}
     </Accordion.Root>
   );
 }
