@@ -1,4 +1,4 @@
-@import "../settings/mixins";
+@import '../settings/mixins';
 
 /* ============ Container ============ */
 .radio-group {
@@ -52,7 +52,6 @@
         }
       }
     }
-    
 
     /* ---------- Active / Roving focus ---------- */
     &[data-composite-item-active] {
@@ -67,7 +66,6 @@
 
     /* ---------- Checked (selected) ---------- */
     &[data-state='checked'] {
-
       .type-card {
         border-color: var(--c-theme-primary);
 
@@ -75,8 +73,6 @@
           background: var(--c-theme-primary);
         }
       }
-
-
     }
   }
 }

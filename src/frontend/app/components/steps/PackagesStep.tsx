@@ -32,13 +32,11 @@ export function PackagesStep() {
       setError(null);
       try {
         const res = await getPackages(String(state.venueId));
-
-        // Map API data (id, label, …) to UiPackageItem
         const raw = res.data || [];
         const mapped = raw.map(
           (pkg: any): UiPackageItem => ({
             id: pkg.id,
-            name: pkg.label, // use label as the display name
+            name: pkg.name,
             description: pkg.description ?? '',
             priceText: pkg.priceText ?? '',
             image_url: pkg.image_url ?? null,

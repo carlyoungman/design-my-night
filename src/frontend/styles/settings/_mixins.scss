@@ -6,7 +6,6 @@
   );
 }
 
-
 @mixin headline-settings {
   font-weight: var(--font-headline-weight);
   line-height: var(--font--headline-line-height);
@@ -65,7 +64,6 @@
   @include base-settings;
 }
 
-
 @mixin button-reset {
   all: unset;
   display: inline-block;
@@ -83,7 +81,6 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
 }
 
 @mixin aspect-ratio-1-1 {

@@ -7,9 +7,7 @@ export type Venue = { _id: string; title: string; name?: string; path: string };
 export function getVenues(q: { venue_group?: string; fields?: string } = {}) {
   const qs = new URLSearchParams(q as Record<string, string>);
   return j<{
-    // my proxy often wraps extra info in `data`, but the actual result set is in `payload.pages`
-    data: unknown;
-    payload: { pages: Venue[] };
+    data: { payload?: { pages?: Venue[] } };
   }>('venues' + (qs.toString() ? `?${qs}` : ''));
 }
 

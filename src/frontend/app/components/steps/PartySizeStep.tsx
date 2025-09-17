@@ -7,17 +7,17 @@ import { StepShell } from '../StepShell';
 export function PartySizeStep() {
   const { partySize } = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const id =useId();
+  const id = useId();
 
   // I seed a starting value so the field is controlled from mount.
- useEffect(() => {
+  useEffect(() => {
     if (partySize == null) {
       dispatch({ type: 'SET_PARTY_SIZE', size: 2 });
     }
   }, [partySize, dispatch]);
 
   // Base UI calls me with number | null on every change (typing & +/-).
-  const handleValueChange =useCallback(
+  const handleValueChange = useCallback(
     (value: number | null) => {
       const n = value == null ? 1 : Math.floor(value);
       const clamped = Math.min(12, Math.max(1, n));

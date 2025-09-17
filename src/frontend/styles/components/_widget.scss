@@ -1,5 +1,4 @@
-@import "../settings/mixins";
-
+@import '../settings/mixins';
 
 .dmn-widget {
   background-color: var(--c-black);
@@ -8,4 +7,3 @@
   border-radius: var(--border-radius);
   overflow: hidden;
 }
-

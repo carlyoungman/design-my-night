@@ -13,7 +13,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     return raw ? Number(raw) : null;
   });
 
- useEffect(() => {
+  useEffect(() => {
     if (selectedVenueId != null)
       localStorage.setItem('dmn.admin.selectedVenueId', String(selectedVenueId));
     else localStorage.removeItem('dmn.admin.selectedVenueId');

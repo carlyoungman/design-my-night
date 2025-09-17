@@ -400,7 +400,7 @@ class AdminController
       $venuePostId = (int)$venuePostId;
       $ext_id = (string)get_post_meta($venuePostId, 'dmn_venue_id', true);
       if (!$ext_id) continue;
-      
+
       $payload = [
         'num_people' => 2,
         'date' => gmdate('Y-m-d'),
@@ -549,6 +549,17 @@ class AdminController
 
       update_post_meta($id, '_dmn_pkg_price_text', $priceText);
       update_post_meta($id, '_dmn_pkg_visible', (bool)$visible);
+      
+      $venueIds = [];
+      foreach ((array)($it['venueIds'] ?? []) as $vid) {
+        $vid = sanitize_text_field($vid);
+        if (ctype_digit($vid)) {
+          $dmnId = (string)get_post_meta((int)$vid, 'dmn_venue_id', true);
+          $venueIds[] = $dmnId ?: $vid;
+        } else {
+          $venueIds[] = $vid;
+        }
+      }
       update_post_meta($id, '_dmn_pkg_venue_ids', $venueIds);
 
       if ($imageId > 0) {

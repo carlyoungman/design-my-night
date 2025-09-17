@@ -7059,15 +7059,12 @@ function PackagesStep() {
       setError(null);
       try {
         const res = await (0,_api_public__WEBPACK_IMPORTED_MODULE_3__.getPackages)(String(state.venueId));
-
-        // Map API data (id, label, …) to UiPackageItem
         const raw = res.data || [];
         const mapped = raw.map(pkg => {
           var _pkg$description, _pkg$priceText, _pkg$image_url, _pkg$visible;
           return {
             id: pkg.id,
-            name: pkg.label,
-            // use label as the display name
+            name: pkg.name,
             description: (_pkg$description = pkg.description) !== null && _pkg$description !== void 0 ? _pkg$description : '',
             priceText: (_pkg$priceText = pkg.priceText) !== null && _pkg$priceText !== void 0 ? _pkg$priceText : '',
             image_url: (_pkg$image_url = pkg.image_url) !== null && _pkg$image_url !== void 0 ? _pkg$image_url : null,

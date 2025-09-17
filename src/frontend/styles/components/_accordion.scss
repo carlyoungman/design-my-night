@@ -1,4 +1,4 @@
-@import "../settings/mixins";
+@import '../settings/mixins';
 
 .accordion {
   &__header {
@@ -12,7 +12,7 @@
   }
 
   &__icon {
-    color: var(--c-theme-primary)
+    color: var(--c-theme-primary);
   }
 
   &__trigger {

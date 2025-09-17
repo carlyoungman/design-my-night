@@ -38,7 +38,8 @@
     color: var(--c-white);
     height: 50px;
 
-    &:focus, &:hover {
+    &:focus,
+    &:hover {
       background: rgba(244, 244, 244, 0.1);
     }
   }

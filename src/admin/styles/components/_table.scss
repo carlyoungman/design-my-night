@@ -13,7 +13,6 @@
     width: 100%;
   }
 
-
   &__label {
     margin-bottom: var(--universal-space-half);
   }
@@ -24,7 +23,8 @@
   }
 
   &__image-picker {
-    &__image, &__image-preview {
+    &__image,
+    &__image-preview {
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: cover;

@@ -11,7 +11,7 @@
     gap: var(--universal-space-2);
     grid-template-columns: repeat(1, minmax(0, 1fr));
     @include large-screen-min {
-      grid-template-columns:  1fr 30%;
+      grid-template-columns: 1fr 30%;
     }
     @include x-large-screen-min {
       gap: var(--universal-space-3);
@@ -20,7 +20,6 @@
       gap: var(--universal-space-4);
     }
   }
-
 
   &__main {
     > .dmn-admin__card {
@@ -33,7 +32,8 @@
     background: var(--c-white);
     border: 1px solid var(--c-off-white);
     border-radius: var(--border-radius);
-    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2) var(--universal-space-2);
+    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2)
+      var(--universal-space-2);
     max-width: unset;
   }
 
@@ -52,7 +52,6 @@
       align-items: center;
       justify-content: flex-end;
       gap: var(--universal-space-2);
-
     }
 
     &__dirty {

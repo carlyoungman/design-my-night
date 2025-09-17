@@ -2,8 +2,9 @@
   !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/admin/styles/styles.scss ***!
   \*****************************************************************************************************************************************************************************************************************************************************/
 :root {
-  --box-shadow-1: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; /* Original */
-  --box-shadow-2: rgba(50, 50, 93, 0.30) 0px 4px 8px -2px, rgba(0, 0, 0, 0.35) 0px 2px 4px -2px;
+  --box-shadow-1:
+    rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; /* Original */
+  --box-shadow-2: rgba(50, 50, 93, 0.3) 0px 4px 8px -2px, rgba(0, 0, 0, 0.35) 0px 2px 4px -2px;
   --box-shadow-3: rgba(50, 50, 93, 0.35) 0px 8px 16px -3px, rgba(0, 0, 0, 0.4) 0px 4px 6px -3px;
   --border-radius: 15px;
   --font-base-size: 18px;
@@ -19,7 +20,7 @@
   --c-white: #ffffff;
   --c-off-black: #25251e;
   --c-black: #000000;
-  --c-blue: #3A5683;
+  --c-blue: #3a5683;
   --c-green: #379f70;
   --c-off-white: #d9d9d9;
   --c-red: #bb3d3d;
@@ -142,7 +143,8 @@
   gap: var(--universal-space);
   margin-top: var(--universal-space-2);
 }
-.dmn-admin select, .dmn-admin input:not([type=checkbox]) {
+.dmn-admin select,
+.dmn-admin input:not([type=checkbox]) {
   height: 50px;
   min-width: 100%;
   padding: 0 var(--universal-space);

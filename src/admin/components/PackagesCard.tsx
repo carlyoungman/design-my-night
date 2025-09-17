@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
-import { adminBulkSavePackages, adminDeletePackage, adminGetPackages } from '../api';
+import {
+  adminBulkSavePackages,
+  adminDeletePackage,
+  adminGetPackages,
+  adminListVenues,
+} from '../api';
 import type { AdminPackage } from '../../frontend/app/types';
 import { FormControlLabel, FormGroup, Switch } from '@mui/material';
 
@@ -14,19 +19,43 @@ export default function PackagesCard() {
   const [ok, setOk] = useState<string | null>(null);
   const [rows, setRows] = useState<AdminPackage[]>([]);
   const [orig, setOrig] = useState<AdminPackage[]>([]);
+  const [dmnVenueId, setDmnVenueId] = useState<string | null>(null);
   const MAX = 200;
 
+  // Fetch DMN ID whenever the venue changes
+  useEffect(() => {
+    if (!venueId) {
+      setDmnVenueId(null);
+      return;
+    }
+    let cancel = false;
+    (async () => {
+      try {
+        const res = await adminListVenues();
+        if (cancel) return;
+        const venue = res?.venues?.find((v) => v.id === venueId);
+        setDmnVenueId(venue?.dmn_id || null);
+      } catch (e: any) {
+        if (!cancel) setErr(e?.message || 'Failed to load venues.');
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [venueId]);
+
+  // Load packages using the DMN venue ID
   const load = async () => {
     setBusy('loading');
     setErr(null);
     setOk(null);
     try {
-      if (!venueId) {
+      if (!venueId || !dmnVenueId) {
         setRows([]);
         setOrig([]);
         return;
       }
-      const items = await adminGetPackages({ venueId: String(venueId) });
+      const items = (await adminGetPackages({ venueId: dmnVenueId })).reverse();
       setRows(items);
       setOrig(items);
     } catch (e: any) {
@@ -38,7 +67,7 @@ export default function PackagesCard() {
 
   useEffect(() => {
     load();
-  }, [venueId]);
+  }, [venueId, dmnVenueId]);
 
   const setField = (idx: number, key: keyof AdminPackage, value: any) => {
     setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, [key]: value } : r)));
@@ -46,6 +75,7 @@ export default function PackagesCard() {
 
   const addRow = () => {
     setRows((r) => [
+      ...r,
       {
         name: '',
         description: '',
@@ -53,9 +83,8 @@ export default function PackagesCard() {
         visible: true,
         image_id: null,
         image_url: null,
-        venueIds: venueId ? [String(venueId)] : [],
+        venueIds: dmnVenueId ? [dmnVenueId] : [],
       },
-      ...r,
     ]);
   };
 
@@ -254,7 +283,7 @@ export default function PackagesCard() {
         </div>
       )}
       <div className="dmn-admin__button-wrapper dmn-admin__button-wrapper--end">
-        <button className="button button--action" onClick={addRow} disabled={!venueId}>
+        <button className="button button--" onClick={addRow} disabled={!venueId}>
           + New package
         </button>
       </div>
