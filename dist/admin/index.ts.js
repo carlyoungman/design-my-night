@@ -20094,6 +20094,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// This version of PackagesCard looks up the DMN venue id for the selected venue
+// and saves it to each package’s `venueIds` array instead of using the
+// WordPress post ID. It also preserves all existing functionality for
+// listing, editing and deleting packages.
+
 // WordPress media
 
 function PackagesCard() {
@@ -20105,7 +20110,34 @@ function PackagesCard() {
   const [ok, setOk] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [rows, setRows] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [orig, setOrig] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [dmnVenueId, setDmnVenueId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const MAX = 200;
+
+  // When the selected venue changes, fetch the DMN id for that venue
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!venueId) {
+      setDmnVenueId(null);
+      return;
+    }
+    let cancel = false;
+    (async () => {
+      try {
+        var _res$venues;
+        const res = await (0,_api__WEBPACK_IMPORTED_MODULE_2__.adminListVenues)();
+        if (cancel) return;
+        const list = (_res$venues = res?.venues) !== null && _res$venues !== void 0 ? _res$venues : [];
+        const venue = list.find(v => v.id === venueId);
+        setDmnVenueId(venue?.dmn_id || null);
+      } catch (e) {
+        if (!cancel) setErr(e?.message || 'Failed to load venues.');
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [venueId]);
+
+  // Load packages for the selected venue
   const load = async () => {
     setBusy('loading');
     setErr(null);
@@ -20144,7 +20176,8 @@ function PackagesCard() {
       visible: true,
       image_id: null,
       image_url: null,
-      venueIds: venueId ? [String(venueId)] : []
+      // Use the DMN venue id (string) for the venueIds field
+      venueIds: dmnVenueId ? [dmnVenueId] : []
     }, ...r]);
   };
   const pickImage = idx => {
@@ -20247,9 +20280,9 @@ function PackagesCard() {
       })
     }), venueId && busy !== 'loading' && rows.length === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
       children: "No add-ons found."
-    }), rows.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+    }), rows.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       className: "table",
-      children: rows.map((row, i) => {
+      children: [rows.map((row, i) => {
         var _row$id;
         return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
           className: "table__row",
@@ -20266,9 +20299,9 @@ function PackagesCard() {
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
               className: "table__cell",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
                 className: "table__label",
-                children: "Description - (Max 200)"
+                children: ["Description - (Max ", MAX, ")"]
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("textarea", {
                 rows: 2,
                 maxLength: MAX,
@@ -20306,9 +20339,9 @@ function PackagesCard() {
                 })]
               })
             })]
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
             className: "table__right",
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
               className: "table__image-picker",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
                 className: "table__label",
@@ -20319,32 +20352,29 @@ function PackagesCard() {
                 className: "table__image-picker__image"
               }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
                 className: "table__image-picker__image-preview"
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-                className: "table__image-picker__button-wrap",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
-                  className: "table__image-picker__btn button",
-                  type: "button",
-                  onClick: () => pickImage(i),
-                  children: "Choose image"
-                }), row.image_id ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
-                  className: "table__image-picker__btn button button button--sub",
-                  type: "button",
-                  onClick: () => clearImage(i),
-                  children: "Clear image"
-                }) : null]
               })]
-            })
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "table__image-picker__buttons",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+                type: "button",
+                className: "button",
+                onClick: () => pickImage(i),
+                children: row.image_url ? 'Change image' : 'Pick image'
+              }), row.image_url && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+                type: "button",
+                className: "button button--remove",
+                onClick: () => clearImage(i),
+                children: "Clear"
+              })]
+            })]
           })]
         }, (_row$id = row.id) !== null && _row$id !== void 0 ? _row$id : `new-${i}`);
-      })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-      className: "dmn-admin__button-wrapper dmn-admin__button-wrapper--end",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
-        className: "button button--action",
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+        type: "button",
+        className: "button button--secondary",
         onClick: addRow,
-        disabled: !venueId,
-        children: "+ New package"
-      })
+        children: "Add package"
+      })]
     })]
   });
 }

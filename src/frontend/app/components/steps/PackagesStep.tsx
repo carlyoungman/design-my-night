@@ -1,54 +1,110 @@
 import React, { useEffect, useState } from 'react';
 import { StepShell } from '../StepShell';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetState, useWidgetDispatch } from '../../WidgetProvider';
+import { getPackages } from '../../../api/public';
+
+type UiPackageItem = {
+  id: string;
+  name: string;
+  description?: string;
+  priceText?: string;
+  image_url?: string | null;
+  visible?: boolean;
+};
 
 export function PackagesStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
+  const [packages, setPackages] = useState<UiPackageItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function loadPackages() {
-    if (!state.venueId) return;
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `/wp-json/dmn/v1/packages?venue_id=${encodeURIComponent(state.venueId)}`,
-      );
-      const json = await res.json();
-      dispatch({ type: 'SET_PACKAGES', value: json?.data || [] });
-    } catch {
-      dispatch({ type: 'SET_PACKAGES', value: [] });
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  // Load packages whenever the selected venue (DMN ID) changes
   useEffect(() => {
-    if (state.step === 'packages') loadPackages();
-  }, [state.step, state.venueId]);
+    // If no venue is selected, clear packages and bail out
+    if (!state.venueId) {
+      setPackages([]);
+      return;
+    }
+
+    async function fetchPackages() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getPackages(String(state.venueId));
+
+        // Map API data (id, label, …) to UiPackageItem
+        const raw = res.data || [];
+        const mapped = raw.map(
+          (pkg: any): UiPackageItem => ({
+            id: pkg.id,
+            name: pkg.label, // use label as the display name
+            description: pkg.description ?? '',
+            priceText: pkg.priceText ?? '',
+            image_url: pkg.image_url ?? null,
+            visible: pkg.visible ?? true,
+          }),
+        );
+
+        setPackages(mapped);
+        dispatch({ type: 'SET_PACKAGES', value: mapped });
+      } catch (e: any) {
+        setError(e.message || 'Failed to load packages');
+        setPackages([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPackages();
+  }, [state.venueId, dispatch]);
+
+  const toggle = (id: string, checked: boolean) => {
+    const next = new Set(state.packagesSelected);
+    if (checked) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
+    dispatch({ type: 'SET_PACKAGES_SELECTED', value: Array.from(next) });
+  };
 
   return (
     <StepShell className="packages">
       {loading && <p>Loading packages…</p>}
-      {!loading && (
-        <ul className="dmn-widget__list">
-          {state.packages.map((p) => (
-            <li key={p.id}>
-              <label className="dmn-widget__checkbox">
+      {!loading && error && <p className="step__error">{error}</p>}
+      {!loading && !error && (
+        <div className="package-grid">
+          {packages.map((pkg) => {
+            const isSelected = state.packagesSelected.includes(pkg.id);
+            return (
+              <label key={pkg.id} className={`package-card${isSelected ? ' is-selected' : ''}`}>
+                {pkg.image_url && (
+                  <div className="package-card__image-wrapper">
+                    <img src={pkg.image_url} alt={pkg.name} className="package-card__image" />
+                  </div>
+                )}
+                <article className="package-card__article">
+                  <h6 className="package-card__name">{pkg.name}</h6>
+                  {pkg.description && (
+                    <p
+                      className="package-card__description"
+                      dangerouslySetInnerHTML={{ __html: pkg.description }}
+                    />
+                  )}
+                  {pkg.priceText && <p className="package-card__price">{pkg.priceText}</p>}
+                  <span className="package-card__button">{isSelected ? 'Selected' : 'Select'}</span>
+                </article>
                 <input
                   type="checkbox"
-                  checked={state.packagesSelected.includes(p.id)}
-                  onChange={(e) => {
-                    const next = new Set(state.packagesSelected);
-                    e.target.checked ? next.add(p.id) : next.delete(p.id);
-                    dispatch({ type: 'SET_PACKAGES_SELECTED', value: Array.from(next) });
-                  }}
+                  className="package-card__checkbox"
+                  checked={isSelected}
+                  onChange={(e) => toggle(pkg.id, e.target.checked)}
                 />
-                <span>{p.label}</span>
               </label>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
       )}
     </StepShell>
   );

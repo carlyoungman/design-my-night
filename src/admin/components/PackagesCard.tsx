@@ -1,8 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
-import { adminBulkSavePackages, adminDeletePackage, adminGetPackages } from '../api';
+import {
+  adminBulkSavePackages,
+  adminDeletePackage,
+  adminGetPackages,
+  adminListVenues,
+} from '../api';
 import type { AdminPackage } from '../../frontend/app/types';
 import { FormControlLabel, FormGroup, Switch } from '@mui/material';
+
+// This version of PackagesCard looks up the DMN venue id for the selected venue
+// and saves it to each package’s `venueIds` array instead of using the
+// WordPress post ID. It also preserves all existing functionality for
+// listing, editing and deleting packages.
 
 type Busy = false | 'loading' | 'saving' | `delete:${number}`;
 declare const wp: any; // WordPress media
@@ -14,8 +24,33 @@ export default function PackagesCard() {
   const [ok, setOk] = useState<string | null>(null);
   const [rows, setRows] = useState<AdminPackage[]>([]);
   const [orig, setOrig] = useState<AdminPackage[]>([]);
+  const [dmnVenueId, setDmnVenueId] = useState<string | null>(null);
   const MAX = 200;
 
+  // When the selected venue changes, fetch the DMN id for that venue
+  useEffect(() => {
+    if (!venueId) {
+      setDmnVenueId(null);
+      return;
+    }
+    let cancel = false;
+    (async () => {
+      try {
+        const res = await adminListVenues();
+        if (cancel) return;
+        const list = res?.venues ?? [];
+        const venue = list.find((v) => v.id === venueId);
+        setDmnVenueId(venue?.dmn_id || null);
+      } catch (e: any) {
+        if (!cancel) setErr(e?.message || 'Failed to load venues.');
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [venueId]);
+
+  // Load packages for the selected venue
   const load = async () => {
     setBusy('loading');
     setErr(null);
@@ -53,7 +88,8 @@ export default function PackagesCard() {
         visible: true,
         image_id: null,
         image_url: null,
-        venueIds: venueId ? [String(venueId)] : [],
+        // Use the DMN venue id (string) for the venueIds field
+        venueIds: dmnVenueId ? [dmnVenueId] : [],
       },
       ...r,
     ]);
@@ -177,9 +213,8 @@ export default function PackagesCard() {
                   <div className="table__label">Name</div>
                   <input value={row.name} onChange={(e) => setField(i, 'name', e.target.value)} />
                 </div>
-
                 <div className="table__cell">
-                  <div className="table__label">Description - (Max 200)</div>
+                  <div className="table__label">Description - (Max {MAX})</div>
                   <textarea
                     rows={2}
                     maxLength={MAX}
@@ -187,7 +222,6 @@ export default function PackagesCard() {
                     onChange={(e) => setField(i, 'description', e.target.value)}
                   />
                 </div>
-
                 <div className="table__cell">
                   <div className="table__label">Price</div>
                   <input
@@ -220,7 +254,6 @@ export default function PackagesCard() {
                   </div>
                 </div>
               </div>
-
               <div className="table__right">
                 <div className="table__image-picker">
                   <div className="table__label">Image</div>
@@ -229,35 +262,29 @@ export default function PackagesCard() {
                   ) : (
                     <div className="table__image-picker__image-preview"></div>
                   )}
-                  <div className="table__image-picker__button-wrap">
+                </div>
+                <div className="table__image-picker__buttons">
+                  <button type="button" className="button" onClick={() => pickImage(i)}>
+                    {row.image_url ? 'Change image' : 'Pick image'}
+                  </button>
+                  {row.image_url && (
                     <button
-                      className="table__image-picker__btn button"
                       type="button"
-                      onClick={() => pickImage(i)}
+                      className="button button--remove"
+                      onClick={() => clearImage(i)}
                     >
-                      Choose image
+                      Clear
                     </button>
-                    {row.image_id ? (
-                      <button
-                        className="table__image-picker__btn button button button--sub"
-                        type="button"
-                        onClick={() => clearImage(i)}
-                      >
-                        Clear image
-                      </button>
-                    ) : null}
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
           ))}
+          <button type="button" className="button button--secondary" onClick={addRow}>
+            Add package
+          </button>
         </div>
       )}
-      <div className="dmn-admin__button-wrapper dmn-admin__button-wrapper--end">
-        <button className="button button--action" onClick={addRow} disabled={!venueId}>
-          + New package
-        </button>
-      </div>
     </section>
   );
 }

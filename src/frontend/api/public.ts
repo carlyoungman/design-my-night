@@ -15,32 +15,14 @@ export function getVenues(q: { venue_group?: string; fields?: string } = {}) {
 
 /* ---------- Packages ---------- */
 
-export function getPackages(venue_id: string) {
+export function getPackages(venueId: string) {
   return j<{ data: Array<{ id: string; label: string }> }>(
-    `/wp-json/dmn/v1/packages?venue_id=${encodeURIComponent(venue_id)}`
+    'packages?venue_id=' + encodeURIComponent(venueId),
   );
 }
 
-/* ---------- Booking Types ---------- */
-
-export function getBookingTypes(venue_id: string) {
-  return j<{
-    data: Array<{
-      id: string;
-      name: string;
-      description?: string;
-      priceText?: string;
-      image_url?: string | null;
-      image_id?: number | null;
-      valid?: boolean | null;
-      message?: string | null;
-    }>;
-  }>(`/wp-json/dmn/v1/booking-types?venue_id=${encodeURIComponent(venue_id)}`);
-}
-
 /* ---------- Availability (DMN booking-availability) ---------- */
-
-// I keep all fields optional so I never need to send `null`; callers can conditionally spread keys.
+// I keep all fields optional, so I never need to send `null`; callers can conditionally spread keys.
 export type AvailabilityReq = {
   venue_id: string;
   num_people?: number;
@@ -81,12 +63,36 @@ export function checkAvailability(p: AvailabilityReq, fields?: CheckFields) {
   const qs = fields ? `?fields=${encodeURIComponent(fields)}` : '';
   return j<AvailabilityResponse>('booking-availability' + qs, {
     method: 'POST',
-    body: JSON.stringify(p)
+    body: JSON.stringify(p),
   });
 }
 
-/* ---------- Create Booking ---------- */
+export type BookingTypeQuery = {
+  venueId: string;
+  numPeople?: number;
+  date?: string;
+};
 
+export function getBookingTypes(params: BookingTypeQuery) {
+  const qs = new URLSearchParams();
+  qs.set('venue_id', params.venueId);
+  if (params.numPeople) qs.set('num_people', String(params.numPeople));
+  if (params.date) qs.set('date', params.date);
+  return j<{
+    data: Array<{
+      id: string;
+      name: string;
+      description?: string;
+      priceText?: string;
+      image_url?: string | null;
+      image_id?: number | null;
+      valid?: boolean | null;
+      message?: string | null;
+    }>;
+  }>('booking-types?' + qs.toString());
+}
+
+/* ---------- Create Booking ---------- */
 export type BookingReq = {
   source: 'partner';
   first_name: string;

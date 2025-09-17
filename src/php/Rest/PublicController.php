@@ -59,32 +59,15 @@ class PublicController
      * Method: GET
      * Callback: Anonymous function querying dmn_package CPTs by venue_id
      * Permission: Public (no authentication required) */
-    register_rest_route('dmn/v1', '/packages', [
-      'methods' => 'GET',
-      'callback' => function (WP_REST_Request $req) {
-        $venue_id = sanitize_text_field($req->get_param('venue_id'));
-        // Query CPT "dmn_package" with meta_key=venue_id (adjust to your naming)
-        $q = new WP_Query([
-          'post_type' => 'dmn_package',
-          'posts_per_page' => 100,
-          'meta_query' => [['key' => 'venue_id', 'value' => $venue_id]],
-          'orderby' => 'menu_order',
-          'order' => 'ASC',
-          'no_found_rows' => true,
-        ]);
-        $data = [];
-        while ($q->have_posts()) {
-          $q->the_post();
-          $data[] = [
-            'id' => (string)get_the_ID(),
-            'label' => get_the_title(), // or build "Title — £Price"
-          ];
-        }
-        wp_reset_postdata();
-        return new WP_REST_Response(['data' => $data], 200);
-      },
-      'permission_callback' => '__return_true',
-    ]);
+    register_rest_route(
+      'dmn/v1',
+      '/packages',
+      [
+        'methods' => 'GET',
+        'callback' => [$this, 'packages'],
+        'permission_callback' => '__return_true',
+      ]
+    );
 
     /**
      * Registers the /create-booking REST API endpoint for creating a booking using the DMN API via an inline callback.
@@ -134,6 +117,8 @@ class PublicController
     ]);
   }
 
+  // In src/php/Rest/PublicController.php, inside the PublicController class
+
   /**
    * Handles the creation of a booking via the DMN API.
    *
@@ -169,6 +154,63 @@ class PublicController
       'error' => $res['error'] ?? null,
       'debug' => $res, // include full debug blob
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
+  }
+
+  /**
+   * Retrieves add‑on packages for the specified venue.
+   *
+   * @param WP_REST_Request $req The incoming REST request.
+   * @return WP_REST_Response    A response containing an array of package objects.
+   */
+  public function packages(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_id = sanitize_text_field($req->get_param('venue_id'));
+
+    // Build query arguments for dmn_package posts.
+    $args = [
+      'post_type' => 'dmn_package',
+      'posts_per_page' => 100,
+      'orderby' => 'menu_order',
+      'order' => 'ASC',
+      'no_found_rows' => true,
+    ];
+    if ($venue_id !== '') {
+      $args['meta_query'] = [
+        [
+          'key' => '_dmn_pkg_venue_ids',
+          'value' => '"' . $venue_id . '"',
+          'compare' => 'LIKE',
+        ],
+      ];
+    }
+
+    $query = new WP_Query($args);
+    $data = [];
+
+    while ($query->have_posts()) {
+      $query->the_post();
+      $id = get_the_ID();
+      $price = (string)get_post_meta($id, '_dmn_pkg_price_text', true);
+      $visible = (bool)get_post_meta($id, '_dmn_pkg_visible', true);
+      $venueIds = (array)get_post_meta($id, '_dmn_pkg_venue_ids', true);
+      $imgId = get_post_thumbnail_id($id);
+      $imgUrl = $imgId ? wp_get_attachment_image_url($imgId, 'large') : null;
+
+      $data[] = [
+        'id' => (string)$id,
+        'name' => get_the_title(),
+        'description' => get_the_content(),
+        'priceText' => $price ?: null,
+        'image_url' => $imgUrl,
+        // Only mark visible if the post is published and the visible flag is true.
+        'visible' => (get_post_status($id) === 'publish') && $visible,
+        'venueIds' => array_values(array_map('strval', $venueIds)),
+      ];
+    }
+
+    wp_reset_postdata();
+
+    return new WP_REST_Response(['data' => $data], 200);
   }
 
   /**

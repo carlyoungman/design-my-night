@@ -23,9 +23,9 @@
 
 
   &__main {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--universal-space-2);
+    > .dmn-admin__card {
+      margin-bottom: var(--universal-space-2);
+    }
   }
 
   &__card {

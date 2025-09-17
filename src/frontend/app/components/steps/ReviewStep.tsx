@@ -49,7 +49,7 @@ export function ReviewStep() {
     // I join selected package labels into a single string (shown on the DMN side).
     const packageLabels = state.packages
       .filter((p) => state.packagesSelected.includes(p.id))
-      .map((p) => p.label)
+      .map((p) => p.name)
       .join(', ');
 
     try {
@@ -114,7 +114,7 @@ export function ReviewStep() {
           Packages:{' '}
           {state.packages
             .filter((p) => state.packagesSelected.includes(p.id))
-            .map((p) => p.label)
+            .map((p) => p.name)
             .join(', ') || 'None'}
         </li>
         <li>

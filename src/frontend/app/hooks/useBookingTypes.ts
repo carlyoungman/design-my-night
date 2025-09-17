@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getBookingTypes } from '../../api/public';
 
+// Parameters accepted by useBookingTypes
 type Params = {
+  /** ID of the selected venue; null when no venue is selected */
   venueId: string | null;
+  /** Optional booking date (YYYY‑MM‑DD) */
   date?: string | null;
+  /** Number of people in the party; null or undefined when not set */
   partySize: number | null | undefined;
+  /** Whether the hook should fetch data; set false to disable */
   enabled?: boolean;
 };
 
+// Structure of a single booking type as returned by the backend
 type BookingTypeItem = {
   id: string;
   name: string;
@@ -18,6 +25,7 @@ type BookingTypeItem = {
   message?: string | null;
 };
 
+// Structure returned by this hook
 type Return = {
   types: BookingTypeItem[];
   loading: boolean;
@@ -32,13 +40,19 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
   const reloadKey = useRef(0);
   const ctrlRef = useRef<AbortController | null>(null);
 
+  /**
+   * Fetch the list of booking types from the backend. Uses the shared API helper
+   * to build the REST URL and perform the request.
+   */
   const fetchTypes = useCallback(async () => {
+    // Do nothing if disabled or required parameters are missing
     if (!enabled || !venueId || partySize == null) {
       setTypes([]);
       setError(null);
       return;
     }
 
+    // Abort any ongoing request before starting a new one
     ctrlRef.current?.abort();
     const ctrl = new AbortController();
     ctrlRef.current = ctrl;
@@ -47,19 +61,15 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
     setError(null);
 
     try {
-      const params = new URLSearchParams({
-        venue_id: String(venueId),
-        num_people: String(partySize),
+      // Call the API helper with appropriate query params
+      const res = await getBookingTypes({
+        venueId: String(venueId),
+        numPeople: partySize,
+        date: date ?? undefined,
       });
-      if (date) params.set('date', String(date));
 
-      const res = await fetch(`/wp-json/dmn/v1/booking-types?${params.toString()}`, {
-        signal: ctrl.signal,
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-
-      const data = Array.isArray(json?.data) ? json.data : [];
+      const data = Array.isArray(res?.data) ? res.data : [];
+      // Map raw API objects to the strongly‑typed BookingTypeItem structure
       const mapped: BookingTypeItem[] = data.map((t: any) => ({
         id: String(t.id),
         name: t.name || String(t.id),
@@ -71,7 +81,8 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
         message: t.message ?? null,
       }));
 
-      // Sort: invalid last, then A–Z
+      // Sort invalid items to the end, then alphabetically by name (case‑insensitive),
+      // then by ID as a final tiebreaker
       mapped.sort((a, b) => {
         const aInvalid = a.valid === false;
         const bInvalid = b.valid === false;
@@ -82,11 +93,14 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
         });
         if (byName !== 0) return byName;
 
-        return String(a.id).localeCompare(String(b.id), undefined, { sensitivity: 'base' });
+        return String(a.id).localeCompare(String(b.id), undefined, {
+          sensitivity: 'base',
+        });
       });
 
       setTypes(mapped);
     } catch (e: any) {
+      // Ignore aborted requests
       if (e?.name === 'AbortError') return;
       setError(e?.message || 'Failed to load booking types.');
       setTypes([]);
@@ -95,12 +109,18 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
     }
   }, [enabled, venueId, date, partySize]);
 
+  // Fetch types on mount and whenever dependencies change; ensure we abort
+  // outstanding requests during cleanup to avoid setting state on unmounted components
   useEffect(() => {
     fetchTypes();
     return () => ctrlRef.current?.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTypes, reloadKey.current]);
 
+  /**
+   * Force a reload by bumping the internal key; this triggers the useEffect
+   * without changing the other dependencies.
+   */
   const reload = useCallback(() => {
     reloadKey.current += 1;
     fetchTypes();

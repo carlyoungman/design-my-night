@@ -36,7 +36,7 @@ export type State = {
   avail?: Availability;
   suggestions: string[]; // suggested times (from API or fallback)
 
-  packages: Array<{ id: string; label: string }>;
+  packages: Array<{ id: string; name: string }>;
   packagesSelected: string[]; // ids
 
   customer: Customer;
