@@ -9,23 +9,14 @@ import { RadioGroup } from '@base-ui-components/react/radio-group';
 export function TypeStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
+  const isActive = state.step === 'type';
 
   const { types, loading, error, reload } = useBookingTypes({
     venueId: state.venueId ?? null,
     date: state.date ?? null, // pass date
     partySize: state.partySize ?? null,
-    enabled:
-      state.step === 'type' &&
-      !!state.venueId &&
-      state.partySize != null &&
-      !!state.date &&
-      !!state.time,
+    enabled: !!state.venueId && state.partySize != null && !!state.date && !!state.time,
   });
-
-  // Refresh types when time changes (type depends on date+time)
-  useEffect(() => {
-    if (state.step === 'type' && state.time) reload();
-  }, [state.time, state.step, reload]);
 
   // Clear selected type when venue/date/time changes to avoid stale selection
   useEffect(() => {
@@ -49,7 +40,7 @@ export function TypeStep() {
 
       {!loading && !error && (
         <div className="step_field">
-          {types.length === 0 && <p>No experiences configured.</p>}
+          {isActive && types.length === 0 && <p>No experiences configured.</p>}
 
           {types.length > 0 && (
             <RadioGroup

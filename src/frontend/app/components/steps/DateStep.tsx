@@ -16,7 +16,7 @@ export function DateStep() {
   const minDateISO = todayISO();
   const maxDateISO = sixMonthsISO();
 
-  const { date: selectedDateISO, venueId, partySize, bookingType } = useWidgetState();
+  const { date: selectedDateISO, venueId, partySize } = useWidgetState();
   const dispatch = useWidgetDispatch();
 
   // Stable Dayjs bounds
@@ -33,18 +33,6 @@ export function DateStep() {
   // Valid ISO dates for the visible month only (from DMN)
   const [validDates, setValidDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<boolean>(false);
-
-  // If the user changes booking type, clear existing date + time
-  const prevTypeRef = useRef<string | null>(bookingType ?? null);
-
-  useEffect(() => {
-    if (bookingType && prevTypeRef.current && bookingType !== prevTypeRef.current) {
-      // Use empty strings so TS + guards are happy
-      dispatch({ type: 'SET_DATE', date: '' as any });
-      dispatch({ type: 'SET_TIME', value: '' as any });
-    }
-    prevTypeRef.current = bookingType ?? null;
-  }, [bookingType, dispatch]);
 
   // Stable key for the visible month (avoid depending on Dayjs objects)
   const monthKey = useMemo(() => visibleMonth.format('YYYY-MM'), [visibleMonth]);
@@ -85,7 +73,6 @@ export function DateStep() {
             venue_id: venueId,
             num_people: partySize,
             date: anchorISO,
-            ...(bookingType ? { type: bookingType } : {}),
           },
           'date',
         );
@@ -115,16 +102,7 @@ export function DateStep() {
     return () => {
       cancelled = true;
     };
-  }, [
-    monthKey,
-    venueId,
-    partySize,
-    bookingType,
-    minDate,
-    maxDate,
-    extractValidationDateBlock,
-    parseSuggested,
-  ]);
+  }, [monthKey, venueId, partySize, minDate, maxDate, extractValidationDateBlock, parseSuggested]);
 
   // Selection rules:
   // - Always enforce min/max.

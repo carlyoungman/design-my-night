@@ -39,6 +39,8 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
   const [error, setError] = useState<string | null>(null);
   const reloadKey = useRef(0);
   const ctrlRef = useRef<AbortController | null>(null);
+  const lastKeyRef = useRef<string>('');
+  const inFlightRef = useRef<string>('');
 
   /**
    * Fetch the list of booking types from the backend. Uses the shared API helper
@@ -47,8 +49,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
   const fetchTypes = useCallback(async () => {
     // Do nothing if disabled or required parameters are missing
     if (!enabled || !venueId || partySize == null) {
-      setTypes([]);
-      setError(null);
+      setLoading(false);
       return;
     }
 
@@ -59,6 +60,10 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
 
     setLoading(true);
     setError(null);
+
+    const key = `${venueId}|${date}|${partySize}`;
+    if (inFlightRef.current === key) return; // prevent overlapping duplicate
+    inFlightRef.current = key;
 
     try {
       // Call the API helper with appropriate query params
@@ -99,6 +104,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
       });
 
       setTypes(mapped);
+      lastKeyRef.current = key;
     } catch (e: any) {
       // Ignore aborted requests
       if (e?.name === 'AbortError') return;
@@ -106,6 +112,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
       setTypes([]);
     } finally {
       setLoading(false);
+      inFlightRef.current = '';
     }
   }, [enabled, venueId, date, partySize]);
 

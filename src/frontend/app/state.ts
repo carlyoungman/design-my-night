@@ -5,7 +5,8 @@ export type Step = 'party' | 'venue' | 'date_time' | 'type' | 'packages' | 'deta
 
 // Keep Customer in sync with how it's used in the widget (message + gdpr supported)
 export type Customer = {
-  name: string;
+  first_name: string; // I split name for DMN
+  last_name: string;
   email: string;
   phone?: string;
   message?: string;
@@ -60,10 +61,11 @@ export const STEP_FLOW: Step[] = [
 export function computeStep(s: State): Step {
   if (!s.partySize) return 'party';
   if (!s.venueId) return 'venue';
-  if (!s.date /* also require time if desired: || !s.time */) return 'date_time';
+  if (!s.date || !s.time) return 'date_time'; // type depends on date+time
   if (!s.bookingType) return 'type';
-  if (!s.packagesResolved) return 'packages';
-  if (!s.customer?.name || !s.customer?.email || !s.customer?.gdpr) return 'details';
+  if ((s.packages?.length ?? 0) > 0 && !s.packagesResolved) return 'packages';
+  const c = s.customer || ({} as any);
+  if (!c.first_name || !c.last_name || !c.email || !c.gdpr) return 'details';
   return 'review';
 }
 
@@ -84,7 +86,7 @@ export const initialState: State = {
   packagesSelected: [],
   packagesResolved: false,
 
-  customer: { name: '', email: '', gdpr: false },
+  customer: { first_name: '', last_name: '', email: '', phone: '', message: '', gdpr: false },
   error: null,
 
   submitting: false,
@@ -101,7 +103,7 @@ export type Action =
   | { type: 'SET_SUGGESTIONS'; value: string[] }
   | { type: 'SET_PACKAGES'; value: State['packages'] }
   | { type: 'SET_PACKAGES_SELECTED'; value: string[] }
-  | { type: 'SET_CUSTOMER'; value: State['customer'] }
+  | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
   | { type: 'START_REVIEW_TIMER'; deadline: number }
   | { type: 'SUBMIT_START' }
   | { type: 'SUBMIT_END' }
@@ -142,10 +144,8 @@ export function reducer(s: State, a: Action): State {
       const next = { ...s, packagesSelected: a.value, packagesResolved: true };
       return { ...next, step: computeStep(next) };
     }
-    case 'SET_CUSTOMER': {
-      const next = { ...s, customer: a.value };
-      return { ...next, step: computeStep(next) };
-    }
+    case 'SET_CUSTOMER':
+      return { ...s, customer: { ...s.customer, ...a.value } };
     case 'START_REVIEW_TIMER':
       return { ...s, reviewDeadline: a.deadline };
     case 'SUBMIT_START':
