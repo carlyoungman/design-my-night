@@ -1,4 +1,21 @@
-.timepicker {
+@use '../settings/mixins' as mixin;
+
+.step {
+  &--party-size {
+    display: grid;
+    align-items: center;
+    gap: var(--universal-space);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: var(--universal-space);
+
+    .step__label {
+      margin: 0;
+    }
+  }
+}
+
+
+.party-size {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -6,7 +23,8 @@
   &__group {
     display: flex;
     align-items: center;
-    gap: 0.5em;
+    justify-content: flex-end;
+    gap: var(--universal-space);
   }
 
   &__decrement,
@@ -17,30 +35,23 @@
     padding: var(--universal-space);
     border: 1px solid var(--c-white);
     background: var(--c-theme-primary);
-    color: var(--c-black);
+    color: var(--c-white);
     cursor: pointer;
     user-select: none;
     transition: var(--transition);
-    height: 50px;
+    height: 60px;
+    width: 60px;
 
     &:hover {
       background: var(--c-white);
+      color: var(--c-black);
     }
   }
 
   &__input {
+    @include mixin.input;
+    max-width: 5rem;
     flex: 1;
     text-align: center;
-    padding: var(--universal-space);
-    max-width: 6rem;
-    border: 1px solid var(--c-white);
-    background: none;
-    color: var(--c-white);
-    height: 50px;
-
-    &:focus,
-    &:hover {
-      background: rgba(244, 244, 244, 0.1);
-    }
   }
 }

@@ -1,0 +1,13 @@
+@use '../settings/mixins' as mixin;
+
+.css-1bfq2hg-MuiPaper-root-MuiAlert-root {
+  background-color: var(--c-error);
+  color: var(--c-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: var(--universal-space);
+  display: flex;
+  align-items: center;
+  gap: var(--universal-space-half);
+  font-size: 16px;
+}

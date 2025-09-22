@@ -173,6 +173,12 @@
   flex: 1 1 100%;
   min-width: 250px;
 }
+.dmn-admin code {
+  padding: var(--universal-space);
+  border: 1px solid var(--c-off-white);
+  margin-top: var(--universal-space);
+  display: block;
+}
 .dmn-admin .table {
   display: flex;
   flex-wrap: wrap;

@@ -33,3 +33,10 @@ form.grid {
     min-width: 250px;
   }
 }
+
+code {
+  padding: var(--universal-space);
+  border: 1px solid var(--c-off-white);
+  margin-top: var(--universal-space);
+  display: block;
+}

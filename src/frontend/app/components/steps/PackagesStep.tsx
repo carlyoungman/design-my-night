@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StepShell } from '../StepShell';
 import { useWidgetState, useWidgetDispatch } from '../../WidgetProvider';
 import { getPackages } from '../../../api/public';
+import LoadingAnimation from '../LoadingAnimation';
 
 type UiPackageItem = {
   id: string;
@@ -17,8 +18,6 @@ export function PackagesStep() {
   const dispatch = useWidgetDispatch();
   const [packages, setPackages] = useState<UiPackageItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   // Load packages whenever the selected venue (DMN ID) changes
   useEffect(() => {
     // If no venue is selected, clear packages and bail out
@@ -29,7 +28,6 @@ export function PackagesStep() {
 
     async function fetchPackages() {
       setLoading(true);
-      setError(null);
       try {
         const res = await getPackages(String(state.venueId));
         const raw = res.data || [];
@@ -47,7 +45,6 @@ export function PackagesStep() {
         setPackages(mapped);
         dispatch({ type: 'SET_PACKAGES', value: mapped });
       } catch (e: any) {
-        setError(e.message || 'Failed to load packages');
         setPackages([]);
       } finally {
         setLoading(false);
@@ -69,9 +66,12 @@ export function PackagesStep() {
 
   return (
     <StepShell className="packages">
-      {loading && <p>Loading packages…</p>}
-      {!loading && error && <p className="step__error">{error}</p>}
-      {!loading && !error && (
+      {loading && <LoadingAnimation text="Loading Add-ons…"></LoadingAnimation>}
+      {!loading && packages.length === 0 && (
+        <LoadingAnimation text="Pick a venue"></LoadingAnimation>
+      )}
+
+      {!loading && packages.length > 0 && (
         <div className="package-grid">
           {packages.map((pkg) => {
             const isSelected = state.packagesSelected.includes(pkg.id);

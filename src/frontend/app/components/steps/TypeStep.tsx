@@ -5,6 +5,7 @@ import { useAvailability } from '../../hooks/useAvailability';
 import { useBookingTypes } from '../../hooks/useBookingTypes';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
+import LoadingAnimation from '../LoadingAnimation';
 
 export function TypeStep() {
   const state = useWidgetState();
@@ -35,13 +36,15 @@ export function TypeStep() {
 
   return (
     <StepShell className="type">
-      {loading && <p>Loading experiences…</p>}
+      {loading && <LoadingAnimation text="Loading experiences…"></LoadingAnimation>}
+      {!loading && types.length === 0 && (
+        <LoadingAnimation text="Pick a venue, date and time"></LoadingAnimation>
+      )}
+
       {!loading && error && <p className="step__error">{error}</p>}
 
       {!loading && !error && (
         <div className="step_field">
-          {isActive && types.length === 0 && <p>No experiences configured.</p>}
-
           {types.length > 0 && (
             <RadioGroup
               aria-labelledby={captionId}

@@ -12,6 +12,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
+import InfoCard from './components/InfoCard';
 
 type CustomTabPanelProps = { children?: ReactNode; index: number; value: number };
 
@@ -79,6 +80,7 @@ function App() {
           <div className="dmn-admin__side">
             <SettingsCard />
             <DataSyncCard />
+            <InfoCard />
           </div>
         </div>
       </div>

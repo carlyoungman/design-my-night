@@ -1,14 +1,15 @@
-@import '../settings/mixins';
+@use '../settings/mixins' as mixin;
 
 .accordion {
   &__header {
-    @include headline-h6;
+    @include mixin.headline-h6;
     width: 100%;
     margin: 0;
   }
 
   &__item {
     border-bottom: 1px solid var(--c-white);
+    padding: var(--universal-space) 0;
   }
 
   &__icon {
@@ -16,7 +17,7 @@
   }
 
   &__trigger {
-    @include button-reset;
+    @include mixin.button-reset;
     width: 100%;
     display: flex;
     align-items: center;

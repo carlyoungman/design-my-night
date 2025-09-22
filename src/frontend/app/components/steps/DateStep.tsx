@@ -10,6 +10,7 @@ import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { StepShell } from '../StepShell';
 import { darkTheme, sixMonthsISO, todayISO } from '../../utils/helpers';
 import { checkAvailability } from '../../../api/public';
+import LoadingAnimation from '../LoadingAnimation';
 
 export function DateStep() {
   // Bounds (today → +6 months)
@@ -145,49 +146,54 @@ export function DateStep() {
 
   return (
     <StepShell className="date">
-      <p className="step__label">Select your date</p>
+      <p className="date__label">Select your date</p>
 
-      <div className="calendar__quick-row" aria-label="Quick date picks">
-        <button
-          type="button"
-          className="calendar__quick-btn"
-          onClick={() => pick(today)}
-          disabled={!isSelectable(today)}
-        >
-          Today
-        </button>
-        <button
-          type="button"
-          className="calendar__quick-btn"
-          onClick={() => pick(tomorrow)}
-          disabled={!isSelectable(tomorrow)}
-        >
-          Tomorrow
-        </button>
-      </div>
+      {!loading && validDates.size === 0 && <LoadingAnimation text="Pick a venue" />}
 
-      <Field.Root className="calendar" data-loading={loading ? '' : undefined}>
-        <Field.Control
-          render={
-            <ThemeProvider theme={darkTheme}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateCalendar
-                  value={value}
-                  onChange={(newVal) => {
-                    if (!newVal) return;
-                    pick(newVal);
-                  }}
-                  onMonthChange={handleMonthChange}
-                  views={['day']}
-                  minDate={minDate}
-                  maxDate={maxDate}
-                  shouldDisableDate={(d) => !isSelectable(d)}
-                />
-              </LocalizationProvider>
-            </ThemeProvider>
-          }
-        />
-      </Field.Root>
+      {!loading && validDates.size !== 0 && (
+        <>
+          <div className="date__quick-row" aria-label="Quick date picks">
+            <button
+              type="button"
+              className="date__quick-btn"
+              onClick={() => pick(today)}
+              disabled={!isSelectable(today)}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="date__quick-btn"
+              onClick={() => pick(tomorrow)}
+              disabled={!isSelectable(tomorrow)}
+            >
+              Tomorrow
+            </button>
+          </div>
+          <Field.Root className="date__calendar" data-loading={loading ? '' : undefined}>
+            <Field.Control
+              render={
+                <ThemeProvider theme={darkTheme}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DateCalendar
+                      value={value}
+                      onChange={(newVal) => {
+                        if (!newVal) return;
+                        pick(newVal);
+                      }}
+                      onMonthChange={handleMonthChange}
+                      views={['day']}
+                      minDate={minDate}
+                      maxDate={maxDate}
+                      shouldDisableDate={(d) => !isSelectable(d)}
+                    />
+                  </LocalizationProvider>
+                </ThemeProvider>
+              }
+            />
+          </Field.Root>
+        </>
+      )}
     </StepShell>
   );
 }

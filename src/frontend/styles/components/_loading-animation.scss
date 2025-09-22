@@ -1,0 +1,7 @@
+@use '../settings/mixins' as mixin;
+
+.loading-animation {
+  &__text {
+    @include mixin.loading-animation-text;
+  }
+}

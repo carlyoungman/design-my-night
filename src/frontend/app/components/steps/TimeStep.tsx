@@ -3,6 +3,7 @@ import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { checkAvailability } from '../../../api/public';
 import { FormControl, FormControlLabel, RadioGroup, Radio } from '@mui/material';
+import LoadingAnimation from '../LoadingAnimation';
 type SuggestedTime = { iso: string; label: string };
 
 export function TimeStep() {
@@ -91,12 +92,11 @@ export function TimeStep() {
 
   return (
     <StepShell className="time">
-      <p className="step__label">Pick a time</p>
+      <p className="time__label">Pick a time</p>
 
-      {loading && <p className="dmn-widget__hint">Checking availability…</p>}
-
+      {loading && <LoadingAnimation text="Checking availability…"></LoadingAnimation>}
       {!loading && times.length === 0 && (
-        <p className="dmn-widget__hint">No suggested times for this selection.</p>
+        <LoadingAnimation text="Pick a venue and date"></LoadingAnimation>
       )}
 
       {!loading && times.length > 0 && (

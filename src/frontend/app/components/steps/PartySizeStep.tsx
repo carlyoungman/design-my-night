@@ -28,7 +28,7 @@ export function PartySizeStep() {
 
   return (
     <StepShell className="party-size">
-      <p className="step__label">
+      <p className="party-size__label">
         Whats your
         <br />
         party size?
@@ -40,15 +40,15 @@ export function PartySizeStep() {
         min={1}
         max={12}
         step={1}
-        className="timepicker"
+        className="party-size__picker"
         onValueChange={handleValueChange}
       >
-        <NumberField.Group className="timepicker__group">
-          <NumberField.Decrement className="timepicker__decrement">
+        <NumberField.Group className="party-size__group">
+          <NumberField.Decrement className="party-size__decrement">
             <Minus />
           </NumberField.Decrement>
-          <NumberField.Input className="timepicker__input" />
-          <NumberField.Increment className="timepicker__increment">
+          <NumberField.Input className="party-size__input" />
+          <NumberField.Increment className="party-size__increment">
             <Plus />
           </NumberField.Increment>
         </NumberField.Group>

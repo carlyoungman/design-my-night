@@ -20069,6 +20069,38 @@ function DataSyncCard() {
 
 /***/ }),
 
+/***/ "./src/admin/components/InfoCard.tsx":
+/*!*******************************************!*\
+  !*** ./src/admin/components/InfoCard.tsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ InfoCard)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+function InfoCard() {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("section", {
+    className: "dmn-admin__card",
+    style: {
+      marginTop: 16
+    },
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("h2", {
+      children: "Information"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("p", {
+      children: "To display the booking widget you can use the following shortcode"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("code", {
+      children: "[dmn_booking]"
+    })]
+  });
+}
+
+/***/ }),
+
 /***/ "./src/admin/components/PackagesCard.tsx":
 /*!***********************************************!*\
   !*** ./src/admin/components/PackagesCard.tsx ***!
@@ -20713,8 +20745,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_material_Tab__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @mui/material/Tab */ "./node_modules/@mui/material/esm/Tab/Tab.js");
 /* harmony import */ var _mui_material_Box__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material/Box */ "./node_modules/@mui/material/esm/Box/Box.js");
 /* harmony import */ var _mui_material_Fade__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material/Fade */ "./node_modules/@mui/material/esm/Fade/Fade.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _components_InfoCard__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./components/InfoCard */ "./src/admin/components/InfoCard.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__);
+
 
 
 
@@ -20734,16 +20768,16 @@ function CustomTabPanel({
   index
 }) {
   const open = value === index;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_mui_material_Fade__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_mui_material_Fade__WEBPACK_IMPORTED_MODULE_11__["default"], {
     in: open,
     timeout: 200,
     mountOnEnter: true,
     unmountOnExit: true,
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
       role: "tabpanel",
       id: `admin-tabpanel-${index}`,
       "aria-labelledby": `admin-tab-${index}`,
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
         sx: {
           p: 3
         },
@@ -20761,23 +20795,23 @@ function a11yProps(index) {
 function App() {
   const [value, setValue] = react__WEBPACK_IMPORTED_MODULE_0___default().useState(0);
   const handleChange = (_event, newValue) => setValue(newValue);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_AdminContext__WEBPACK_IMPORTED_MODULE_7__.AdminProvider, {
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_AdminContext__WEBPACK_IMPORTED_MODULE_7__.AdminProvider, {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)("div", {
       className: "dmn-admin",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
         className: "dmn-admin__grid",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
           className: "dmn-admin__main",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_components_VenuePickerCard__WEBPACK_IMPORTED_MODULE_6__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_VenuePickerCard__WEBPACK_IMPORTED_MODULE_6__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
             sx: {
               width: '100%'
             },
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], {
               sx: {
                 borderBottom: 1,
                 borderColor: 'divider'
               },
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_mui_material_Tabs__WEBPACK_IMPORTED_MODULE_8__["default"], {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(_mui_material_Tabs__WEBPACK_IMPORTED_MODULE_8__["default"], {
                 value: value,
                 onChange: handleChange,
                 sx: {
@@ -20792,34 +20826,34 @@ function App() {
                   }
                 },
                 "aria-label": "Admin tabs",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_mui_material_Tab__WEBPACK_IMPORTED_MODULE_9__["default"], {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_mui_material_Tab__WEBPACK_IMPORTED_MODULE_9__["default"], {
                   label: "Activity Manager",
                   ...a11yProps(0)
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_mui_material_Tab__WEBPACK_IMPORTED_MODULE_9__["default"], {
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_mui_material_Tab__WEBPACK_IMPORTED_MODULE_9__["default"], {
                   label: "Add-on Packages",
                   ...a11yProps(1)
                 })]
               })
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(CustomTabPanel, {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(CustomTabPanel, {
               value: value,
               index: 0,
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_components_ActivityManagerCard__WEBPACK_IMPORTED_MODULE_4__["default"], {})
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(CustomTabPanel, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_ActivityManagerCard__WEBPACK_IMPORTED_MODULE_4__["default"], {})
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(CustomTabPanel, {
               value: value,
               index: 1,
-              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_components_PackagesCard__WEBPACK_IMPORTED_MODULE_5__["default"], {})
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_PackagesCard__WEBPACK_IMPORTED_MODULE_5__["default"], {})
             })]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
           className: "dmn-admin__side",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_components_SettingsCard__WEBPACK_IMPORTED_MODULE_2__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(_components_DataSyncCard__WEBPACK_IMPORTED_MODULE_3__["default"], {})]
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_SettingsCard__WEBPACK_IMPORTED_MODULE_2__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_DataSyncCard__WEBPACK_IMPORTED_MODULE_3__["default"], {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_components_InfoCard__WEBPACK_IMPORTED_MODULE_12__["default"], {})]
         })]
       })
     })
   });
 }
 const mount = document.getElementById('dmn-admin-root');
-if (mount) (0,react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot)(mount).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(App, {}));
+if (mount) (0,react_dom_client__WEBPACK_IMPORTED_MODULE_1__.createRoot)(mount).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(App, {}));
 
 /***/ }),
 

@@ -35,14 +35,22 @@
   }
 
   @import 'components/accordion';
-  @import 'components/calendar';
+  @import 'components/date';
+
+  @import 'components/details';
+  @import 'components/error-message';
+  @import 'components/loading-animation';
+
   @import 'components/package-card';
+
+  @import 'components/party-size';
+
+
   @import 'components/radio';
-  @import 'components/select';
+  @import 'components/venues';
   @import 'components/steps';
   @import 'components/time';
   @import 'components/type-card';
-  @import 'components/timepicker';
   @import 'components/typography';
   @import 'components/widget';
 }

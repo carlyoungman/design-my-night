@@ -1,0 +1,18 @@
+@use '../settings/mixins' as mixin;
+
+
+.venues {
+  &__label {
+    @include mixin.label;
+  }
+
+  &__select-wrappe {
+    @include mixin.field-wrapper;
+    @include mixin.select-down-arrow;
+  }
+
+  &__select {
+    @include mixin.select;
+  }
+}
+

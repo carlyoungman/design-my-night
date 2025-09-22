@@ -1,0 +1,44 @@
+@use '../settings/mixins' as mixin;
+
+.details {
+  &__field-wrapper {
+    @include mixin.field-wrapper;
+  }
+
+  &__group {
+    @include mixin.group;
+  }
+
+  &__input {
+    @include mixin.input;
+  }
+
+  &__textarea {
+    @include mixin.textarea;
+  }
+
+  &__hint {
+    @include mixin.hint;
+  }
+
+  &__label-hint {
+    @include mixin.label-hint;
+  }
+
+  &__checkbox {
+    display: flex;
+    gap: var(--universal-space);
+
+    > span {
+      transform: scale(1.2);
+    }
+
+    > div {
+      max-width: 60%;
+
+      > span {
+        text-wrap: balance;
+      }
+    }
+  }
+}

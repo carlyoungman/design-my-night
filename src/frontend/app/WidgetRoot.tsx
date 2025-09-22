@@ -14,6 +14,7 @@ import { TypeStep } from './components/steps/TypeStep';
 import { useVenues } from './hooks/useVenues';
 import { PackagesStep } from './components/steps/PackagesStep';
 import { DetailsStep } from './components/steps/DetailsStep';
+import { ReviewStep } from './components/steps/ReviewStep';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -33,9 +34,9 @@ function WidgetInner() {
     <Accordion.Root
       className="accordion"
       openMultiple={true}
-      defaultValue={['step1', 'step2', 'step3', 'step5']}
+      defaultValue={['venues', 'date-and-time', 'types', 'addons', 'details']}
     >
-      <Accordion.Item className="accordion__item" value="step1">
+      <Accordion.Item className="accordion__item accordion__item--venues venues" value="venues">
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
             1. Secure your spot
@@ -52,7 +53,10 @@ function WidgetInner() {
           />
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item className="accordion__item" value="step2">
+      <Accordion.Item
+        className="accordion__item accordion__item--date-and-time date-and-time"
+        value="date-and-time"
+      >
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
             2. Select date and time
@@ -64,7 +68,7 @@ function WidgetInner() {
           <TimeStep />
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item className="accordion__item" value="step3">
+      <Accordion.Item className="accordion__item accordion__item--types types" value="types">
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
             3. Choose your experience
@@ -75,10 +79,10 @@ function WidgetInner() {
           <TypeStep />
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item className="accordion__item" value="step4">
+      <Accordion.Item className="accordion__item accordion__item--addons addons" value="addons">
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
-            4. Choose your Add-ons
+            4. Choose your add-ons
             <PlusIcon className="accordion__icon" />
           </Accordion.Trigger>
         </Accordion.Header>
@@ -86,7 +90,7 @@ function WidgetInner() {
           <PackagesStep />
         </Accordion.Panel>
       </Accordion.Item>
-      <Accordion.Item className="accordion__item" value="step5">
+      <Accordion.Item className="accordion__item accordion__item--details details" value="details">
         <Accordion.Header className="accordion__header">
           <Accordion.Trigger className="accordion__trigger">
             5. Confirm your details
@@ -94,6 +98,7 @@ function WidgetInner() {
           </Accordion.Trigger>
         </Accordion.Header>
         <Accordion.Panel className="accordion__panel">
+          <ReviewStep></ReviewStep>
           <DetailsStep />
         </Accordion.Panel>
       </Accordion.Item>
