@@ -4,7 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { ThemeProvider } from '@mui/material/styles';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { StepShell } from '../StepShell';
@@ -148,8 +148,7 @@ export function DateStep() {
     <StepShell className="date">
       <p className="date__label">Select your date</p>
 
-      {!loading && validDates.size === 0 && <LoadingAnimation text="Pick a venue" />}
-
+      {!loading && validDates.size === 0 && <LoadingAnimation text="Venue required" />}
       {!loading && validDates.size !== 0 && (
         <>
           <div className="date__quick-row" aria-label="Quick date picks">

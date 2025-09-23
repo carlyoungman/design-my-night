@@ -56,5 +56,3 @@ export function PartySizeStep() {
     </StepShell>
   );
 }
-
-export default function ExampleNumberField() {}

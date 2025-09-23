@@ -1,0 +1,42 @@
+@use '../settings/mixins' as mixin;
+
+.review {
+  &__list, &__price, &__row, &__addons {
+    display: grid;
+    gap: var(--universal-space);
+
+    strong {
+      color: var(--c-theme-primary);
+    }
+  }
+
+  &__list {
+    > li, span {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--universal-space-half);
+      align-items: center;
+    }
+
+
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space);
+
+    &--total {
+      margin: 0;
+    }
+  }
+
+  &__addons {
+    margin: var(--universal-space) 0;
+  }
+
+  &__button {
+    @include mixin.button-settings;
+    margin-top: var(--universal-space-2);
+  }
+}

@@ -83,6 +83,29 @@
   -moz-appearance: none;
 }
 
+@mixin button-settings {
+  @include button-reset;
+  padding: var(--universal-space) var(--universal-space-2);
+  background: var(--c-theme-primary);
+  color: var(--c-white);
+  box-shadow: var(--box-shadow-1);
+  text-transform: capitalize;
+  width: 100%;
+  &:hover {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
+  &[disabled] {
+    background: var(--c-white);
+    color: var(--c-black);
+    opacity: 0.3;
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+}
+
 @mixin aspect-ratio-1-1 {
   @include aspect-ratio-settings;
 

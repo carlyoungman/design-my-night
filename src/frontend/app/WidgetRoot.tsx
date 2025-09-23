@@ -31,77 +31,86 @@ function WidgetInner() {
   const { venues, loading, error } = useVenues(venueGroup, !!forcedVenueId);
 
   return (
-    <Accordion.Root
-      className="accordion"
-      openMultiple={true}
-      defaultValue={['venues', 'date-and-time', 'types', 'addons', 'details']}
-    >
-      <Accordion.Item className="accordion__item accordion__item--venues venues" value="venues">
-        <Accordion.Header className="accordion__header">
-          <Accordion.Trigger className="accordion__trigger">
-            1. Secure your spot
-            <PlusIcon className="accordion__icon" />
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="accordion__panel">
-          <PartySizeStep />
-          <VenueStep
-            venues={venues}
-            initialLoading={loading}
-            error={error}
-            forcedVenueId={forcedVenueId}
-          />
-        </Accordion.Panel>
-      </Accordion.Item>
-      <Accordion.Item
-        className="accordion__item accordion__item--date-and-time date-and-time"
-        value="date-and-time"
-      >
-        <Accordion.Header className="accordion__header">
-          <Accordion.Trigger className="accordion__trigger">
-            2. Select date and time
-            <PlusIcon className="accordion__icon" />
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="accordion__panel">
-          <DateStep />
-          <TimeStep />
-        </Accordion.Panel>
-      </Accordion.Item>
-      <Accordion.Item className="accordion__item accordion__item--types types" value="types">
-        <Accordion.Header className="accordion__header">
-          <Accordion.Trigger className="accordion__trigger">
-            3. Choose your experience
-            <PlusIcon className="accordion__icon" />
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="accordion__panel">
-          <TypeStep />
-        </Accordion.Panel>
-      </Accordion.Item>
-      <Accordion.Item className="accordion__item accordion__item--addons addons" value="addons">
-        <Accordion.Header className="accordion__header">
-          <Accordion.Trigger className="accordion__trigger">
-            4. Choose your add-ons
-            <PlusIcon className="accordion__icon" />
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="accordion__panel">
-          <PackagesStep />
-        </Accordion.Panel>
-      </Accordion.Item>
-      <Accordion.Item className="accordion__item accordion__item--details details" value="details">
-        <Accordion.Header className="accordion__header">
-          <Accordion.Trigger className="accordion__trigger">
-            5. Confirm your details
-            <PlusIcon className="accordion__icon" />
-          </Accordion.Trigger>
-        </Accordion.Header>
-        <Accordion.Panel className="accordion__panel">
-          <ReviewStep></ReviewStep>
-          <DetailsStep />
-        </Accordion.Panel>
-      </Accordion.Item>
-    </Accordion.Root>
+    <div className="dmn-widget__grid">
+      <div className="dmn-widget__main">
+        <Accordion.Root
+          className="accordion"
+          openMultiple={true}
+          defaultValue={['venues', 'date-and-time', 'types', 'addons', 'details']}
+        >
+          <Accordion.Item className="accordion__item accordion__item--venues venues" value="venues">
+            <Accordion.Header render={<h4 className="accordion__header" />}>
+              <Accordion.Trigger className="accordion__trigger">
+                1. Secure your spot
+                <PlusIcon className="accordion__icon" />
+              </Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel className="accordion__panel">
+              <PartySizeStep />
+              <VenueStep
+                venues={venues}
+                initialLoading={loading}
+                error={error}
+                forcedVenueId={forcedVenueId}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item
+            className="accordion__item accordion__item--date-and-time date-and-time"
+            value="date-and-time"
+          >
+            <Accordion.Header render={<h4 className="accordion__header" />}>
+              <Accordion.Trigger className="accordion__trigger">
+                2. Select date and time
+                <PlusIcon className="accordion__icon" />
+              </Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel className="accordion__panel">
+              <DateStep />
+              <TimeStep />
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item className="accordion__item accordion__item--types types" value="types">
+            <Accordion.Header render={<h4 className="accordion__header" />}>
+              <Accordion.Trigger className="accordion__trigger">
+                3. Choose your experience
+                <PlusIcon className="accordion__icon" />
+              </Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel className="accordion__panel">
+              <TypeStep />
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item className="accordion__item accordion__item--addons addons" value="addons">
+            <Accordion.Header render={<h4 className="accordion__header" />}>
+              <Accordion.Trigger className="accordion__trigger">
+                4. Choose your add-ons
+                <PlusIcon className="accordion__icon" />
+              </Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel className="accordion__panel">
+              <PackagesStep />
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item
+            className="accordion__item accordion__item--details details"
+            value="details"
+          >
+            <Accordion.Header render={<h4 className="accordion__header" />}>
+              <Accordion.Trigger className="accordion__trigger">
+                5. Confirm your details
+                <PlusIcon className="accordion__icon" />
+              </Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel className="accordion__panel">
+              <DetailsStep />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion.Root>
+      </div>
+      <div className="dmn-widget__side">
+        <ReviewStep sections={{ details: false }} />
+      </div>
+    </div>
   );
 }

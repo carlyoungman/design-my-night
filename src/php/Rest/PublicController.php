@@ -3,6 +3,8 @@
 namespace DMN\Booking\Rest;
 
 use DMN\Booking\Services\DmnClient;
+use Throwable;
+use WP_Error;
 use WP_Post;
 use WP_Query;
 use WP_REST_Request;
@@ -130,31 +132,84 @@ class PublicController
    */
   public function create_booking(WP_REST_Request $req): WP_REST_Response
   {
-    $p = (array)($req->get_json_params() ?? []);
+    $body = $req->get_json_params();
 
-    // Minimal pass-through for enquiry/booking via API when allowed by DMN
-    $allowed = [
-      'source', 'first_name', 'last_name', 'email', 'phone', 'dob', 'newsletter_signup',
-      'marketing_preferences', 'custom_field_value', 'num_people', 'type', 'venue_id',
-      'date', 'time', 'duration', 'offer', 'notes', 'package', 'return_url', 'customer'
-    ];
-    $payload = [];
-    foreach ($allowed as $k) {
-      if (array_key_exists($k, $p)) {
-        $payload[$k] = $p[$k];
+    try {
+      $dmn = new DmnClient();
+
+      // If your client already prefixes /v4, use '/bookings'; otherwise use '/v4/bookings'
+      $dmnRes = $dmn->request('POST', '/bookings', [], $body);
+      // $dmnRes might be an array, object, or WP_Error depending on your client.
+
+      // 1) Handle hard transport errors
+      if (is_wp_error($dmnRes)) {
+        return new WP_REST_Response([
+          'error' => 'transport_error',
+          'message' => $dmnRes->get_error_message(),
+        ], 502);
       }
+
+      // 2) Normalise common shapes
+      $status = 200;
+      $rawBody = null;
+      $decoded = null;
+
+      if (is_array($dmnRes)) {
+        // Try typical shapes:
+        $status = $dmnRes['status'] ?? $dmnRes['response']['code'] ?? 200;
+        $rawBody = $dmnRes['body'] ?? $dmnRes['response']['body'] ?? null;
+
+        // Some clients already return decoded JSON:
+        if (!$rawBody && isset($dmnRes['data'])) {
+          $decoded = $dmnRes['data'];
+        }
+      } elseif (is_object($dmnRes) && method_exists($dmnRes, 'getBody')) {
+        // Guzzle-like
+        $status = method_exists($dmnRes, 'getStatusCode') ? $dmnRes->getStatusCode() : 200;
+        $rawBody = (string)$dmnRes->getBody();
+      } else {
+        // Fallback: treat as already-decoded data
+        $decoded = $dmnRes;
+      }
+
+      // 3) Decode JSON body if present
+      if ($decoded === null && is_string($rawBody)) {
+        $decoded = json_decode($rawBody, true);
+      }
+
+      // 4) If DMN returned an error (>=400), expose useful bits
+      if ((int)$status >= 400) {
+        // DMN usually returns a message + validation payload
+        $details = [
+          'status' => (int)$status,
+          'dmn_message' => $decoded['message'] ?? $decoded['error'] ?? 'Unknown DMN error',
+          'validation' =>
+            $decoded['payload']['validation'] ??
+              $decoded['validation'] ??
+              null,
+          // optional — helps you debug what you sent (avoid logging PII in prod)
+          'echo_payload' => (defined('WP_DEBUG') && WP_DEBUG) ? $body : null,
+          // raw only in debug to avoid noisy responses in prod
+          'raw' => (defined('WP_DEBUG') && WP_DEBUG) ? ($rawBody ?? json_encode($decoded)) : null,
+        ];
+
+        return new WP_REST_Response([
+          'error' => 'dmn_error',
+          'details' => $details,
+        ], (int)$status);
+      }
+
+      // 5) Success passthrough (return decoded JSON if possible)
+      return new WP_REST_Response($decoded ?? $dmnRes, 200);
+
+    } catch (Throwable $e) {
+      return new WP_REST_Response([
+        'error' => 'exception',
+        'message' => $e->getMessage(),
+      ], 500);
     }
-
-    $dmn = new DmnClient();
-    $res = $dmn->request('POST', '/bookings', [], $payload);
-
-    return new WP_REST_Response([
-      'data' => $res['data'] ?? null,
-      'status' => $res['status'] ?? 0,
-      'error' => $res['error'] ?? null,
-      'debug' => $res, // include full debug blob
-    ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
+
 
   /**
    * Retrieves add‑on packages for the specified venue.

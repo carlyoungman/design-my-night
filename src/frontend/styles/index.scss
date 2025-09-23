@@ -25,6 +25,7 @@
 .dmn-widget-root {
   @import 'css-reset-and-normalize/scss/reset-and-normalize';
   font-size: var(--font-base-size);
+  max-width: 960px !important;
 
   :where(*, *::before, *::after) {
     font-size: inherit;
@@ -36,17 +37,13 @@
 
   @import 'components/accordion';
   @import 'components/date';
-
   @import 'components/details';
   @import 'components/error-message';
   @import 'components/loading-animation';
-
   @import 'components/package-card';
-
   @import 'components/party-size';
-
-
   @import 'components/radio';
+  @import 'components/review';
   @import 'components/venues';
   @import 'components/steps';
   @import 'components/time';

@@ -1,12 +1,15 @@
 @use '../settings/mixins' as mixin;
+@use '../settings/breakpoints' as breakpoint;
 
 .step {
   &--party-size {
     display: grid;
     align-items: center;
     gap: var(--universal-space);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-bottom: var(--universal-space);
+    grid-template-columns: 1fr;
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
     .step__label {
       margin: 0;
@@ -23,8 +26,10 @@
   &__group {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     gap: var(--universal-space);
+    @include breakpoint.medium-screen-min {
+      justify-content: flex-end;
+    }
   }
 
   &__decrement,

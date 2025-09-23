@@ -40,13 +40,14 @@ export type AddOnPackage = {
   visible?: boolean;
   dmn_package_id?: string | null;
 };
+
 export type AdminPackage = {
-  id?: number; // WP post ID
+  id?: number;
   name: string;
   description?: string;
   priceText?: string | null;
   visible?: boolean;
   image_id?: number | null;
   image_url?: string | null;
-  venueIds: string[]; // DMN venue IDs this add-on applies to
+  venueIds: string[];
 };

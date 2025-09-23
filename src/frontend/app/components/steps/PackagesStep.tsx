@@ -3,20 +3,12 @@ import { StepShell } from '../StepShell';
 import { useWidgetState, useWidgetDispatch } from '../../WidgetProvider';
 import { getPackages } from '../../../api/public';
 import LoadingAnimation from '../LoadingAnimation';
-
-type UiPackageItem = {
-  id: string;
-  name: string;
-  description?: string;
-  priceText?: string;
-  image_url?: string | null;
-  visible?: boolean;
-};
+import { AddOnPackage } from '../../types';
 
 export function PackagesStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const [packages, setPackages] = useState<UiPackageItem[]>([]);
+  const [packages, setPackages] = useState<AddOnPackage[]>([]);
   const [loading, setLoading] = useState(false);
   // Load packages whenever the selected venue (DMN ID) changes
   useEffect(() => {
@@ -31,17 +23,15 @@ export function PackagesStep() {
       try {
         const res = await getPackages(String(state.venueId));
         const raw = res.data || [];
-        const mapped = raw.map(
-          (pkg: any): UiPackageItem => ({
-            id: pkg.id,
-            name: pkg.name,
-            description: pkg.description ?? '',
-            priceText: pkg.priceText ?? '',
-            image_url: pkg.image_url ?? null,
-            visible: pkg.visible ?? true,
-          }),
-        );
-
+        const mapped: AddOnPackage[] = raw.map((pkg: any) => ({
+          id: pkg.id,
+          name: pkg.name,
+          description: pkg.description ?? '',
+          priceText: pkg.priceText ?? '',
+          image_url: pkg.image_url ?? null,
+          visible: pkg.visible ?? true,
+          dmn_package_id: pkg.dmn_package_id ?? null,
+        }));
         setPackages(mapped);
         dispatch({ type: 'SET_PACKAGES', value: mapped });
       } catch (e: any) {
@@ -68,7 +58,7 @@ export function PackagesStep() {
     <StepShell className="packages">
       {loading && <LoadingAnimation text="Loading Add-ons…"></LoadingAnimation>}
       {!loading && packages.length === 0 && (
-        <LoadingAnimation text="Pick a venue"></LoadingAnimation>
+        <LoadingAnimation text="Venue required"></LoadingAnimation>
       )}
 
       {!loading && packages.length > 0 && (

@@ -1,7 +1,6 @@
 import React, { useEffect, useId } from 'react';
 import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import { useAvailability } from '../../hooks/useAvailability';
 import { useBookingTypes } from '../../hooks/useBookingTypes';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
@@ -10,9 +9,7 @@ import LoadingAnimation from '../LoadingAnimation';
 export function TypeStep() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const isActive = state.step === 'type';
-
-  const { types, loading, error, reload } = useBookingTypes({
+  const { types, loading, error } = useBookingTypes({
     venueId: state.venueId ?? null,
     date: state.date ?? null, // pass date
     partySize: state.partySize ?? null,
@@ -38,11 +35,8 @@ export function TypeStep() {
     <StepShell className="type">
       {loading && <LoadingAnimation text="Loading experiences…"></LoadingAnimation>}
       {!loading && types.length === 0 && (
-        <LoadingAnimation text="Pick a venue, date and time"></LoadingAnimation>
+        <LoadingAnimation text="Venue, date and time required"></LoadingAnimation>
       )}
-
-      {!loading && error && <p className="step__error">{error}</p>}
-
       {!loading && !error && (
         <div className="step_field">
           {types.length > 0 && (

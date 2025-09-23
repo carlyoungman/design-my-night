@@ -96,7 +96,7 @@ export function TimeStep() {
 
       {loading && <LoadingAnimation text="Checking availability…"></LoadingAnimation>}
       {!loading && times.length === 0 && (
-        <LoadingAnimation text="Pick a venue and date"></LoadingAnimation>
+        <LoadingAnimation text="Venue and date required"></LoadingAnimation>
       )}
 
       {!loading && times.length > 0 && (

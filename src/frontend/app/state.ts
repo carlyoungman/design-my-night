@@ -1,6 +1,8 @@
 // state.ts
 
 // ---- Steps in DMN-recommended order ----
+import { AddOnPackage } from './types';
+
 export type Step = 'party' | 'venue' | 'date_time' | 'type' | 'packages' | 'details' | 'review';
 
 // Keep Customer in sync with how it's used in the widget (message + gdpr supported)
@@ -31,7 +33,7 @@ export type State = {
   avail?: Availability;
   suggestions: string[]; // suggested times (from API or fallback)
 
-  packages: Array<{ id: string; name: string }>;
+  packages: AddOnPackage[];
   packagesSelected: string[]; // ids
   // internal flag to allow advancing past packages
   packagesResolved?: boolean;

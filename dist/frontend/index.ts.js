@@ -35552,6 +35552,119 @@ var defaultAttributes = {
 
 /***/ }),
 
+/***/ "./node_modules/lucide-react/dist/esm/icons/building.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/building.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __iconNode: () => (/* binding */ __iconNode),
+/* harmony export */   "default": () => (/* binding */ Building)
+/* harmony export */ });
+/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ "./node_modules/lucide-react/dist/esm/createLucideIcon.js");
+/**
+ * @license lucide-react v0.544.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const __iconNode = [
+  ["path", { d: "M12 10h.01", key: "1nrarc" }],
+  ["path", { d: "M12 14h.01", key: "1etili" }],
+  ["path", { d: "M12 6h.01", key: "1vi96p" }],
+  ["path", { d: "M16 10h.01", key: "1m94wz" }],
+  ["path", { d: "M16 14h.01", key: "1gbofw" }],
+  ["path", { d: "M16 6h.01", key: "1x0f13" }],
+  ["path", { d: "M8 10h.01", key: "19clt8" }],
+  ["path", { d: "M8 14h.01", key: "6423bh" }],
+  ["path", { d: "M8 6h.01", key: "1dz90k" }],
+  ["path", { d: "M9 22v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3", key: "cabbwy" }],
+  ["rect", { x: "4", y: "2", width: "16", height: "20", rx: "2", key: "1uxh74" }]
+];
+const Building = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("building", __iconNode);
+
+
+//# sourceMappingURL=building.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/lucide-react/dist/esm/icons/calendar.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/calendar.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __iconNode: () => (/* binding */ __iconNode),
+/* harmony export */   "default": () => (/* binding */ Calendar)
+/* harmony export */ });
+/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ "./node_modules/lucide-react/dist/esm/createLucideIcon.js");
+/**
+ * @license lucide-react v0.544.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const __iconNode = [
+  ["path", { d: "M8 2v4", key: "1cmpym" }],
+  ["path", { d: "M16 2v4", key: "4m81vk" }],
+  ["rect", { width: "18", height: "18", x: "3", y: "4", rx: "2", key: "1hopcy" }],
+  ["path", { d: "M3 10h18", key: "8toen8" }]
+];
+const Calendar = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("calendar", __iconNode);
+
+
+//# sourceMappingURL=calendar.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/lucide-react/dist/esm/icons/clock-4.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/clock-4.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __iconNode: () => (/* binding */ __iconNode),
+/* harmony export */   "default": () => (/* binding */ Clock4)
+/* harmony export */ });
+/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ "./node_modules/lucide-react/dist/esm/createLucideIcon.js");
+/**
+ * @license lucide-react v0.544.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const __iconNode = [
+  ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }],
+  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
+];
+const Clock4 = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("clock-4", __iconNode);
+
+
+//# sourceMappingURL=clock-4.js.map
+
+
+/***/ }),
+
 /***/ "./node_modules/lucide-react/dist/esm/icons/minus.js":
 /*!***********************************************************!*\
   !*** ./node_modules/lucide-react/dist/esm/icons/minus.js ***!
@@ -35613,6 +35726,88 @@ const Plus = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("p
 
 
 //# sourceMappingURL=plus.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/lucide-react/dist/esm/icons/rocket.js":
+/*!************************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/rocket.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __iconNode: () => (/* binding */ __iconNode),
+/* harmony export */   "default": () => (/* binding */ Rocket)
+/* harmony export */ });
+/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ "./node_modules/lucide-react/dist/esm/createLucideIcon.js");
+/**
+ * @license lucide-react v0.544.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const __iconNode = [
+  [
+    "path",
+    {
+      d: "M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z",
+      key: "m3kijz"
+    }
+  ],
+  [
+    "path",
+    {
+      d: "m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z",
+      key: "1fmvmk"
+    }
+  ],
+  ["path", { d: "M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0", key: "1f8sc4" }],
+  ["path", { d: "M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5", key: "qeys4" }]
+];
+const Rocket = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("rocket", __iconNode);
+
+
+//# sourceMappingURL=rocket.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/lucide-react/dist/esm/icons/user.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/user.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __iconNode: () => (/* binding */ __iconNode),
+/* harmony export */   "default": () => (/* binding */ User)
+/* harmony export */ });
+/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ "./node_modules/lucide-react/dist/esm/createLucideIcon.js");
+/**
+ * @license lucide-react v0.544.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+
+const __iconNode = [
+  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
+  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
+];
+const User = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__["default"])("user", __iconNode);
+
+
+//# sourceMappingURL=user.js.map
 
 
 /***/ }),
@@ -39506,14 +39701,31 @@ function getBookingTypes(params) {
   if (params.date) qs.set('date', params.date);
   return (0,_http__WEBPACK_IMPORTED_MODULE_0__.j)('booking-types?' + qs.toString());
 }
-
-/* ---------- Create Booking ---------- */
-
-function createBooking(p) {
-  return (0,_http__WEBPACK_IMPORTED_MODULE_0__.j)('bookings', {
-    method: 'POST',
-    body: JSON.stringify(p)
+/** Remove nullish keys so the proxy only receives set fields */
+function prune(obj) {
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') out[k] = v;
   });
+  return out;
+}
+
+// NEW: create booking via your WP proxy -> DMN /v4/bookings
+
+async function createBooking(payload) {
+  const res = await fetch('/wp-json/dmn/v1/bookings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || 'Booking failed');
+  }
+  return res.json();
 }
 
 /***/ }),
@@ -39648,90 +39860,113 @@ function WidgetInner() {
     loading,
     error
   } = (0,_hooks_useVenues__WEBPACK_IMPORTED_MODULE_13__.useVenues)(venueGroup, !!forcedVenueId);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_2__.AccordionRoot, {
-    className: "accordion",
-    openMultiple: true,
-    defaultValue: ['venues', 'date-and-time', 'types', 'addons', 'details'],
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
-      className: "accordion__item accordion__item--venues venues",
-      value: "venues",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
-        className: "accordion__header",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
-          className: "accordion__trigger",
-          children: ["1. Secure your spot", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            className: "accordion__icon"
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
+    className: "dmn-widget__grid",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+      className: "dmn-widget__main",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_2__.AccordionRoot, {
+        className: "accordion",
+        openMultiple: true,
+        defaultValue: ['venues', 'date-and-time', 'types', 'addons', 'details'],
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
+          className: "accordion__item accordion__item--venues venues",
+          value: "venues",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
+            render: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h4", {
+              className: "accordion__header"
+            }),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
+              className: "accordion__trigger",
+              children: ["1. Secure your spot", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                className: "accordion__icon"
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
+            className: "accordion__panel",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_PartySizeStep__WEBPACK_IMPORTED_MODULE_9__.PartySizeStep, {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_VenueStep__WEBPACK_IMPORTED_MODULE_8__.VenueStep, {
+              venues: venues,
+              initialLoading: loading,
+              error: error,
+              forcedVenueId: forcedVenueId
+            })]
           })]
-        })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
-        className: "accordion__panel",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_PartySizeStep__WEBPACK_IMPORTED_MODULE_9__.PartySizeStep, {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_VenueStep__WEBPACK_IMPORTED_MODULE_8__.VenueStep, {
-          venues: venues,
-          initialLoading: loading,
-          error: error,
-          forcedVenueId: forcedVenueId
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
+          className: "accordion__item accordion__item--date-and-time date-and-time",
+          value: "date-and-time",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
+            render: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h4", {
+              className: "accordion__header"
+            }),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
+              className: "accordion__trigger",
+              children: ["2. Select date and time", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                className: "accordion__icon"
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
+            className: "accordion__panel",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_DateStep__WEBPACK_IMPORTED_MODULE_10__.DateStep, {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_TimeStep__WEBPACK_IMPORTED_MODULE_11__.TimeStep, {})]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
+          className: "accordion__item accordion__item--types types",
+          value: "types",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
+            render: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h4", {
+              className: "accordion__header"
+            }),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
+              className: "accordion__trigger",
+              children: ["3. Choose your experience", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                className: "accordion__icon"
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
+            className: "accordion__panel",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_TypeStep__WEBPACK_IMPORTED_MODULE_12__.TypeStep, {})
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
+          className: "accordion__item accordion__item--addons addons",
+          value: "addons",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
+            render: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h4", {
+              className: "accordion__header"
+            }),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
+              className: "accordion__trigger",
+              children: ["4. Choose your add-ons", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                className: "accordion__icon"
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
+            className: "accordion__panel",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_PackagesStep__WEBPACK_IMPORTED_MODULE_14__.PackagesStep, {})
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
+          className: "accordion__item accordion__item--details details",
+          value: "details",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
+            render: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h4", {
+              className: "accordion__header"
+            }),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
+              className: "accordion__trigger",
+              children: ["5. Confirm your details", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                className: "accordion__icon"
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
+            className: "accordion__panel",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_DetailsStep__WEBPACK_IMPORTED_MODULE_15__.DetailsStep, {})
+          })]
         })]
-      })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
-      className: "accordion__item accordion__item--date-and-time date-and-time",
-      value: "date-and-time",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
-        className: "accordion__header",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
-          className: "accordion__trigger",
-          children: ["2. Select date and time", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            className: "accordion__icon"
-          })]
-        })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
-        className: "accordion__panel",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_DateStep__WEBPACK_IMPORTED_MODULE_10__.DateStep, {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_TimeStep__WEBPACK_IMPORTED_MODULE_11__.TimeStep, {})]
-      })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
-      className: "accordion__item accordion__item--types types",
-      value: "types",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
-        className: "accordion__header",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
-          className: "accordion__trigger",
-          children: ["3. Choose your experience", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            className: "accordion__icon"
-          })]
-        })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
-        className: "accordion__panel",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_TypeStep__WEBPACK_IMPORTED_MODULE_12__.TypeStep, {})
-      })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
-      className: "accordion__item accordion__item--addons addons",
-      value: "addons",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
-        className: "accordion__header",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
-          className: "accordion__trigger",
-          children: ["4. Choose your add-ons", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            className: "accordion__icon"
-          })]
-        })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
-        className: "accordion__panel",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_PackagesStep__WEBPACK_IMPORTED_MODULE_14__.PackagesStep, {})
-      })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_3__.AccordionItem, {
-      className: "accordion__item accordion__item--details details",
-      value: "details",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_4__.AccordionHeader, {
-        className: "accordion__header",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_5__.AccordionTrigger, {
-          className: "accordion__trigger",
-          children: ["5. Confirm your details", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            className: "accordion__icon"
-          })]
-        })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)(_base_ui_components_react_accordion__WEBPACK_IMPORTED_MODULE_6__.AccordionPanel, {
-        className: "accordion__panel",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_ReviewStep__WEBPACK_IMPORTED_MODULE_16__.ReviewStep, {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_DetailsStep__WEBPACK_IMPORTED_MODULE_15__.DetailsStep, {})]
-      })]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
+      className: "dmn-widget__side",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_steps_ReviewStep__WEBPACK_IMPORTED_MODULE_16__.ReviewStep, {
+        sections: {
+          details: false
+        }
+      })
     })]
   });
 }
@@ -39916,13 +40151,9 @@ const StepShell = ({
   children
 }) => {
   const state = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_1__.useWidgetState)();
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
     className: `step step--${className}`,
-    children: [state.error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
-      className: "step__error",
-      role: "alert",
-      children: state.error
-    }), children]
+    children: children
   });
 };
 
@@ -40092,7 +40323,7 @@ function DateStep() {
       className: "date__label",
       children: "Select your date"
     }), !loading && validDates.size === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_12__["default"], {
-      text: "Pick a venue"
+      text: "Venue required"
     }), !loading && validDates.size !== 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
         className: "date__quick-row",
@@ -40158,20 +40389,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ErrorNotice__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../ErrorNotice */ "./src/frontend/app/components/ErrorNotice.tsx");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/esm/FormControlLabel/FormControlLabel.js");
 /* harmony import */ var _mui_material__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material */ "./node_modules/@mui/material/esm/Checkbox/Checkbox.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _hooks_useBookingTypes__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../hooks/useBookingTypes */ "./src/frontend/app/hooks/useBookingTypes.ts");
+/* harmony import */ var _LoadingAnimation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../LoadingAnimation */ "./src/frontend/app/components/LoadingAnimation.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
 
 
 
 
 
 
-const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-const phoneOk = v => v.trim() === '' || /^[\d\s()+-]{6,20}$/.test(v.trim());
+
+
 function DetailsStep() {
+  var _state$venueId, _state$date, _state$partySize;
+  const state = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetState)();
   const {
     customer
-  } = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetState)();
+  } = state;
   const dispatch = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetDispatch)();
   const [touched, setTouched] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
   const firstId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useId)();
@@ -40183,13 +40418,39 @@ function DetailsStep() {
   const set = patch => dispatch({
     type: 'SET_CUSTOMER',
     value: patch
-  }); // I patch state
-
+  });
   const firstNameInvalid = touched.first && (customer.first_name || '').trim().length < 2;
   const lastNameInvalid = touched.last && (customer.last_name || '').trim().length < 2;
-  const emailInvalid = touched.email && !emailOk(customer.email || '');
-  const phoneInvalid = touched.phone && !phoneOk(customer.phone || '');
+  const emailInvalid = touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((customer.email || '').trim());
+  const phoneInvalid = touched.phone && !((customer.phone || '').trim() === '' || /^[\d\s()+-]{6,20}$/.test((customer.phone || '').trim()));
   const msgTooLong = (customer.message || '').length > 500;
+  const {
+    loading,
+    types
+  } = (0,_hooks_useBookingTypes__WEBPACK_IMPORTED_MODULE_6__.useBookingTypes)({
+    venueId: (_state$venueId = state.venueId) !== null && _state$venueId !== void 0 ? _state$venueId : null,
+    date: (_state$date = state.date) !== null && _state$date !== void 0 ? _state$date : null,
+    partySize: (_state$partySize = state.partySize) !== null && _state$partySize !== void 0 ? _state$partySize : null,
+    enabled: !!state.venueId && !!state.date && !!state.time
+  });
+
+  // loading / prerequisites gate
+  if (loading) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
+      className: "details",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_7__["default"], {
+        text: "Loading available options"
+      })
+    });
+  }
+  if (!loading && types.length === 0) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
+      className: "details",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_7__["default"], {
+        text: "Select a venue, date and time to enter your details"
+      })
+    });
+  }
   const ERR_MSG = {
     firstName: 'Enter your first name.',
     lastName: 'Enter your last name',
@@ -40200,20 +40461,20 @@ function DetailsStep() {
     generic: 'Please check this field.',
     formSummary: 'Let’s fix the highlighted details to continue.'
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
     className: "details",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
       className: "details__group",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "details__field-wrapper",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "details__label",
           htmlFor: firstId,
-          children: ["First name ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: ["First name ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "details__label-hint",
             children: "*"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
           id: firstId,
           className: "details__input",
           value: customer.first_name,
@@ -40224,22 +40485,22 @@ function DetailsStep() {
             ...t,
             first: true
           })),
-          "aria-invalid": touched.first && (customer.first_name || '').trim().length < 2
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
+          "aria-invalid": firstNameInvalid
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
           invalid: firstNameInvalid,
           message: ERR_MSG.firstName,
           inlineId: `${firstId}-err`
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "details__field-wrapper",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "details__label",
           htmlFor: lastId,
-          children: ["Last name ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: ["Last name ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "details__label-hint",
             children: "*"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
           id: lastId,
           className: "details__input",
           value: customer.last_name,
@@ -40250,22 +40511,22 @@ function DetailsStep() {
             ...t,
             last: true
           })),
-          "aria-invalid": touched.last && (customer.last_name || '').trim().length < 2
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
+          "aria-invalid": lastNameInvalid
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
           invalid: lastNameInvalid,
           message: ERR_MSG.lastName,
           inlineId: `${lastId}-err`
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "details__field-wrapper",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "details__label",
           htmlFor: emailId,
-          children: ["Email ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: ["Email ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "details__label-hint",
             children: "*"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
           id: emailId,
           className: "details__input",
           type: "email",
@@ -40278,21 +40539,21 @@ function DetailsStep() {
             email: true
           })),
           "aria-invalid": emailInvalid
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
           invalid: emailInvalid,
           message: ERR_MSG.email,
-          inlineId: `${lastId}-err`
+          inlineId: `${emailId}-err`
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "details__field-wrapper",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "details__label",
           htmlFor: phoneId,
-          children: ["Phone ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: ["Phone ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "details__label-hint",
             children: "( optional )"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("input", {
           id: phoneId,
           className: "details__input",
           inputMode: "tel",
@@ -40305,21 +40566,21 @@ function DetailsStep() {
             phone: true
           })),
           "aria-invalid": phoneInvalid
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
           invalid: phoneInvalid,
           message: ERR_MSG.phone,
           inlineId: `${phoneId}-err`
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
         className: "details__field-wrapper",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
           className: "details__label",
           htmlFor: msgId,
-          children: ["Special requests ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          children: ["Special requests ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
             className: "details__label-hint",
             children: "( optional )"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("textarea", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("textarea", {
           id: msgId,
           className: "details__textarea",
           maxLength: 500,
@@ -40327,26 +40588,26 @@ function DetailsStep() {
           onChange: e => set({
             message: e.target.value
           })
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "details__hint",
           children: [(customer.message || '').length, "/500"]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_ErrorNotice__WEBPACK_IMPORTED_MODULE_3__.ErrorNotice, {
           invalid: msgTooLong,
           message: ERR_MSG.message,
           inlineId: `${msgId}-err`
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
         className: "details__field-wrapper",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
           required: true,
           className: "details__checkbox",
-          control: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
+          control: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_mui_material__WEBPACK_IMPORTED_MODULE_5__["default"], {
             id: termsId,
             checked: !!customer.gdpr,
             sx: {
-              color: 'var( --c-theme-primary)',
+              color: 'var(--c-theme-primary)',
               '&.Mui-checked': {
-                color: 'var( --c-theme-primary)'
+                color: 'var(--c-theme-primary)'
               }
             },
             onChange: e => set({
@@ -40405,14 +40666,15 @@ function PackagesStep() {
         const res = await (0,_api_public__WEBPACK_IMPORTED_MODULE_3__.getPackages)(String(state.venueId));
         const raw = res.data || [];
         const mapped = raw.map(pkg => {
-          var _pkg$description, _pkg$priceText, _pkg$image_url, _pkg$visible;
+          var _pkg$description, _pkg$priceText, _pkg$image_url, _pkg$visible, _pkg$dmn_package_id;
           return {
             id: pkg.id,
             name: pkg.name,
             description: (_pkg$description = pkg.description) !== null && _pkg$description !== void 0 ? _pkg$description : '',
             priceText: (_pkg$priceText = pkg.priceText) !== null && _pkg$priceText !== void 0 ? _pkg$priceText : '',
             image_url: (_pkg$image_url = pkg.image_url) !== null && _pkg$image_url !== void 0 ? _pkg$image_url : null,
-            visible: (_pkg$visible = pkg.visible) !== null && _pkg$visible !== void 0 ? _pkg$visible : true
+            visible: (_pkg$visible = pkg.visible) !== null && _pkg$visible !== void 0 ? _pkg$visible : true,
+            dmn_package_id: (_pkg$dmn_package_id = pkg.dmn_package_id) !== null && _pkg$dmn_package_id !== void 0 ? _pkg$dmn_package_id : null
           };
         });
         setPackages(mapped);
@@ -40445,7 +40707,7 @@ function PackagesStep() {
     children: [loading && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_4__["default"], {
       text: "Loading Add-ons\u2026"
     }), !loading && packages.length === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      text: "Pick a venue"
+      text: "Venue required"
     }), !loading && packages.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
       className: "package-grid",
       children: packages.map(pkg => {
@@ -40502,8 +40764,7 @@ function PackagesStep() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   PartySizeStep: () => (/* binding */ PartySizeStep),
-/* harmony export */   "default": () => (/* binding */ ExampleNumberField)
+/* harmony export */   PartySizeStep: () => (/* binding */ PartySizeStep)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -40579,7 +40840,6 @@ function PartySizeStep() {
     })]
   });
 }
-function ExampleNumberField() {}
 
 /***/ }),
 
@@ -40600,19 +40860,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WidgetProvider__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../WidgetProvider */ "./src/frontend/app/WidgetProvider.tsx");
 /* harmony import */ var _hooks_useBookingTypes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../hooks/useBookingTypes */ "./src/frontend/app/hooks/useBookingTypes.ts");
 /* harmony import */ var _hooks_useVenues__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../hooks/useVenues */ "./src/frontend/app/hooks/useVenues.ts");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _api_public__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../api/public */ "./src/frontend/api/public.ts");
+/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! lucide-react */ "./node_modules/lucide-react/dist/esm/icons/building.js");
+/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! lucide-react */ "./node_modules/lucide-react/dist/esm/icons/calendar.js");
+/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! lucide-react */ "./node_modules/lucide-react/dist/esm/icons/clock-4.js");
+/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! lucide-react */ "./node_modules/lucide-react/dist/esm/icons/rocket.js");
+/* harmony import */ var lucide_react__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! lucide-react */ "./node_modules/lucide-react/dist/esm/icons/user.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__);
 
 
 
 
 
 
-// Helper: format YYYY-MM-DD as UK date
 
+
+// Robust money parser: grabs first signed decimal, strips commas/symbols
+const toNum = text => {
+  if (!text) return 0;
+  const clean = String(text).replace(/,/g, '');
+  const m = clean.match(/-?\d+(?:\.\d{1,2})?/);
+  const n = m ? Number(m[0]) : 0;
+  return Number.isFinite(n) ? n : 0;
+};
+const fmt = n => new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'GBP'
+}).format(n || 0);
 function fmtDate(d) {
   if (!d) return '—';
-  // Safe formatting without timezone shift
   const [y, m, day] = d.split('-').map(Number);
   const dt = new Date(Date.UTC(y, (m !== null && m !== void 0 ? m : 1) - 1, day !== null && day !== void 0 ? day : 1));
   return dt.toLocaleDateString('en-GB', {
@@ -40622,141 +40899,219 @@ function fmtDate(d) {
     year: 'numeric',
     timeZone: 'UTC'
   });
-}
-function ReviewStep() {
-  var _state$venueId, _state$date, _state$partySize, _state$partySize2;
+} // 9:5 -> 09:05
+
+function ReviewStep({
+  sections
+}) {
+  var _state$venueId, _state$date, _state$partySize, _sections$booking, _sections$details, _sections$payment, _state$partySize2;
   const state = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetState)();
   const dispatch = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetDispatch)();
   const {
-    venueGroup,
-    returnUrl
+    returnUrl,
+    venueGroup
   } = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetConfig)();
 
-  // Resolve venue label
+  // venue label
   const {
     venues
   } = (0,_hooks_useVenues__WEBPACK_IMPORTED_MODULE_4__.useVenues)(venueGroup, false);
-  const venueName = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => venues.find(v => v._id === state.venueId)?.title || '—', [venues, state.venueId]);
+  const venueName = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    var _ref, _venues$find$name;
+    return (_ref = (_venues$find$name = venues.find(v => v._id === state.venueId)?.name) !== null && _venues$find$name !== void 0 ? _venues$find$name : venues.find(v => v._id === state.venueId)?.title) !== null && _ref !== void 0 ? _ref : '—';
+  }, [venues, state.venueId]);
 
-  // Resolve type label
+  // booking type
   const {
     types
   } = (0,_hooks_useBookingTypes__WEBPACK_IMPORTED_MODULE_3__.useBookingTypes)({
     venueId: (_state$venueId = state.venueId) !== null && _state$venueId !== void 0 ? _state$venueId : null,
     date: (_state$date = state.date) !== null && _state$date !== void 0 ? _state$date : null,
     partySize: (_state$partySize = state.partySize) !== null && _state$partySize !== void 0 ? _state$partySize : null,
-    enabled: !!state.venueId && !!state.date && state.partySize != null
+    enabled: !!state.venueId && !!state.date && !!state.time
   });
-  const typeName = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => types.find(t => t.id === state.bookingType)?.name || '—', [types, state.bookingType]);
-  const dateText = fmtDate(state.date);
-  const timeText = state.time || '—';
-  const partyText = (_state$partySize2 = state.partySize) !== null && _state$partySize2 !== void 0 ? _state$partySize2 : '—';
-  const fullName = `${state.customer.first_name || ''} ${state.customer.last_name || ''}`.trim() || '—';
-  const email = state.customer.email || '—';
-  const phone = state.customer.phone || '—';
-  const notes = state.customer.message || '—';
-  const packagesSelected = state.packagesSelected || [];
-  const hasPackages = packagesSelected.length > 0;
+  const selectedType = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => types.find(t => t.id === state.bookingType) || null, [types, state.bookingType]);
 
-  // Optional: disable if any upstream guard fails (defensive)
-  const disabled = !state.venueId || !state.partySize || !state.date || !state.time || !state.bookingType || !state.customer.first_name || !state.customer.last_name || !state.customer.email || !state.customer.gdpr;
-  const onBack = () => dispatch({
-    type: 'BACK'
-  });
-  const onConfirm = () => {
-    // Keep existing submission path wired elsewhere in your app.
-    // If you already call availability/booking here, keep that logic.
-    dispatch({
-      type: 'NEXT'
-    });
+  // add-ons
+  const selectedAddons = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => state.packages.filter(p => state.packagesSelected.includes(p.id)), [state.packages, state.packagesSelected]);
+
+  // prices
+  const basePrice = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => toNum(selectedType?.priceText), [selectedType]);
+  const addonsTotal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => selectedAddons.reduce((s, p) => s + toNum(p.priceText), 0), [selectedAddons]);
+  const grandTotal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => basePrice + addonsTotal, [basePrice, addonsTotal]);
+
+  // enable only when inputs are set
+  const disabled = !state.venueId || !state.partySize || !state.date || !state.time || !state.bookingType || !state.customer.first_name || !state.customer.last_name || !state.customer.email;
+  async function handleContinue() {
+    try {
+      // 1) Build notes: customer message + selected add-ons
+      const selectedAddons = state.packages.filter(p => state.packagesSelected.includes(p.id));
+      const addonsLine = selectedAddons.length > 0 ? `Add-ons: ${selectedAddons.map(a => `${a.name}${a.priceText ? ` (${a.priceText})` : ''}`).join(', ')}.` : '';
+      const userMsg = (state.customer.message || '').trim();
+      const notes = [userMsg, addonsLine].filter(Boolean).join(' ');
+
+      // 2) Create booking via WP → DMN /v4/bookings
+      const payload = {
+        source: 'partner',
+        venue_id: state.venueId,
+        type: state.bookingType,
+        date: state.date,
+        time: state.time.padStart(5, '0'),
+        num_people: state.partySize,
+        first_name: state.customer.first_name,
+        last_name: state.customer.last_name,
+        email: state.customer.email || undefined,
+        phone: state.customer.phone || undefined,
+        notes: notes || undefined
+      };
+      const res = await (0,_api_public__WEBPACK_IMPORTED_MODULE_5__.createBooking)(payload);
+
+      // 3) Redirect for payment if required (prefer explicit payment URL / next.web)
+      const nextWeb = res?.data?.next?.web || res?.next?.web || res?.data?.payment_url || res?.payment_url || null;
+      if (nextWeb) {
+        window.location.assign(String(nextWeb));
+        return;
+      }
+
+      // 4) No payment needed → show a simple confirmation UX (you can replace with your own)
+      // dispatch({
+      //   type: 'NOTICE',
+      //   message: 'Booking confirmed! Check your email for confirmation.',
+      // });
+      console.log('Booking confirmed! Check your email for confirmation.');
+    } catch (err) {
+      dispatch({
+        type: 'ERROR',
+        message: err instanceof Error ? err.message : 'Booking failed. Please try again.'
+      });
+    }
+  }
+  const show = {
+    booking: (_sections$booking = sections?.booking) !== null && _sections$booking !== void 0 ? _sections$booking : true,
+    details: (_sections$details = sections?.details) !== null && _sections$details !== void 0 ? _sections$details : true,
+    payment: (_sections$payment = sections?.payment) !== null && _sections$payment !== void 0 ? _sections$payment : true
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_StepShell__WEBPACK_IMPORTED_MODULE_1__.StepShell, {
     className: "review",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h2", {
-      className: "dmn-widget__heading",
-      children: "Review your booking"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+    children: [show.booking && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("section", {
       className: "review__section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
-        className: "review__title",
-        children: "Booking"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("ul", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h4", {
+        className: "review__heading",
+        children: "Your booking"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("ul", {
         className: "review__list",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Venue:"
-          }), " ", venueName]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Party size:"
-          }), " ", partyText]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Date:"
-          }), " ", dateText]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Time:"
-          }), " ", timeText]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Experience:"
-          }), " ", typeName]
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_6__["default"], {}), "Venue"]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: venueName
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {}), "Date"]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: fmtDate(state.date)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_8__["default"], {}), "Time"]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: state.time || '—'
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_10__["default"], {}), "Guests"]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: (_state$partySize2 = state.partySize) !== null && _state$partySize2 !== void 0 ? _state$partySize2 : '—'
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("span", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(lucide_react__WEBPACK_IMPORTED_MODULE_9__["default"], {}), "Experience"]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: selectedType?.name || '—'
+          })]
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+    }), show.details && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("section", {
       className: "review__section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
-        className: "review__title",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h4", {
+        className: "review__heading",
         children: "Your details"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("ul", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("ul", {
         className: "review__list",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Name:"
-          }), " ", fullName]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Email:"
-          }), " ", email]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Phone:"
-          }), " ", phone]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: "Special requests:"
-          }), " ", notes]
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Name"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("strong", {
+            children: [state.customer.first_name, " ", state.customer.last_name]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Email"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: state.customer.email
+          })]
+        }), state.customer.phone && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Phone"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: state.customer.phone
+          })]
+        }), state.customer.message && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("li", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Notes"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: state.customer.message
+          })]
         })]
       })]
-    }), hasPackages && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("section", {
       className: "review__section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
-        className: "review__title",
-        children: "Add-ons"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("ul", {
-        className: "review__list",
-        children: packagesSelected.map(p => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("li", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("strong", {
-            children: p.name
-          }), p.priceText ? ` — ${p.priceText}` : '']
-        }, p.id))
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h4", {
+        className: "review__heading",
+        children: "Summary"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+        className: "review__price",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+          className: "review__row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Base"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: fmt(basePrice)
+          })]
+        }), selectedAddons.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+          className: "review__addons",
+          children: [selectedAddons.map(a => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+            className: "review__row",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+              children: a.name
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+              children: fmt(toNum(a.priceText))
+            })]
+          }, a.id)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+            className: "review__row review__row--subtotal",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+              children: "Add-ons"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+              children: fmt(addonsTotal)
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h6", {
+          className: "review__row review__row--total",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("span", {
+            children: "Total"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+            children: fmt(grandTotal)
+          })]
+        })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-      className: "dmn-widget__actions",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("button", {
-        type: "button",
-        className: "dmn-widget__button dmn-widget__button--secondary",
-        onClick: onBack,
-        children: "Back"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("button", {
-        type: "button",
-        className: "dmn-widget__button dmn-widget__button--primary",
-        onClick: onConfirm,
-        disabled: disabled,
-        "data-return-url": returnUrl || undefined,
-        children: "Continue"
-      })]
+    }), show.payment && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("button", {
+      type: "button",
+      className: "review__button",
+      onClick: handleContinue,
+      disabled: disabled,
+      "data-return-url": returnUrl || undefined,
+      children: "Continue to payment"
     })]
   });
 }
@@ -40881,7 +41236,7 @@ function TimeStep() {
     }), loading && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_8__["default"], {
       text: "Checking availability\u2026"
     }), !loading && times.length === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      text: "Pick a venue and date"
+      text: "Venue and date required"
     }), !loading && times.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_mui_material__WEBPACK_IMPORTED_MODULE_4__["default"], {
       component: "fieldset",
       variant: "standard",
@@ -40938,12 +41293,10 @@ function TypeStep() {
   var _state$venueId, _state$date, _state$partySize, _state$bookingType;
   const state = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetState)();
   const dispatch = (0,_WidgetProvider__WEBPACK_IMPORTED_MODULE_2__.useWidgetDispatch)();
-  const isActive = state.step === 'type';
   const {
     types,
     loading,
-    error,
-    reload
+    error
   } = (0,_hooks_useBookingTypes__WEBPACK_IMPORTED_MODULE_3__.useBookingTypes)({
     venueId: (_state$venueId = state.venueId) !== null && _state$venueId !== void 0 ? _state$venueId : null,
     date: (_state$date = state.date) !== null && _state$date !== void 0 ? _state$date : null,
@@ -40976,10 +41329,7 @@ function TypeStep() {
     children: [loading && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_6__["default"], {
       text: "Loading experiences\u2026"
     }), !loading && types.length === 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_LoadingAnimation__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      text: "Pick a venue, date and time"
-    }), !loading && error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
-      className: "step__error",
-      children: error
+      text: "Venue, date and time required"
     }), !loading && !error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
       className: "step_field",
       children: types.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_base_ui_components_react_radio_group__WEBPACK_IMPORTED_MODULE_5__.RadioGroup, {

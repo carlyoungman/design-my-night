@@ -18,7 +18,7 @@ type BookingTypeItem = {
   id: string;
   name: string;
   description?: string;
-  priceText?: string;
+  priceText?: string | null;
   image_url?: string | null;
   image_id?: number | null;
   valid: boolean | null;

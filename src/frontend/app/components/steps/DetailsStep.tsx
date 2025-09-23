@@ -2,13 +2,13 @@ import React, { useId, useState } from 'react';
 import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { ErrorNotice } from '../ErrorNotice';
-import { Checkbox, FormControlLabel, FormGroup } from '@mui/material';
-
-const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-const phoneOk = (v: string) => v.trim() === '' || /^[\d\s()+-]{6,20}$/.test(v.trim());
+import { Checkbox, FormControlLabel } from '@mui/material';
+import { useBookingTypes } from '../../hooks/useBookingTypes';
+import LoadingAnimation from '../LoadingAnimation';
 
 export function DetailsStep() {
-  const { customer } = useWidgetState();
+  const state = useWidgetState();
+  const { customer } = state;
   const dispatch = useWidgetDispatch();
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -20,13 +20,42 @@ export function DetailsStep() {
   const msgId = useId();
   const termsId = useId();
 
-  const set = (patch: Partial<typeof customer>) => dispatch({ type: 'SET_CUSTOMER', value: patch }); // I patch state
+  const set = (patch: Partial<typeof customer>) => dispatch({ type: 'SET_CUSTOMER', value: patch });
 
   const firstNameInvalid = touched.first && (customer.first_name || '').trim().length < 2;
   const lastNameInvalid = touched.last && (customer.last_name || '').trim().length < 2;
-  const emailInvalid = touched.email && !emailOk(customer.email || '');
-  const phoneInvalid = touched.phone && !phoneOk(customer.phone || '');
+  const emailInvalid =
+    touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((customer.email || '').trim());
+  const phoneInvalid =
+    touched.phone &&
+    !(
+      (customer.phone || '').trim() === '' ||
+      /^[\d\s()+-]{6,20}$/.test((customer.phone || '').trim())
+    );
   const msgTooLong = (customer.message || '').length > 500;
+
+  const { loading, types } = useBookingTypes({
+    venueId: state.venueId ?? null,
+    date: state.date ?? null,
+    partySize: state.partySize ?? null,
+    enabled: !!state.venueId && !!state.date && !!state.time,
+  });
+
+  // loading / prerequisites gate
+  if (loading) {
+    return (
+      <StepShell className="details">
+        <LoadingAnimation text="Loading available options" />
+      </StepShell>
+    );
+  }
+  if (!loading && types.length === 0) {
+    return (
+      <StepShell className="details">
+        <LoadingAnimation text="Select a venue, date and time to enter your details" />
+      </StepShell>
+    );
+  }
 
   const ERR_MSG = {
     firstName: 'Enter your first name.',
@@ -52,7 +81,7 @@ export function DetailsStep() {
             value={customer.first_name}
             onChange={(e) => set({ first_name: e.target.value })}
             onBlur={() => setTouched((t) => ({ ...t, first: true }))}
-            aria-invalid={touched.first && (customer.first_name || '').trim().length < 2}
+            aria-invalid={firstNameInvalid}
           />
           <ErrorNotice
             invalid={firstNameInvalid}
@@ -60,6 +89,7 @@ export function DetailsStep() {
             inlineId={`${firstId}-err`}
           />
         </div>
+
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={lastId}>
             Last name <span className="details__label-hint">*</span>
@@ -70,7 +100,7 @@ export function DetailsStep() {
             value={customer.last_name}
             onChange={(e) => set({ last_name: e.target.value })}
             onBlur={() => setTouched((t) => ({ ...t, last: true }))}
-            aria-invalid={touched.last && (customer.last_name || '').trim().length < 2}
+            aria-invalid={lastNameInvalid}
           />
           <ErrorNotice
             invalid={lastNameInvalid}
@@ -78,6 +108,7 @@ export function DetailsStep() {
             inlineId={`${lastId}-err`}
           />
         </div>
+
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={emailId}>
             Email <span className="details__label-hint">*</span>
@@ -91,8 +122,10 @@ export function DetailsStep() {
             onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             aria-invalid={emailInvalid}
           />
-          <ErrorNotice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${lastId}-err`} />
+          {/* fix: use emailId here */}
+          <ErrorNotice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${emailId}-err`} />
         </div>
+
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={phoneId}>
             Phone <span className="details__label-hint">( optional )</span>
@@ -108,6 +141,7 @@ export function DetailsStep() {
           />
           <ErrorNotice invalid={phoneInvalid} message={ERR_MSG.phone} inlineId={`${phoneId}-err`} />
         </div>
+
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={msgId}>
             Special requests <span className="details__label-hint">( optional )</span>
@@ -122,6 +156,7 @@ export function DetailsStep() {
           <div className="details__hint">{(customer.message || '').length}/500</div>
           <ErrorNotice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
         </div>
+
         <div className="details__field-wrapper">
           <FormControlLabel
             required
@@ -131,10 +166,8 @@ export function DetailsStep() {
                 id={termsId}
                 checked={!!customer.gdpr}
                 sx={{
-                  color: 'var( --c-theme-primary)',
-                  '&.Mui-checked': {
-                    color: 'var( --c-theme-primary)',
-                  },
+                  color: 'var(--c-theme-primary)',
+                  '&.Mui-checked': { color: 'var(--c-theme-primary)' },
                 }}
                 onChange={(e) => set({ gdpr: e.target.checked })}
               />

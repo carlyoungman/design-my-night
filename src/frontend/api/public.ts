@@ -90,30 +90,62 @@ export function getBookingTypes(params: BookingTypeQuery) {
   }>('booking-types?' + qs.toString());
 }
 
-/* ---------- Create Booking ---------- */
 export type BookingReq = {
   source: 'partner';
   first_name: string;
   last_name: string;
   email: string;
   phone?: string;
-  dob?: string;
+  dob?: string; // YYYY-MM-DD
   num_people: number;
-  type: string;
-  venue_id: string;
+  type: string; // DMN type id
+  venue_id: string; // DMN venue id
   date: string; // YYYY-MM-DD
-  time: string; // HH:mm (or what your proxy expects)
-  duration?: number;
-  offer?: string;
-  notes?: string;
-  package?: string;
+  time: string; // HH:mm
+  duration?: number; // minutes
+  offer?: string | null; // offer id
+  notes?: string | null;
+  package?: string | null; // add-on/package id (single)
   newsletter_signup?: boolean;
   marketing_preferences?: string[];
-  custom_field_value?: string;
+  custom_field_value?: string | null;
 };
 
 export type BookingRes = { data?: any; status: number; error?: unknown };
 
-export function createBooking(p: BookingReq) {
-  return j<BookingRes>('bookings', { method: 'POST', body: JSON.stringify(p) });
+/** Remove nullish keys so the proxy only receives set fields */
+function prune<T extends Record<string, any>>(obj: T): Partial<T> {
+  const out: Partial<T> = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') (out as any)[k] = v;
+  });
+  return out;
+}
+
+// NEW: create booking via your WP proxy -> DMN /v4/bookings
+
+export async function createBooking(payload: {
+  source: 'partner';
+  venue_id: string;
+  type: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  num_people: number;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+}) {
+  const res = await fetch('/wp-json/dmn/v1/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || 'Booking failed');
+  }
+  return res.json();
 }

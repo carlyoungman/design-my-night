@@ -8,11 +8,11 @@ export const StepShell: React.FC<{ className: string; children: React.ReactNode 
   const state = useWidgetState();
   return (
     <div className={`step step--${className}`}>
-      {state.error && (
-        <p className="step__error" role="alert">
-          {state.error}
-        </p>
-      )}
+      {/*{state.error && (*/}
+      {/*  <p className="step__error" role="alert">*/}
+      {/*    {state.error}*/}
+      {/*  </p>*/}
+      {/*)}*/}
       {children}
     </div>
   );
