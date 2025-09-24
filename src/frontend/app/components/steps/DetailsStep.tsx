@@ -52,7 +52,7 @@ export function DetailsStep() {
   if (!loading && types.length === 0) {
     return (
       <StepShell className="details">
-        <LoadingAnimation text="Select a venue, date and time to enter your details" />
+        <LoadingAnimation text="Venue, date and time required" />
       </StepShell>
     );
   }
