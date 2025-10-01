@@ -6,8 +6,6 @@
  * Author: Carl Youngman
  */
 
-use DMN\Booking\Config\Settings;
-
 if (!defined('ABSPATH')) {
   exit;
 }
@@ -16,11 +14,18 @@ define('DMN_BP_VER', '0.1.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 
+require_once DMN_BP_DIR . 'src/php/Core/PostTypes.php';
 require_once DMN_BP_DIR . 'src/php/Autoloader.php';
+
+
 DMN\Booking\Autoloader::register();
 
+use DMN\Booking\Config\Settings;
+
+use DMN\Booking\PostTypes;
+
+// Registers the 'dmn_booking' shortcode to render the DMN booking widget with venue data.
 add_action('init', function () {
-  // Shortcode renders the public widget root
   add_shortcode('dmn_booking', function (array $atts = []) {
     $atts = shortcode_atts([
       'venue_group' => get_option(Settings::OPT_VG, ''),
@@ -35,7 +40,7 @@ add_action('init', function () {
     return ob_get_clean();
   });
 });
-
+// Adds a top-level admin menu page for the DMN Booking plugin in the WordPress dashboard.
 add_action('admin_menu', function () {
   add_menu_page(
     'DMN Booking',
@@ -48,55 +53,74 @@ add_action('admin_menu', function () {
     'dashicons-tickets', 58
   );
 });
-
-// Admin enqueue
+// Enqueues admin scripts and styles for the DMN Booking plugin only on the plugin's admin page, and localizes REST API data for JavaScript.
 add_action('admin_enqueue_scripts', function ($hook) {
+  if ($hook !== 'toplevel_page_dmn-booking-admin') return;
 
-  if ($hook !== 'toplevel_page_dmn-booking-admin') {
-    return;
-  }
-  $asset = DMN_BP_DIR . 'dist/admin/index.ts.asset.php';
-  if (!file_exists($asset)) {
-    return;
-  }
+  $asset = DMN_BP_DIR . 'dist/admin/index.tsx.asset.php';
+  if (!file_exists($asset)) return;
 
   $meta = include $asset;
-  wp_enqueue_script('dmn-admin', DMN_BP_URL . 'dist/admin/index.ts.js', $meta['dependencies'], $meta['version'], true);
-  wp_enqueue_style('dmn-admin', DMN_BP_URL . 'dist/admin/index.ts.css', [], $meta['version']);
+  $deps = array_unique(array_merge($meta['dependencies'] ?? [], ['wp-api-fetch']));
 
+  wp_enqueue_script(
+    'dmn-admin',
+    DMN_BP_URL . 'dist/admin/index.tsx.js',
+    $deps,
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.tsx.js'),
+    true
+  );
+
+  wp_enqueue_style(
+    'dmn-admin',
+    DMN_BP_URL . 'dist/admin/index.tsx.css',
+    [],
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.tsx.css')
+  );
+
+  // Optional now that apiFetch is used; harmless if kept
   wp_localize_script('dmn-admin', 'DMN_ADMIN_BOOT', [
     'restUrl' => esc_url_raw(rest_url('dmn/v1/admin/')),
     'nonce' => wp_create_nonce('wp_rest'),
   ]);
+
   wp_enqueue_media();
 });
-
-
-// Frontend enqueue (only on pages with shortcode)
+// Enqueues frontend scripts and styles for the DMN Booking widget only on singular posts containing the 'dmn_booking' shortcode, and localizes REST API data for JavaScript.
 add_action('wp_enqueue_scripts', function () {
-  if (!is_singular()) {
-    return;
-  }
+  if (!is_singular()) return;
   global $post;
-  if (!$post || !has_shortcode($post->post_content, 'dmn_booking')) {
-    return;
-  }
+  if (!$post || !has_shortcode($post->post_content, 'dmn_booking')) return;
 
-  $asset = DMN_BP_DIR . 'dist/frontend/index.ts.asset.php';
-  if (!file_exists($asset)) {
-    return;
-  }
+  $asset = DMN_BP_DIR . 'dist/frontend/index.tsx.asset.php';
+  if (!file_exists($asset)) return;
+
   $meta = include $asset;
+  $deps = array_unique(array_merge($meta['dependencies'] ?? [], ['wp-api-fetch']));
 
-  wp_enqueue_script('dmn-widget', DMN_BP_URL . 'dist/frontend/index.ts.js', $meta['dependencies'], $meta['version'], true);
-  wp_enqueue_style('dmn-widget', DMN_BP_URL . 'dist/frontend/index.ts.css', [], $meta['version']);
+  wp_enqueue_script(
+    'dmn-widget',
+    DMN_BP_URL . 'dist/frontend/index.tsx.js',
+    $deps,
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.js'),
+    true
+  );
+
+  wp_enqueue_style(
+    'dmn-widget',
+    DMN_BP_URL . 'dist/frontend/index.tsx.css',
+    [],
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.css')
+  );
 
   wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
     'restUrl' => esc_url_raw(rest_url('dmn/v1/')),
   ]);
 });
 
-
+// Registers the custom post type for the DMN Booking plugin during the WordPress 'init' action.
+add_action('init', [PostTypes::class, 'register']);
+// Registers REST API routes for the DMN Booking plugin by initializing the admin and public controllers during the 'rest_api_init' action.
 add_action('rest_api_init', function () {
   (new DMN\Booking\Rest\AdminController())->register_routes();
   (new DMN\Booking\Rest\PublicController())->register_routes();

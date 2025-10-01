@@ -1,9 +1,9 @@
 import React, { useId } from 'react';
-import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
+import LoadingAnimation from '../LoadingAnimation';
 
-export function VenueStep({ venues, initialLoading, error, forcedVenueId }: VenueStepProps) {
+export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
 
@@ -13,23 +13,19 @@ export function VenueStep({ venues, initialLoading, error, forcedVenueId }: Venu
   if (forcedVenueId) return null;
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
     const id = e.target.value || '';
-    // 1) Set the new venue
     dispatch({ type: 'SET_VENUE', id: id || null });
-    dispatch({ type: 'SET_DATE', date: '' as any });
-    dispatch({ type: 'SET_TIME', value: '' as any });
-    dispatch({ type: 'SET_TYPE', value: '' as any });
+    dispatch({ type: 'SET_DATE', date: null });
+    dispatch({ type: 'SET_TIME', value: null });
+    dispatch({ type: 'SET_TYPE', value: null });
+    dispatch({ type: 'SET_AVAIL', value: null });
   };
 
   return (
-    <StepShell className="venues">
-      {initialLoading && <p>Loading venues…</p>}
+    <section className="venues">
+      {initialLoading && <LoadingAnimation text="Loading venues…"></LoadingAnimation>}
       {error && <p className="venues__error">{error}</p>}
-
       {!initialLoading && !error && (
         <div className="venues__select-wrapper">
-          <label className="venues__label" htmlFor={VenueId}>
-            Select a venue
-          </label>
           <select
             id={VenueId}
             className="venues__select"
@@ -47,6 +43,6 @@ export function VenueStep({ venues, initialLoading, error, forcedVenueId }: Venu
           </select>
         </div>
       )}
-    </StepShell>
+    </section>
   );
 }

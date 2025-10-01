@@ -11,16 +11,7 @@ export function getVenues(q: { venue_group?: string; fields?: string } = {}) {
   }>('venues' + (qs.toString() ? `?${qs}` : ''));
 }
 
-/* ---------- Packages ---------- */
-
-export function getPackages(venueId: string) {
-  return j<{ data: Array<{ id: string; label: string }> }>(
-    'packages?venue_id=' + encodeURIComponent(venueId),
-  );
-}
-
 /* ---------- Availability (DMN booking-availability) ---------- */
-// I keep all fields optional, so I never need to send `null`; callers can conditionally spread keys.
 export type AvailabilityReq = {
   venue_id: string;
   num_people?: number;
@@ -33,8 +24,6 @@ export type AvailabilityReq = {
 
 export type CheckFields = 'type' | 'date' | 'time';
 
-// The PHP proxy usually wraps the DMN result in { data: { payload: {...}, ... }, status: number }.
-// I model the inner `payload` exactly how we consume it elsewhere.
 export type AvailabilityPayload = {
   payload: {
     valid: boolean;
@@ -43,7 +32,6 @@ export type AvailabilityPayload = {
     next?: { web?: string; api?: string };
     bookingDetails?: Record<string, unknown>;
   };
-  // Your proxy often includes these extra bits; they’re not strictly required, so I keep them loose.
   status?: number;
   statusText?: string;
   requestTime?: string;
@@ -111,20 +99,7 @@ export type BookingReq = {
   custom_field_value?: string | null;
 };
 
-export type BookingRes = { data?: any; status: number; error?: unknown };
-
-/** Remove nullish keys so the proxy only receives set fields */
-function prune<T extends Record<string, any>>(obj: T): Partial<T> {
-  const out: Partial<T> = {};
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') (out as any)[k] = v;
-  });
-  return out;
-}
-
-// NEW: create booking via your WP proxy -> DMN /v4/bookings
-
-export async function createBooking(payload: {
+export type CreateBookingPayload = {
   source: 'partner';
   venue_id: string;
   type: string;
@@ -136,16 +111,96 @@ export async function createBooking(payload: {
   email?: string;
   phone?: string;
   notes?: string;
-}) {
-  const res = await fetch('/wp-json/dmn/v1/bookings', {
+  preorder_details?: string[];
+  preorder?: string[];
+};
+
+export async function createBooking(payload: CreateBookingPayload) {
+  const clean: CreateBookingPayload = {
+    ...payload,
+  };
+
+  const res = await fetch('/wp-json/dmn/v1/create-booking', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    credentials: 'include',
+    credentials: 'same-origin',
+    body: JSON.stringify(clean),
   });
+
   if (!res.ok) {
+    // try to surface API error text
     const text = await res.text().catch(() => '');
     throw new Error(text || 'Booking failed');
   }
   return res.json();
+}
+
+/* ---------- Addons ---------- */
+
+export async function getAddons(venueId: string, activityId?: string) {
+  const base = (window as any).__DMN_API_BASE__ || '/wp-json/dmn/v1';
+  if (!venueId) {
+    throw new Error('Missing venue id');
+  }
+
+  const url = new URL(`${base}/addons`, window.location.origin);
+  // IMPORTANT: send the external DMN venue id (string), not a number
+  url.searchParams.set('venue_id', String(venueId));
+  if (activityId) url.searchParams.set('activity_id', String(activityId));
+
+  const r = await fetch(url.toString(), { credentials: 'same-origin' });
+  if (!r.ok) {
+    let msg = 'Failed to load add-ons';
+    try {
+      const j = await r.json();
+      msg = j?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+  const j = await r.json();
+  return { data: j?.data ?? [] };
+}
+
+// public.ts
+
+/** Base fetch for public endpoints */
+async function wpPublicFetch<T = any>(slug: string, init: RequestInit = {}): Promise<T> {
+  const res = await fetch(`/wp-json/dmn/v1/public/${slug}`, {
+    method: init.method || 'GET',
+    credentials: 'same-origin',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(init.headers || {}),
+    },
+    body: init.body,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return (await res.json()) as T;
+}
+
+/** Get FAQs for a venue */
+export async function getFaqs(
+  venue_id: number | string,
+): Promise<{ faqs: Array<{ question: string; answer: string }> }> {
+  return wpPublicFetch(`faqs?venue_id=${encodeURIComponent(String(venue_id))}`);
+}
+
+/** Get Large Group link config for a venue */
+export async function getLargeGroupLink(
+  venue_id: number | string,
+): Promise<{ enabled: boolean; minSize: number; label: string; url: string }> {
+  return wpPublicFetch(`large-group-link?venue_id=${encodeURIComponent(String(venue_id))}`);
+}
+
+/** Convenience: fetch both in parallel */
+export async function getFaqsAndLink(venue_id: number | string): Promise<{
+  faqs: Array<{ question: string; answer: string }>;
+  largeGroup: { enabled: boolean; minSize: number; label: string; url: string };
+}> {
+  const [faqsRes, linkRes] = await Promise.all([getFaqs(venue_id), getLargeGroupLink(venue_id)]);
+  return { faqs: faqsRes.faqs ?? [], largeGroup: linkRes };
 }

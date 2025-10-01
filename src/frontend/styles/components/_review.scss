@@ -26,6 +26,10 @@
     flex-wrap: wrap;
     gap: var(--universal-space);
 
+    &--subtotal {
+      margin-top: var(--universal-space);
+    }
+
     &--total {
       margin: 0;
     }

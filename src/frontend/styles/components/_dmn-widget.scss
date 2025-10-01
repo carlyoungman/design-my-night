@@ -14,7 +14,7 @@
       grid-template-columns: 1fr 1fr;
     }
     @include breakpoint.large-screen-min {
-      grid-template-columns: 1fr 30%;
+      grid-template-columns: 1fr 40%;
       gap: var(--universal-space-2);
     }
   }
@@ -27,9 +27,34 @@
     overflow: hidden;
   }
 
+  &__main {
+    display: flex;
+    flex-wrap: wrap;
+
+  }
+
   &__side {
     position: sticky;
     top: var(--universal-space);
     align-self: start;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space);
+    padding: var(--universal-space-2) 0;
+    margin: 0;
+  }
+
+  &__section {
+    width: 100%;
+
+    &:last-of-type {
+      margin-bottom: var(--universal-space);
+      @include breakpoint.medium-screen-min {
+        margin-bottom: var(--universal-space-2);
+      }
+    }
   }
 }

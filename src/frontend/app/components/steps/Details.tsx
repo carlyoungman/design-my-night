@@ -1,12 +1,10 @@
 import React, { useId, useState } from 'react';
-import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { ErrorNotice } from '../ErrorNotice';
 import { Checkbox, FormControlLabel } from '@mui/material';
-import { useBookingTypes } from '../../hooks/useBookingTypes';
 import LoadingAnimation from '../LoadingAnimation';
 
-export function DetailsStep() {
+export function Details() {
   const state = useWidgetState();
   const { customer } = state;
   const dispatch = useWidgetDispatch();
@@ -34,28 +32,13 @@ export function DetailsStep() {
     );
   const msgTooLong = (customer.message || '').length > 500;
 
-  const { loading, types } = useBookingTypes({
-    venueId: state.venueId ?? null,
-    date: state.date ?? null,
-    partySize: state.partySize ?? null,
-    enabled: !!state.venueId && !!state.date && !!state.time,
-  });
-
-  // loading / prerequisites gate
-  if (loading) {
-    return (
-      <StepShell className="details">
-        <LoadingAnimation text="Loading available options" />
-      </StepShell>
-    );
-  }
-  if (!loading && types.length === 0) {
-    return (
-      <StepShell className="details">
-        <LoadingAnimation text="Venue, date and time required" />
-      </StepShell>
-    );
-  }
+  // Details requires venue, party size, date, time, and a chosen type
+  const enabled =
+    !!state.venueId &&
+    state.partySize != null &&
+    !!state.date &&
+    !!state.time &&
+    !!state.bookingType;
 
   const ERR_MSG = {
     firstName: 'Enter your first name.',
@@ -68,8 +51,16 @@ export function DetailsStep() {
     formSummary: 'Let’s fix the highlighted details to continue.',
   } as const;
 
+  if (!enabled) {
+    return (
+      <section className="details">
+        <LoadingAnimation text="Venue, date, time and experience required" />
+      </section>
+    );
+  }
+
   return (
-    <StepShell className="details">
+    <section className="details">
       <div className="details__group">
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={firstId}>
@@ -122,7 +113,6 @@ export function DetailsStep() {
             onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             aria-invalid={emailInvalid}
           />
-          {/* fix: use emailId here */}
           <ErrorNotice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${emailId}-err`} />
         </div>
 
@@ -176,6 +166,6 @@ export function DetailsStep() {
           />
         </div>
       </div>
-    </StepShell>
+    </section>
   );
 }

@@ -1,60 +1,22 @@
-const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
-type FetchOpts = { method?: string; body?: any };
-import type { AdminPackage } from '../frontend/app/types';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Performs a fetch request to the WordPress REST API using the provided path and options.
- *
- * @param path - The API endpoint path to request.
- * @param opts - Optional fetch options including method and body.
- * @returns A promise resolving to the parsed JSON response.
- * @throws If the response is not OK, throws an error with the response message or HTTP status.
  */
-async function wpFetch(path: string, opts: FetchOpts = {}) {
-  const { restUrl, nonce } = window.DMN_ADMIN_BOOT;
-  const base = restUrl.endsWith('/') ? restUrl : restUrl + '/';
-  const url = path.startsWith('http') ? path : base + path.replace(/^\//, ''); // strip any leading slash on path
-  const r = await fetch(url, {
+export async function wpFetch<T = any>(
+  slug: string,
+  opts: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: any } = {},
+): Promise<T> {
+  return (await apiFetch({
+    path: `/dmn/v1/admin/${slug}`,
     method: opts.method || 'GET',
-    credentials: 'same-origin', // <-- ensure WP cookies are sent
-    headers: {
-      'X-WP-Nonce': nonce,
-      'Content-Type': 'application/json',
-    },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  const json = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(json?.message || `HTTP ${r.status}`);
-  return await json;
+    data: opts.body,
+  })) as Promise<T>;
 }
 
-/**
- * Performs a fetch request to the backend REST API and parses the JSON response.
- *
- * @template T - The expected response type.
- * @param path - The API endpoint path to request.
- * @param init - Optional fetch initialization options.
- * @returns A promise resolving to the parsed JSON response of type T.
- * @throws If the response is not OK, throws an error with the HTTP status.
- */
-async function json<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(restUrl + path, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce, ...(init?.headers || {}) },
-    credentials: 'same-origin',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-/**
- * Retrieves the current plugin settings from the backend.
- *
- * @returns A promise resolving to an object containing:
- *   app_id, api_key_mask, environment, venue_group, debug_mode, and has_key.
- */
+/** Settings */
 export function getSettings() {
-  return json<{
+  return wpFetch<{
     app_id: string;
     api_key_mask: string;
     environment: 'prod' | 'qa';
@@ -64,13 +26,6 @@ export function getSettings() {
   }>('settings');
 }
 
-/**
- * Saves the provided settings to the backend via a POST request.
- *
- * @param payload - An object containing optional settings fields to update:
- *   app_id, api_key, environment, venue_group, debug_mode.
- * @returns A promise resolving to the updated settings response from the backend.
- */
 export function saveSettings(payload: {
   app_id?: string;
   api_key?: string;
@@ -78,24 +33,16 @@ export function saveSettings(payload: {
   venue_group?: string;
   debug_mode?: boolean;
 }) {
-  return json<{
+  return wpFetch<{
     ok: boolean;
     environment: 'prod' | 'qa';
     debug_mode: boolean;
     venue_group?: string;
-  }>('settings', { method: 'POST', body: JSON.stringify(payload) });
+  }>('settings', { method: 'POST', body: payload });
 }
 
-/**
- * Tests the API connection to the backend.
- * Optionally enables debug mode to receive additional debug information.
- *
- * @param debug - If true, includes debug information in the response.
- * @returns A promise resolving to the connection test result and optional debug details.
- */
 export function testConnection(debug = false) {
-  const path = debug ? 'test?debug=1' : 'test';
-  return json<{
+  return wpFetch<{
     ok: boolean;
     status: number;
     error?: string;
@@ -115,131 +62,118 @@ export function testConnection(debug = false) {
       dmn_raw_body?: string | null;
       sample_count?: number;
     };
-  }>(path);
+  }>(debug ? 'test?debug=1' : 'test');
 }
 
-/**
- * Represents a venue in the admin API.
- *
- * @property id - The unique identifier for the venue.
- * @property title - The display name of the venue.
- * @property dmn_id - The DMN system identifier for the venue.
- */
-export type AdminVenue = { id: number; title: string; dmn_id: string };
-
-/**
- * Represents an activity associated with a venue in the admin API.
- *
- * @property id - The unique identifier for the activity.
- * @property dmn_type_id - The DMN system type identifier for the activity.
- * @property name - The name of the activity.
- * @property description - Optional description of the activity.
- * @property priceText - Optional price information as text.
- * @property image_id - Optional image identifier.
- * @property image_url - Optional image URL.
- * @property gallery_ids - Optional array of gallery image IDs.
- */
-
-export type AdminActivity = {
-  id: number;
-  dmn_type_id: string;
-  name: string;
-  description?: string;
-  priceText?: string;
-  image_id?: number | null;
-  image_url?: string | null;
-  gallery_ids?: number[];
-};
-
-/**
- * Retrieves the list of venues from the admin API.
- *
- * @returns A promise resolving to an object containing an array of venues.
- */
-export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
+/** Venues */
+export async function adminListVenues(): Promise<{
+  venues: { id: number; title: string; dmn_id: string }[];
+}> {
   return wpFetch('venues');
 }
 
-/**
- * Synchronizes venues with the backend and returns the count of updated venues.
- *
- * @returns A promise resolving to an object with ok status and count of venues.
- */
-export async function adminSyncVenues(): Promise<{ ok: true; count: number }> {
-  return wpFetch('sync/venues', { method: 'POST' });
-}
-
-/**
- * Synchronizes all activity types with the backend and returns the count of updated types.
- *
- * @returns A promise resolving to an object with ok status and count of types.
- */
-export async function adminSyncTypesAll(): Promise<{ ok: true; count: number }> {
-  return wpFetch('sync/types', { method: 'POST' });
-}
-
-/**
- * Retrieves the list of activities for a specific venue from the admin API.
- *
- * @param venuePostId - The unique identifier of the venue.
- * @returns A promise resolving to an object containing an array of activities.
- */
-export async function adminListActivities(
-  venuePostId: number,
-): Promise<{ activities: AdminActivity[] }> {
+/** Activities */
+export async function adminListActivities(venuePostId: number): Promise<{
+  activities: {
+    id: number;
+    dmn_type_id: string;
+    name: string;
+    description?: string;
+    priceText?: string;
+    image_id?: number | null;
+    image_url?: string | null;
+    gallery_ids?: number[];
+  }[];
+}> {
   return wpFetch(`venues/${venuePostId}/activities`);
 }
 
-/**
- * Saves updates to a specific activity in the admin API.
- *
- * @param activityPostId - The unique identifier of the activity.
- * @param patch - Partial activity data to update.
- * @returns A promise resolving to an object with ok status.
- */
 export async function adminSaveActivity(
-  activityPostId: number,
-  patch: Partial<AdminActivity>,
-): Promise<{ ok: true }> {
-  return wpFetch(`activities/${activityPostId}`, { method: 'POST', body: patch });
+  id: number,
+  body: {
+    name?: string;
+    description?: string;
+    priceText?: string;
+    image_id?: number | null;
+    gallery_ids?: number[];
+    menu_post_id?: number | null;
+  },
+): Promise<{ ok: boolean }> {
+  return wpFetch(`activities/${id}`, { method: 'POST', body });
 }
 
-/**
- * Synchronizes all venues and activity types with the backend.
- *
- * @returns A promise resolving to an object containing:
- *   ok status, number of venues and types synchronized, duration in milliseconds, and a message.
- */
+/** Sync */
 export async function adminSyncAll(): Promise<{
-  ok: true;
+  ok: boolean;
   venues_count: number;
   types_count: number;
-  duration_ms: number;
-  message: string;
+  menus_count?: number;
+  menu_items_count?: number;
+  duration_ms?: number;
+  message?: string;
 }> {
   return wpFetch('sync/all', { method: 'POST' });
 }
 
-/* -------------------------
- * Admin Packages endpoints
- * ------------------------- */
-
-export async function adminGetPackages(params: { venueId?: string | number } = {}) {
-  const qs = new URLSearchParams();
-  if (params.venueId) qs.set('venue_id', String(params.venueId));
-  const j = await wpFetch(`packages?${qs.toString()}`);
-  return j.packages as AdminPackage[];
+/** Menus */
+export async function adminListMenus(): Promise<{
+  menus: { id: number; title: string; fixed_price?: boolean }[];
+}> {
+  return wpFetch('menus', { method: 'GET' });
 }
 
-export async function adminBulkSavePackages(items: any[]) {
-  const j = await wpFetch('packages', {
-    method: 'POST',
-    body: { packages: items },
-  });
-  return j.packages as AdminPackage[];
+export async function adminListMenuItems(venueId: number): Promise<{
+  menus: Array<{
+    menu_post_id: number;
+    menu_title: string;
+    activities: Array<{ id: number; dmn_type_id: string; name: string }>;
+    items: Array<{
+      id: number;
+      dmn_item_id: string;
+      name: string;
+      description: string;
+      type: string;
+      price_ro: number;
+      image_id: number | null;
+      image_url: string | null;
+      menu_post_id: number;
+    }>;
+  }>;
+}> {
+  return wpFetch(`menu-items?venue=${venueId}`);
 }
 
-export async function adminDeletePackage(id: number) {
-  await wpFetch(`packages/${id}`, { method: 'DELETE' });
-  return true;
+export async function adminSaveMenuItem(
+  id: number,
+  body: { name?: string; description?: string; image_id?: number | null },
+): Promise<{ ok: true }> {
+  return wpFetch<{ ok: true }>(`menu-items/${id}`, { method: 'POST', body });
+}
+
+/** FAQs */
+export async function adminListFaqs(
+  venue_id: number,
+): Promise<{ faqs: { question: string; answer: string }[] }> {
+  return wpFetch(`faqs?venue_id=${encodeURIComponent(venue_id)}`);
+}
+
+export async function adminSaveFaqs(
+  venue_id: number,
+  faqs: Array<{ question: string; answer: string }>,
+): Promise<{ ok: true }> {
+  return wpFetch<{ ok: true }>('faqs', { method: 'POST', body: { venue_id, faqs } });
+}
+
+/** Large Group Link */
+export async function adminGetLargeGroupLink(
+  venue_id: number,
+): Promise<{ enabled: boolean; minSize: number; label: string; url: string }> {
+  return wpFetch(`large-group-link?venue_id=${encodeURIComponent(venue_id)}`);
+}
+
+export async function adminSaveLargeGroupLink(
+  venue_id: number,
+  body: { enabled: boolean; minSize: number; label: string; url: string },
+): Promise<{ ok: true }> {
+  return wpFetch<{ ok: true }>('large-group-link', { method: 'POST', body: { venue_id, ...body } });
 }

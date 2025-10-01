@@ -1,0 +1,26 @@
+.progress-bar {
+  display: grid;
+  gap: var(--universal-space);
+  margin-top: var(--universal-space);
+
+  &__bar {
+    height: var(--universal-space);
+    background: var(--c-off-black);
+    overflow: hidden;
+    border-radius: var(--border-radius);
+  }
+
+  &__fill {
+    height: 100%;
+    width: 0;
+    background: var(--c-theme-primary);
+    transition: var(--transition);
+  }
+
+  &__text {
+    font-size: 16px;
+    text-align: center;
+  }
+}
+
+

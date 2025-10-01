@@ -2,21 +2,18 @@ import React, { useCallback, useEffect, useId } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
-import { StepShell } from '../StepShell';
 
-export function PartySizeStep() {
+export function PartySize() {
   const { partySize } = useWidgetState();
   const dispatch = useWidgetDispatch();
   const id = useId();
 
-  // I seed a starting value so the field is controlled from mount.
   useEffect(() => {
     if (partySize == null) {
       dispatch({ type: 'SET_PARTY_SIZE', size: 2 });
     }
   }, [partySize, dispatch]);
 
-  // Base UI calls me with number | null on every change (typing & +/-).
   const handleValueChange = useCallback(
     (value: number | null) => {
       const n = value == null ? 1 : Math.floor(value);
@@ -27,16 +24,10 @@ export function PartySizeStep() {
   );
 
   return (
-    <StepShell className="party-size">
-      <p className="party-size__label">
-        Whats your
-        <br />
-        party size?
-      </p>
-
+    <section className="party-size">
       <NumberField.Root
         id={id}
-        value={partySize ?? 2} // controlled
+        value={partySize ?? 2}
         min={1}
         max={12}
         step={1}
@@ -53,6 +44,9 @@ export function PartySizeStep() {
           </NumberField.Increment>
         </NumberField.Group>
       </NumberField.Root>
-    </StepShell>
+      <a className="party-size__group-link" target="_blank" href="">
+        Group over 12 people? <br></br>Click here
+      </a>
+    </section>
   );
 }

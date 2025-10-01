@@ -32,8 +32,7 @@
     background: var(--c-white);
     border: 1px solid var(--c-off-white);
     border-radius: var(--border-radius);
-    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2)
-      var(--universal-space-2);
+    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2) var(--universal-space-2);
     max-width: unset;
   }
 
@@ -72,5 +71,11 @@
     align-items: center;
     gap: var(--universal-space);
     margin-top: var(--universal-space-2);
+  }
+}
+
+.faqs {
+  .table__row {
+    align-items: flex-end;
   }
 }

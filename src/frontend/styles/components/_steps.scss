@@ -1,9 +1,6 @@
 @use '../settings/breakpoints' as breakpoint;
 
 .step {
-  margin-bottom: var(--universal-space-2);
-
-
   &__error {
     display: inline-block;
     color: var(--c-error);
@@ -15,6 +12,4 @@
   &__label {
     margin: 0 0 var(--universal-space) 0;
   }
-
-
 }

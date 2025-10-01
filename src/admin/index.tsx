@@ -1,18 +1,22 @@
+// src/admin/index.tsx
 import React, { ReactNode } from 'react';
+import './styles/styles.scss';
 import { createRoot } from 'react-dom/client';
-
 import SettingsCard from './components/SettingsCard';
 import DataSyncCard from './components/DataSyncCard';
 import ActivityManagerCard from './components/ActivityManagerCard';
-import PackagesCard from './components/PackagesCard';
 import VenuePickerCard from './components/VenuePickerCard';
+import AdditionalCard from './components/AdditionalCard';
+import InfoCard from './components/InfoCard';
 import { AdminProvider } from './AdminContext';
 
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
-import InfoCard from './components/InfoCard';
+import PreorderMenusCard from './components/PreorderMenusCard';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 type CustomTabPanelProps = { children?: ReactNode; index: number; value: number };
 
@@ -28,10 +32,7 @@ function CustomTabPanel({ children, value, index }: CustomTabPanelProps) {
 }
 
 function a11yProps(index: number) {
-  return {
-    id: `admin-tab-${index}`,
-    'aria-controls': `admin-tabpanel-${index}`,
-  };
+  return { id: `admin-tab-${index}`, 'aria-controls': `admin-tabpanel-${index}` };
 }
 
 declare global {
@@ -42,7 +43,36 @@ declare global {
 
 function App() {
   const [value, setValue] = React.useState(0);
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => setValue(newValue);
+
+  const [dirty, setDirty] = React.useState<Record<number, boolean>>({});
+  const setTabDirty = (i: number) => (d: boolean) =>
+    setDirty((s) => (s[i] === d ? s : { ...s, [i]: d }));
+
+  const [warned, setWarned] = React.useState(false);
+  const [snackOpen, setSnackOpen] = React.useState(false);
+
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+    if (dirty[value] && !warned) {
+      setWarned(true);
+      setSnackOpen(true);
+      return;
+    }
+    setWarned(false);
+    setSnackOpen(false);
+    setValue(newValue);
+  };
+
+  // Optional: warn on page unload if any tab is dirty
+  React.useEffect(() => {
+    const anyDirty = Object.values(dirty).some(Boolean);
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!anyDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [dirty]);
 
   return (
     <AdminProvider>
@@ -64,15 +94,20 @@ function App() {
                 >
                   <Tab label="Activity Manager" {...a11yProps(0)} />
                   <Tab label="Add-on Packages" {...a11yProps(1)} />
+                  <Tab label="Additional" {...a11yProps(2)} />
                 </Tabs>
               </Box>
 
               <CustomTabPanel value={value} index={0}>
-                <ActivityManagerCard />
+                <ActivityManagerCard onDirty={setTabDirty(0)} />
               </CustomTabPanel>
 
               <CustomTabPanel value={value} index={1}>
-                <PackagesCard />
+                <PreorderMenusCard onDirty={setTabDirty(1)} />
+              </CustomTabPanel>
+
+              <CustomTabPanel value={value} index={2}>
+                <AdditionalCard onDirty={setTabDirty(2)} />
               </CustomTabPanel>
             </Box>
           </div>
@@ -83,6 +118,16 @@ function App() {
             <InfoCard />
           </div>
         </div>
+
+        <Snackbar
+          open={snackOpen}
+          onClose={() => setSnackOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSnackOpen(false)} severity="warning" variant="filled">
+            You have unsaved changes. Click the tab again to switch.
+          </Alert>
+        </Snackbar>
       </div>
     </AdminProvider>
   );

@@ -1,5 +1,4 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { Field } from '@base-ui-components/react/field';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
@@ -7,13 +6,17 @@ import { ThemeProvider } from '@mui/material/styles';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import { StepShell } from '../StepShell';
-import { darkTheme, sixMonthsISO, todayISO } from '../../utils/helpers';
+import {
+  darkTheme,
+  extractValidationDateBlock,
+  parseSuggested,
+  sixMonthsISO,
+  todayISO,
+} from '../../utils/helpers';
 import { checkAvailability } from '../../../api/public';
 import LoadingAnimation from '../LoadingAnimation';
 
-export function DateStep() {
-  // Bounds (today → +6 months)
+export function Date() {
   const minDateISO = todayISO();
   const maxDateISO = sixMonthsISO();
 
@@ -29,7 +32,7 @@ export function DateStep() {
     () => (selectedDateISO ? dayjs(selectedDateISO).startOf('month') : dayjs().startOf('month')),
     [selectedDateISO],
   );
-  const [visibleMonth, setVisibleMonth] = useState<Dayjs>(initialMonth);
+  const [visibleMonth] = useState<Dayjs>(initialMonth);
 
   // Valid ISO dates for the visible month only (from DMN)
   const [validDates, setValidDates] = useState<Set<string>>(new Set());
@@ -37,24 +40,6 @@ export function DateStep() {
 
   // Stable key for the visible month (avoid depending on Dayjs objects)
   const monthKey = useMemo(() => visibleMonth.format('YYYY-MM'), [visibleMonth]);
-
-  // Safely extract validation.date
-  const extractValidationDateBlock = useCallback((res: any) => {
-    return (
-      res?.payload?.validation?.date ??
-      res?.data?.payload?.validation?.date ??
-      res?.data?.validation?.date ??
-      res?.validation?.date ??
-      null
-    );
-  }, []);
-
-  const parseSuggested = useCallback((item: any): { iso?: string; valid?: boolean } => {
-    const raw = item?.date ?? item?.value ?? item;
-    if (typeof raw !== 'string') return {};
-    const iso = dayjs(raw).format('YYYY-MM-DD');
-    return { iso, valid: !!item?.valid };
-  }, []);
 
   // Fetch valid suggestions for the visible month (fields=date)
   useEffect(() => {
@@ -123,11 +108,6 @@ export function DateStep() {
     [minDate, maxDate, monthKey, validDates],
   );
 
-  const handleMonthChange = useCallback((newMonth: Dayjs) => {
-    const next = dayjs(newMonth).startOf('month');
-    setVisibleMonth((prev) => (prev.isSame(next, 'month') ? prev : next));
-  }, []);
-
   const pick = useCallback(
     (d: Dayjs) => {
       if (!isSelectable(d)) return;
@@ -135,7 +115,7 @@ export function DateStep() {
       // Set date, then clear dependent selections so types & times refresh
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
-      // dispatch({ type: 'SET_TYPE', value: '' as any });
+      dispatch({ type: 'SET_TYPE', value: '' as any });
     },
     [dispatch, isSelectable],
   );
@@ -145,10 +125,9 @@ export function DateStep() {
   const value = selectedDateISO ? dayjs(selectedDateISO) : null;
 
   return (
-    <StepShell className="date">
-      <p className="date__label">Select your date</p>
-
+    <section className="date">
       {!loading && validDates.size === 0 && <LoadingAnimation text="Venue required" />}
+      {loading && validDates.size === 0 && <LoadingAnimation text="Checking availability…" />}
       {!loading && validDates.size !== 0 && (
         <>
           <div className="date__quick-row" aria-label="Quick date picks">
@@ -169,30 +148,24 @@ export function DateStep() {
               Tomorrow
             </button>
           </div>
-          <Field.Root className="date__calendar" data-loading={loading ? '' : undefined}>
-            <Field.Control
-              render={
-                <ThemeProvider theme={darkTheme}>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DateCalendar
-                      value={value}
-                      onChange={(newVal) => {
-                        if (!newVal) return;
-                        pick(newVal);
-                      }}
-                      onMonthChange={handleMonthChange}
-                      views={['day']}
-                      minDate={minDate}
-                      maxDate={maxDate}
-                      shouldDisableDate={(d) => !isSelectable(d)}
-                    />
-                  </LocalizationProvider>
-                </ThemeProvider>
-              }
-            />
-          </Field.Root>
+          <div className="date__calendar" data-loading={loading ? '' : undefined}>
+            <ThemeProvider theme={darkTheme}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateCalendar
+                  value={value}
+                  onChange={(newVal) => {
+                    if (newVal) pick(newVal);
+                  }}
+                  views={['day']}
+                  minDate={minDate}
+                  maxDate={maxDate}
+                  shouldDisableDate={(d) => !isSelectable(d)}
+                />
+              </LocalizationProvider>
+            </ThemeProvider>
+          </div>
         </>
       )}
-    </StepShell>
+    </section>
   );
 }

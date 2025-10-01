@@ -1,20 +1,18 @@
 import React from 'react';
 import { WidgetProvider, useWidgetConfig } from './WidgetProvider';
 import type { RootProps } from './WidgetProvider';
-
-import { Accordion } from '@base-ui-components/react/accordion';
-import { PlusIcon } from 'lucide-react';
-
-import { VenueStep } from './components/steps/VenueStep';
-import { PartySizeStep } from './components/steps/PartySizeStep';
-import { DateStep } from './components/steps/DateStep';
-import { TimeStep } from './components/steps/TimeStep';
-import { TypeStep } from './components/steps/TypeStep';
-
+import { Building, Calendar, PenLine, Rocket, MicVocal, Clock4, User } from 'lucide-react';
+import { Venue } from './components/steps/Venue';
+import { PartySize } from './components/steps/PartySize';
+import { Date } from './components/steps/Date';
+import { Time } from './components/steps/Time';
+import { Type } from './components/steps/Type';
 import { useVenues } from './hooks/useVenues';
-import { PackagesStep } from './components/steps/PackagesStep';
-import { DetailsStep } from './components/steps/DetailsStep';
-import { ReviewStep } from './components/steps/ReviewStep';
+import { Details } from './components/steps/Details';
+import { Review } from './components/steps/Review';
+import Addons from './components/steps/Addons';
+import ProgressBar from './components/steps/ProgressBar';
+import { Faqs } from './components/steps/Faqs';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -31,86 +29,85 @@ function WidgetInner() {
   const { venues, loading, error } = useVenues(venueGroup, !!forcedVenueId);
 
   return (
-    <div className="dmn-widget__grid">
-      <div className="dmn-widget__main">
-        <Accordion.Root
-          className="accordion"
-          openMultiple={true}
-          defaultValue={['venues', 'date-and-time', 'types', 'addons', 'details']}
-        >
-          <Accordion.Item className="accordion__item accordion__item--venues venues" value="venues">
-            <Accordion.Header render={<h4 className="accordion__header" />}>
-              <Accordion.Trigger className="accordion__trigger">
-                1. Secure your spot
-                <PlusIcon className="accordion__icon" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className="accordion__panel">
-              <PartySizeStep />
-              <VenueStep
+    <>
+      {' '}
+      <div className="dmn-widget__grid">
+        <div className="dmn-widget__main">
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <User className="dmn-widget__icon" />
+              1. How many people in your group?
+            </p>
+            <div className="dmn-widget__body">
+              <PartySize />
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <Building className="dmn-widget__icon" />
+              2. Select a venue
+            </p>
+            <div className="dmn-widget__body">
+              <Venue
                 venues={venues}
                 initialLoading={loading}
                 error={error}
                 forcedVenueId={forcedVenueId}
               />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item
-            className="accordion__item accordion__item--date-and-time date-and-time"
-            value="date-and-time"
-          >
-            <Accordion.Header render={<h4 className="accordion__header" />}>
-              <Accordion.Trigger className="accordion__trigger">
-                2. Select date and time
-                <PlusIcon className="accordion__icon" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className="accordion__panel">
-              <DateStep />
-              <TimeStep />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item className="accordion__item accordion__item--types types" value="types">
-            <Accordion.Header render={<h4 className="accordion__header" />}>
-              <Accordion.Trigger className="accordion__trigger">
-                3. Choose your experience
-                <PlusIcon className="accordion__icon" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className="accordion__panel">
-              <TypeStep />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item className="accordion__item accordion__item--addons addons" value="addons">
-            <Accordion.Header render={<h4 className="accordion__header" />}>
-              <Accordion.Trigger className="accordion__trigger">
-                4. Choose your add-ons
-                <PlusIcon className="accordion__icon" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className="accordion__panel">
-              <PackagesStep />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item
-            className="accordion__item accordion__item--details details"
-            value="details"
-          >
-            <Accordion.Header render={<h4 className="accordion__header" />}>
-              <Accordion.Trigger className="accordion__trigger">
-                5. Confirm your details
-                <PlusIcon className="accordion__icon" />
-              </Accordion.Trigger>
-            </Accordion.Header>
-            <Accordion.Panel className="accordion__panel">
-              <DetailsStep />
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion.Root>
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <Calendar className="dmn-widget__icon" />
+              3. Select a date
+            </p>
+            <div className="dmn-widget__body">
+              <Date />
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <Clock4 className="dmn-widget__icon" />
+              4. Pick a time
+            </p>
+            <div className="dmn-widget__body">
+              <Time />
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <Rocket className="dmn-widget__icon" />
+              5. Choose your experience
+            </p>
+            <div className="dmn-widget__body">
+              <Type />
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <MicVocal className="dmn-widget__icon" />
+              6. Choose your add-ons
+            </p>
+            <div className="dmn-widget__body">
+              <Addons />
+            </div>
+          </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <PenLine className="dmn-widget__icon" />
+              7. Confirm your details
+            </p>
+            <div className="dmn-widget__body">
+              <Details />
+            </div>
+          </section>
+        </div>
+        <div className="dmn-widget__side">
+          <ProgressBar></ProgressBar>
+          <Review sections={{ details: false }} />
+        </div>
       </div>
-      <div className="dmn-widget__side">
-        <ReviewStep sections={{ details: false }} />
-      </div>
-    </div>
+      <Faqs />
+    </>
   );
 }

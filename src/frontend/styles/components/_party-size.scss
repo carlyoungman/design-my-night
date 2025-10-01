@@ -1,27 +1,21 @@
 @use '../settings/mixins' as mixin;
 @use '../settings/breakpoints' as breakpoint;
 
-.step {
-  &--party-size {
-    display: grid;
-    align-items: center;
-    gap: var(--universal-space);
-    grid-template-columns: 1fr;
-    @include breakpoint.medium-screen-min {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .step__label {
-      margin: 0;
-    }
-  }
-}
-
 
 .party-size {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: var(--universal-space);
+  @include breakpoint.medium-screen-min {
+    gap: var(--universal-space-2);
+  }
+
+  &__group-link {
+    &:hover {
+      color: var(--c-theme-primary);
+    }
+  }
+
 
   &__group {
     display: flex;
@@ -44,8 +38,8 @@
     cursor: pointer;
     user-select: none;
     transition: var(--transition);
-    height: 60px;
-    width: 60px;
+    height: 50px;
+    width: 50px;
 
     &:hover {
       background: var(--c-white);

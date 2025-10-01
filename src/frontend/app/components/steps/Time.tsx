@@ -1,12 +1,11 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { StepShell } from '../StepShell';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { checkAvailability } from '../../../api/public';
 import { FormControl, FormControlLabel, RadioGroup, Radio } from '@mui/material';
 import LoadingAnimation from '../LoadingAnimation';
 type SuggestedTime = { iso: string; label: string };
 
-export function TimeStep() {
+export function Time() {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
 
@@ -91,14 +90,11 @@ export function TimeStep() {
   };
 
   return (
-    <StepShell className="time">
-      <p className="time__label">Pick a time</p>
-
+    <section className="time">
       {loading && <LoadingAnimation text="Checking availability…"></LoadingAnimation>}
       {!loading && times.length === 0 && (
-        <LoadingAnimation text="Venue and date required"></LoadingAnimation>
+        <LoadingAnimation text="Venue, party size and date required" />
       )}
-
       {!loading && times.length > 0 && (
         <FormControl component="fieldset" variant="standard" className="time">
           <RadioGroup
@@ -110,8 +106,8 @@ export function TimeStep() {
           >
             {times.map((t) => (
               <FormControlLabel
-                key={t.iso + t.label}
-                value={t.label}
+                key={t.iso}
+                value={t.iso}
                 control={<Radio />}
                 label={t.label}
                 className="time__radio-label"
@@ -120,6 +116,6 @@ export function TimeStep() {
           </RadioGroup>
         </FormControl>
       )}
-    </StepShell>
+    </section>
   );
 }

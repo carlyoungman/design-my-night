@@ -6,28 +6,7 @@ use DMN\Booking\Config\Settings;
 
 class DmnClient
 {
-  /**
-   * GET /v4/venues
-   * $params can include: venue_group, fields (comma string), page, per_page, etc.
-   */
-  public function get_venues(array $params = []): array
-  {
-    if (empty($params['fields'])) {
-      $params['fields'] = 'path,name,title';
-    }
-    return $this->request('GET', '/venues', $params);
-  }
-
-  /**
-   * Core HTTP wrapper for DMN v4.
-   *
-   * Returns a minimal, de-duplicated structure:
-   * - ok: bool
-   * - status: int
-   * - data: mixed (decoded JSON or null)
-   * - error: ?string
-   * - validation: ?array
-   */
+  
   public function request(string $method, string $path, array $query = [], $body = null): array
   {
     $base = rtrim($this->base_url(), '/');
@@ -155,20 +134,4 @@ class DmnClient
     return "DMN-Booking-Plugin/{$ver} (+{$site})";
   }
 
-  /**
-   * POST /v4/venues/{venue_id}/booking-availability
-   */
-  public function booking_availability(string $venue_id, array $body, array $query = []): array
-  {
-    $venue_id = trim($venue_id);
-    return $this->request('POST', "/venues/{$venue_id}/booking-availability", $query, $body);
-  }
-
-  /**
-   * POST /v4/bookings
-   */
-  public function create_booking(array $payload): array
-  {
-    return $this->request('POST', '/bookings', [], $payload);
-  }
 }

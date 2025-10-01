@@ -13,7 +13,24 @@ export default function DataSyncCard() {
     setErr(null);
     try {
       const r = await adminSyncAll();
-      setOk(r.message || `Imported ${r.venues_count} venues and ${r.types_count} activity types.`);
+
+      if (r.message) {
+        setOk(r.message);
+      } else {
+        const venues = r.venues_count ?? 0;
+        const types = r.types_count ?? 0;
+        const menus = r.menus_count ?? 0;
+        const items = r.menu_items_count ?? 0;
+
+        const parts = [
+          `${venues} venues`,
+          `${types} activity types`,
+          `${menus} menus`,
+          `${items} menu items`,
+        ];
+
+        setOk(`Imported ${parts.join(', ')}.`);
+      }
     } catch (e: any) {
       setErr(e.message || 'Sync failed.');
     } finally {
@@ -24,7 +41,7 @@ export default function DataSyncCard() {
   return (
     <section className="dmn-admin__card" style={{ marginTop: 16 }}>
       <h2>Data Sync</h2>
-      <p>Import / update venues and activity types from DesignMyNight into WordPress.</p>
+      <p>Import data from DesignMyNight.</p>
       <div className="actions">
         <button className="button button--action" onClick={run} disabled={busy}>
           {busy ? 'Importing…' : 'Import data'}

@@ -15,7 +15,7 @@
   --c-white: #ffffff;
   --c-black: #020000;
   --c-theme-primary: #ff00ff;
-  --c-off-black: #1d2327;
+  --c-off-black: #2a2a2a;
   --c-dark-blue: #000056;
   --c-light-blue: #0000ff;
   --c-error: #ff3b3b;
@@ -39,9 +39,11 @@
   @import 'components/date';
   @import 'components/details';
   @import 'components/error-message';
+  @import 'components/faqs';
   @import 'components/loading-animation';
   @import 'components/package-card';
   @import 'components/party-size';
+  @import 'components/progress-bar';
   @import 'components/radio';
   @import 'components/review';
   @import 'components/venues';
@@ -49,5 +51,5 @@
   @import 'components/time';
   @import 'components/type-card';
   @import 'components/typography';
-  @import 'components/widget';
+  @import 'components/dmn-widget';
 }

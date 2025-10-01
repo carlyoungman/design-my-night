@@ -1,40 +1,15 @@
 import React, { useMemo } from 'react';
-import { StepShell } from '../StepShell';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { useBookingTypes } from '../../hooks/useBookingTypes';
 import { useVenues } from '../../hooks/useVenues';
-import { getNextWebUrl } from '../../utils/checkout';
-import { createBooking } from '../../../api/public';
-import { Building, Calendar, Clock4, Rocket, User } from 'lucide-react';
+import { createBooking, checkAvailability } from '../../../api/public';
+import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
+import { fmt, fmtDate, toNum } from '../../utils/helpers';
 
 type Sections = { booking?: boolean; details?: boolean; payment?: boolean };
 type ReviewStepProps = { sections?: Sections };
 
-// Robust money parser: grabs first signed decimal, strips commas/symbols
-const toNum = (text?: string | null) => {
-  if (!text) return 0;
-  const clean = String(text).replace(/,/g, '');
-  const m = clean.match(/-?\d+(?:\.\d{1,2})?/);
-  const n = m ? Number(m[0]) : 0;
-  return Number.isFinite(n) ? n : 0;
-};
-const fmt = (n: number) =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(n || 0);
-
-function fmtDate(d?: string | null) {
-  if (!d) return '—';
-  const [y, m, day] = d.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, day ?? 1));
-  return dt.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-} // 9:5 -> 09:05
-
-export function ReviewStep({ sections }: ReviewStepProps) {
+export function Review({ sections }: ReviewStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const { returnUrl, venueGroup } = useWidgetConfig();
@@ -44,8 +19,7 @@ export function ReviewStep({ sections }: ReviewStepProps) {
   const venueName = useMemo(
     () =>
       venues.find((v) => v._id === state.venueId)?.name ??
-      venues.find((v) => v._id === state.venueId)?.title ??
-      '—',
+      venues.find((v) => v._id === state.venueId)?.title,
     [venues, state.venueId],
   );
 
@@ -61,14 +35,15 @@ export function ReviewStep({ sections }: ReviewStepProps) {
     [types, state.bookingType],
   );
 
-  // add-ons
+  // add-ons (display only)
   const selectedAddons = useMemo(
-    () => state.packages.filter((p) => state.packagesSelected.includes(p.id)),
-    [state.packages, state.packagesSelected],
+    () => state.addons.filter((p) => state.addonsSelected.includes(p.id)),
+    [state.addons, state.addonsSelected],
   );
 
   // prices
-  const basePrice = useMemo(() => toNum((selectedType as any)?.priceText), [selectedType]);
+  const perPerson = useMemo(() => toNum((selectedType as any)?.priceText), [selectedType]);
+  const basePrice = useMemo(() => perPerson * (state.partySize ?? 0), [perPerson, state.partySize]);
   const addonsTotal = useMemo(
     () => selectedAddons.reduce((s, p) => s + toNum(p.priceText), 0),
     [selectedAddons],
@@ -88,40 +63,92 @@ export function ReviewStep({ sections }: ReviewStepProps) {
 
   async function handleContinue() {
     try {
-      // 1) Build notes: customer message + selected add-ons
-      const selectedAddons = state.packages.filter((p) => state.packagesSelected.includes(p.id));
-      const addonsLine =
-        selectedAddons.length > 0
-          ? `Add-ons: ${selectedAddons
-              .map((a) => `${a.name}${a.priceText ? ` (${a.priceText})` : ''}`)
-              .join(', ')}.`
-          : '';
-      const userMsg = (state.customer.message || '').trim();
-      const notes = [userMsg, addonsLine].filter(Boolean).join(' ');
+      // 1) Re-validate exact slot
+      const avail = await checkAvailability(
+        {
+          venue_id: state.venueId!,
+          type: state.bookingType!,
+          num_people: state.partySize!,
+          date: state.date!,
+          time: state.time!.padStart(5, '0'),
+        },
+        'time',
+      );
 
-      // 2) Create booking via WP → DMN /v4/bookings
-      const payload = {
-        source: 'partner' as const,
-        venue_id: state.venueId!,
-        type: state.bookingType!,
-        date: state.date!,
-        time: state.time!.padStart(5, '0'),
-        num_people: state.partySize!,
-        first_name: state.customer.first_name!,
-        last_name: state.customer.last_name!,
-        email: state.customer.email || undefined,
-        phone: state.customer.phone || undefined,
-        notes: notes || undefined,
+      type NextInfo = { api?: boolean; web?: string | null };
+      type BookingDetails = {
+        venue_id: string;
+        type: string;
+        date: string;
+        time: string;
+        num_people: number;
+        duration?: number;
+        offer?: string;
+        package?: string;
+      };
+      type AvailPayload = {
+        valid: boolean;
+        next?: NextInfo;
+        depositRequired?: unknown;
+        preordersAvailable?: boolean;
+        bookingDetails?: BookingDetails;
       };
 
-      const res = await createBooking(payload);
+      const p = (avail?.data?.payload ?? {}) as AvailPayload;
+      if (!p.valid) throw new Error('Selected time is no longer valid. Choose another.');
 
-      // 3) Redirect for payment if required (prefer explicit payment URL / next.web)
+      // 2) Redirect if payment OR pre-orders OR no API route
+      const mustRedirect = !p.next?.api || !!p.depositRequired || p.preordersAvailable === true;
+      if (mustRedirect) {
+        const base = p.next?.web;
+        if (!base) throw new Error('Redirect URL not available for this slot.');
+        const ru =
+          (document.querySelector('.review__button') as HTMLElement)?.dataset?.returnUrl ||
+          returnUrl ||
+          window.location.href;
+        const url = `${base}${base.includes('?') ? '&' : '?'}return_url=${encodeURIComponent(ru)}`;
+        window.location.assign(url);
+        return;
+      }
+
+      // 3) Build booking payload from bookingDetails + customer (no add-ons/pre-orders)
+      const bd = p.bookingDetails;
+      if (!bd) throw new Error('Missing booking details for API submission.');
+
+      const bookingPayload = {
+        // bookingDetails
+        venue_id: bd.venue_id,
+        type: bd.type,
+        date: bd.date,
+        time: bd.time.padStart(5, '0'),
+        num_people: bd.num_people,
+        ...(bd.duration != null ? { duration: bd.duration } : {}),
+        ...(bd.offer ? { offer: bd.offer } : {}),
+        ...(bd.package ? { package: bd.package } : {}),
+
+        // customer
+        source: 'partner' as const,
+        first_name: state.customer.first_name!,
+        last_name: state.customer.last_name!,
+        email: state.customer.email!,
+        ...(state.customer.phone ? { phone: state.customer.phone } : {}),
+        // ...(state.customer.dob ? { dob: state.customer.dob } : {}),
+        ...(typeof (state.customer as any).newsletter === 'boolean'
+          ? { newsletter_signup: (state.customer as any).newsletter }
+          : {}),
+        ...((state.customer as any).marketing_prefs?.length
+          ? { marketing_preferences: (state.customer as any).marketing_prefs }
+          : {}),
+        ...(state.customer.message ? { notes: state.customer.message.trim() } : {}),
+      };
+
+      const res = await createBooking(bookingPayload);
+
       const nextWeb =
         res?.data?.next?.web ||
         res?.next?.web ||
         res?.data?.payment_url ||
-        res?.payment_url ||
+        (res as any)?.payment_url ||
         null;
 
       if (nextWeb) {
@@ -129,12 +156,7 @@ export function ReviewStep({ sections }: ReviewStepProps) {
         return;
       }
 
-      // 4) No payment needed → show a simple confirmation UX (you can replace with your own)
-      // dispatch({
-      //   type: 'NOTICE',
-      //   message: 'Booking confirmed! Check your email for confirmation.',
-      // });
-      console.log('Booking confirmed! Check your email for confirmation.');
+      console.log('Booking confirmed. Confirmation sent by email.');
     } catch (err) {
       dispatch({
         type: 'ERROR',
@@ -150,11 +172,18 @@ export function ReviewStep({ sections }: ReviewStepProps) {
   };
 
   return (
-    <StepShell className="review">
+    <section className="review">
       {show.booking && (
         <section className="review__section">
           <h4 className="review__heading">Your booking</h4>
           <ul className="review__list">
+            <li>
+              <span>
+                <User />
+                Group
+              </span>
+              <strong>{state.partySize}</strong>
+            </li>
             <li>
               <span>
                 <Building />
@@ -174,21 +203,18 @@ export function ReviewStep({ sections }: ReviewStepProps) {
                 <Clock4 />
                 Time
               </span>
-              <strong>{state.time || '—'}</strong>
-            </li>
-            <li>
-              <span>
-                <User />
-                Guests
-              </span>
-              <strong>{state.partySize ?? '—'}</strong>
+              <strong>{state.time}</strong>
             </li>
             <li>
               <span>
                 <Rocket />
                 Experience
               </span>
-              <strong>{selectedType?.name || '—'}</strong>
+              <strong>
+                {selectedType?.name && (
+                  <span dangerouslySetInnerHTML={{ __html: selectedType.name }} />
+                )}
+              </strong>
             </li>
           </ul>
         </section>
@@ -228,7 +254,7 @@ export function ReviewStep({ sections }: ReviewStepProps) {
         <h4 className="review__heading">Summary</h4>
         <div className="review__price">
           <div className="review__row">
-            <span>Base</span>
+            <span>Base {state.partySize ? `(x${state.partySize})` : ''}</span>
             <strong>{fmt(basePrice)}</strong>
           </div>
 
@@ -236,6 +262,7 @@ export function ReviewStep({ sections }: ReviewStepProps) {
             <div className="review__addons">
               {selectedAddons.map((a) => (
                 <div key={a.id} className="review__row">
+                  <MicVocal />
                   <span>{a.name}</span>
                   <strong>{fmt(toNum(a.priceText))}</strong>
                 </div>
@@ -265,6 +292,6 @@ export function ReviewStep({ sections }: ReviewStepProps) {
           Continue to payment
         </button>
       )}
-    </StepShell>
+    </section>
   );
 }

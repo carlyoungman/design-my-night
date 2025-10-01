@@ -32,7 +32,6 @@ export function WidgetProvider({ children, ...config }: RootProps) {
     config,
     (cfg: Config): WidgetState => ({
       ...initialState,
-      step: cfg.forcedVenueId ? 'venue' : 'venue',
       venueId: cfg.forcedVenueId ?? null,
     }),
   );

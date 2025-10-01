@@ -1,21 +1,32 @@
 select,
-input:not([type='checkbox']) {
+input:not([type='checkbox']), input[type='text'], textarea {
   height: 50px;
   min-width: 100%;
   padding: 0 var(--universal-space);
   border: 1px solid var(--c-off-black);
+  color: var(--c-black);
+
+  &:disabled {
+    background-color: var(--c-off-white);
+    color: var(--c-off-black);
+    border: 1px dotted var(--c-black);
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
 }
+
 
 textarea {
   padding: var(--universal-space);
-  border: 1px solid var(--c-off-black);
-  min-height: 50px;
-  width: 100%;
-  max-width: 100%;
+  min-height: 100px;
+  display: block;
 }
 
 label {
   display: block;
+  color: var(--c-off-black);
 
   > span {
     margin-bottom: var(--universal-space-half);

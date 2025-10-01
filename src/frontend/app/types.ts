@@ -3,22 +3,6 @@ export type AvailabilityValidationField = {
   message?: string;
 };
 
-export type AvailabilityValidation = {
-  time?: AvailabilityValidationField;
-  booking_time?: AvailabilityValidationField;
-  [key: string]: unknown; // keep future-proof
-};
-
-export type AvailabilityRes = {
-  payload: {
-    valid: boolean;
-    validation?: AvailabilityValidation;
-    action?: 'accept' | 'enquire' | 'may_enquire' | 'reject';
-    next?: { web?: string; api?: string };
-    bookingDetails?: Record<string, unknown>;
-  };
-  status: number;
-};
 export type Venue = {
   _id: string;
   title: string;
@@ -31,23 +15,58 @@ export type VenueStepProps = {
   error: string | null;
   forcedVenueId?: string;
 };
-export type AddOnPackage = {
-  id: string;
-  name: string;
-  description?: string;
-  image_url?: string | null;
-  priceText?: string | null;
-  visible?: boolean;
-  dmn_package_id?: string | null;
+
+// types.ts
+export type NextInfo = { api?: boolean; web?: string | null };
+
+export type DepositRequired = {
+  type: 'authenticate' | 'deposit';
+  amount: number;
+  amount_per?: 'guest' | 'booking';
+  total: number;
+  currency: string;
+  terms?: string;
 };
 
-export type AdminPackage = {
-  id?: number;
-  name: string;
-  description?: string;
-  priceText?: string | null;
-  visible?: boolean;
-  image_id?: number | null;
-  image_url?: string | null;
-  venueIds: string[];
+export type AvailabilityPayload = {
+  valid: boolean;
+  next?: NextInfo;
+  depositRequired?: DepositRequired | false | null;
+  preordersAvailable?: boolean;
+  action?: 'accept' | 'enquire' | 'may_enquire' | 'reject';
+  bookingDetails?: {
+    venue_id: string;
+    venue_group?: string;
+    date: string; // ISO or YYYY-MM-DD
+    time: string; // HH:mm
+    num_people: number;
+    type: string;
+    duration?: number; // minutes
+    offer?: string;
+    package?: string;
+    payments?: unknown[];
+  };
+  validation?: unknown;
+};
+
+export type AvailabilityRes = { data: { payload: AvailabilityPayload } };
+
+export type BookingCreate = {
+  source?: 'partner';
+  venue_id: string;
+  type: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  num_people: number;
+  duration?: number; // minutes
+  offer?: string;
+  package?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  dob?: string; // YYYY-MM-DD
+  newsletter_signup?: boolean;
+  marketing_preferences?: string[];
+  notes?: string;
 };

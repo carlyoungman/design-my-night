@@ -1,4 +1,5 @@
 import * as React from 'react';
+import './styles/index.scss';
 import { createRoot } from 'react-dom/client';
 import WidgetRoot from './app/WidgetRoot';
 

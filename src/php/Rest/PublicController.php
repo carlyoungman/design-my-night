@@ -9,114 +9,25 @@ use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
+use WP_REST_Server;
 
 class PublicController
 {
   /**
-   * Registers all public REST API routes for the DMN Booking plugin.
-   * Each route is mapped to a callback for handling requests.
-   * This includes endpoints for venues, booking availability, bookings, packages, and booking types.
+   * POST /dmn/v1/create-booking
+   * Accepts { addons: [] } from front-end and maps to DMN "packages"
    */
-  public function register_routes(): void
+  public static function create_booking(WP_REST_Request $req): WP_Error|WP_REST_Response
   {
-    /**
-     * Registers the /venues REST API endpoint for retrieving venue data.
-     *
-     * Method: GET
-     * Callback: PublicController::venues
-     * Permission: Public (no authentication required) */
-    register_rest_route('dmn/v1', '/venues', [
-      'methods' => 'GET',
-      'permission_callback' => '__return_true',
-      'callback' => [$this, 'venues'],
-    ]);
-    /**
-     * Registers the /booking-availability REST API endpoint for retrieving booking slot availability.
-     *
-     * Method: POST
-     * Callback: PublicController::availability
-     * Permission: Public (no authentication required) */
-    register_rest_route('dmn/v1', '/booking-availability', [
-      'methods' => 'POST',
-      'permission_callback' => '__return_true',
-      'callback' => [$this, 'availability'],
-    ]);
+    $body = $req->get_json_params();
 
-
-    /**
-     * Registers the /bookings REST API endpoint for creating a new booking via the DMN API.
-     *
-     * Method: POST
-     * Callback: PublicController::create_booking
-     * Permission: Public (no authentication required) */
-    register_rest_route('dmn/v1', '/bookings', [
-      'methods' => 'POST',
-      'permission_callback' => '__return_true',
-      'callback' => [$this, 'create_booking'],
-    ]);
-
-    /**
-     * Registers the /packages REST API endpoint for retrieving packages associated with a specific venue.
-     *
-     * Method: GET
-     * Callback: Anonymous function querying dmn_package CPTs by venue_id
-     * Permission: Public (no authentication required) */
-    register_rest_route(
-      'dmn/v1',
-      '/packages',
-      [
-        'methods' => 'GET',
-        'callback' => [$this, 'packages'],
-        'permission_callback' => '__return_true',
-      ]
-    );
-
-    /**
-     * Registers the /create-booking REST API endpoint for creating a booking using the DMN API via an inline callback.
-     *
-     * Method: POST
-     * Callback: Anonymous function calling DmnClient::create_booking
-     * Permission: Public (no authentication required) */
-    register_rest_route('dmn/v1', '/create-booking', [
-      'methods' => 'POST',
-      'callback' => function (WP_REST_Request $req) {
-        $body = (array)$req->get_json_params();
-
-        $dmn = new DmnClient();
-        $resp = $dmn->create_booking($body);
-
-        return new WP_REST_Response([
-          'data' => $resp['data'] ?? null,
-          'status' => $resp['status'] ?? 0,
-          'error' => $resp['error'] ?? null,
-          'debug' => $resp,
-        ], $resp['ok'] ? 200 : ($resp['status'] ?: 500));
-      },
-      'permission_callback' => '__return_true',
-    ]);
-
-    /**
-     * Registers the /booking-types REST API endpoint for retrieving available booking types for a specific venue.
-     *
-     * Method: GET
-     * Callback: PublicController::get_booking_types
-     * Permission: Public (no authentication required)
-     * Args:
-     * venue_id (string, required)
-     * date (string, optional)
-     * num_people (integer, optional)
-     * party_size (integer, optional) */
-    register_rest_route('dmn/v1', '/booking-types', [
-      'methods' => 'GET',
-      'permission_callback' => '__return_true',
-      'callback' => [$this, 'get_booking_types'],
-      'args' => [
-        'venue_id' => ['type' => 'string', 'required' => true],
-        'date' => ['type' => 'string', 'required' => false],
-        'num_people' => ['type' => 'integer', 'required' => false],
-        'party_size' => ['type' => 'integer', 'required' => false],
-      ],
-    ]);
+    try {
+      $dmn = new DmnClient();
+      $resp = $dmn->request('POST', '/bookings', [], $body);
+      return new WP_REST_Response($resp, 200);
+    } catch (Throwable $e) {
+      return new WP_Error('dmn_error', $e->getMessage(), ['status' => 400]);
+    }
   }
 
   // In src/php/Rest/PublicController.php, inside the PublicController class
@@ -130,142 +41,180 @@ class PublicController
    * @param WP_REST_Request $req The REST request containing booking data.
    * @return WP_REST_Response The response from the DMN API, including debug info.
    */
-  public function create_booking(WP_REST_Request $req): WP_REST_Response
+
+  /**
+   * GET /dmn/v1/addons?venue_id=.&activity_id=..
+   * Returns add-ons mapped to the front-end shape used in Addons.tsx
+   */
+  public static function get_addons(WP_REST_Request $r): WP_REST_Response
   {
-    $body = $req->get_json_params();
+    // Inputs (DMN external IDs as strings)
+    $venue_ext_id = (string)($r->get_param('venue_id') ?? '');
+    $activity_id = (string)($r->get_param('activity_id') ?? '');
 
-    try {
-      $dmn = new DmnClient();
-
-      // If your client already prefixes /v4, use '/bookings'; otherwise use '/v4/bookings'
-      $dmnRes = $dmn->request('POST', '/bookings', [], $body);
-      // $dmnRes might be an array, object, or WP_Error depending on your client.
-
-      // 1) Handle hard transport errors
-      if (is_wp_error($dmnRes)) {
-        return new WP_REST_Response([
-          'error' => 'transport_error',
-          'message' => $dmnRes->get_error_message(),
-        ], 502);
-      }
-
-      // 2) Normalise common shapes
-      $status = 200;
-      $rawBody = null;
-      $decoded = null;
-
-      if (is_array($dmnRes)) {
-        // Try typical shapes:
-        $status = $dmnRes['status'] ?? $dmnRes['response']['code'] ?? 200;
-        $rawBody = $dmnRes['body'] ?? $dmnRes['response']['body'] ?? null;
-
-        // Some clients already return decoded JSON:
-        if (!$rawBody && isset($dmnRes['data'])) {
-          $decoded = $dmnRes['data'];
-        }
-      } elseif (is_object($dmnRes) && method_exists($dmnRes, 'getBody')) {
-        // Guzzle-like
-        $status = method_exists($dmnRes, 'getStatusCode') ? $dmnRes->getStatusCode() : 200;
-        $rawBody = (string)$dmnRes->getBody();
-      } else {
-        // Fallback: treat as already-decoded data
-        $decoded = $dmnRes;
-      }
-
-      // 3) Decode JSON body if present
-      if ($decoded === null && is_string($rawBody)) {
-        $decoded = json_decode($rawBody, true);
-      }
-
-      // 4) If DMN returned an error (>=400), expose useful bits
-      if ((int)$status >= 400) {
-        // DMN usually returns a message + validation payload
-        $details = [
-          'status' => (int)$status,
-          'dmn_message' => $decoded['message'] ?? $decoded['error'] ?? 'Unknown DMN error',
-          'validation' =>
-            $decoded['payload']['validation'] ??
-              $decoded['validation'] ??
-              null,
-          // optional — helps you debug what you sent (avoid logging PII in prod)
-          'echo_payload' => (defined('WP_DEBUG') && WP_DEBUG) ? $body : null,
-          // raw only in debug to avoid noisy responses in prod
-          'raw' => (defined('WP_DEBUG') && WP_DEBUG) ? ($rawBody ?? json_encode($decoded)) : null,
-        ];
-
-        return new WP_REST_Response([
-          'error' => 'dmn_error',
-          'details' => $details,
-        ], (int)$status);
-      }
-
-      // 5) Success passthrough (return decoded JSON if possible)
-      return new WP_REST_Response($decoded ?? $dmnRes, 200);
-
-    } catch (Throwable $e) {
-      return new WP_REST_Response([
-        'error' => 'exception',
-        'message' => $e->getMessage(),
-      ], 500);
+    if ($venue_ext_id === '') {
+      return new WP_REST_Response(['message' => 'The venue_id parameter is required.'], 400);
     }
+
+    // 1) Map external DMN venue id -> local dmn_venue post ID
+    $venue_posts = get_posts([
+      'post_type' => 'dmn_venue',
+      'numberposts' => 1,
+      'fields' => 'ids',
+      'meta_query' => [[
+        'key' => 'dmn_venue_id',
+        'value' => $venue_ext_id,
+      ]],
+      'no_found_rows' => true,
+    ]);
+    if (empty($venue_posts)) {
+      return new WP_REST_Response(['data' => []], 200);
+    }
+    $venue_post_id = (int)$venue_posts[0];
+
+    // 2) Find activities under this venue that have a menu assigned (optionally filter by type)
+    $activity_meta = [
+      ['key' => 'dmn_menu_post_id', 'compare' => 'EXISTS'],
+    ];
+    if ($activity_id !== '') {
+      $activity_meta[] = [
+        'relation' => 'OR',
+        ['key' => 'dmn_type_id', 'value' => $activity_id],
+        ['key' => 'dmn_type_ids', 'value' => '"' . $activity_id . '"', 'compare' => 'LIKE'],
+        // keep these fallbacks if you used older keys at any point:
+        ['key' => 'activity_id', 'value' => $activity_id],
+        ['key' => 'activity_ids', 'value' => '"' . $activity_id . '"', 'compare' => 'LIKE'],
+      ];
+    }
+
+    $activities = get_posts([
+      'post_type' => 'dmn_activity',
+      'post_parent' => $venue_post_id,           // <-- local ID (fix)
+      'numberposts' => -1,
+      'fields' => 'ids',
+      'orderby' => 'menu_order title',
+      'order' => 'ASC',
+      'meta_query' => $activity_meta,
+      'no_found_rows' => true,
+    ]);
+
+    // 3) Collect menu IDs from those activities
+    if (empty($activities)) {
+      return new WP_REST_Response(['data' => []], 200);
+    }
+    $menu_ids = [];
+    foreach ($activities as $aid) {
+      $mid = (int)get_post_meta((int)$aid, 'dmn_menu_post_id', true);
+      if ($mid > 0) $menu_ids[$mid] = $mid;
+    }
+    if (empty($menu_ids)) {
+      return new WP_REST_Response(['data' => []], 200);
+    }
+
+    // 4) Load menu items linked to those menus
+    $items = get_posts([
+      'post_type' => 'dmn_menu_item',
+      'posts_per_page' => -1,
+      'meta_query' => [[
+        'key' => '_dmn_menu_post_id',
+        'value' => array_values($menu_ids),
+        'compare' => 'IN',
+      ]],
+      'no_found_rows' => true,
+    ]);
+
+    // 5) Map to frontend AddOnPackage shape (flat list)
+    $out = [];
+    foreach ($items as $it) {
+      $img_id = (int)get_post_thumbnail_id($it->ID);
+      $image_url = $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null;
+      $price_ro = get_post_meta($it->ID, '_dmn_item_price_ro', true);
+      $price_num = is_numeric($price_ro) ? (float)$price_ro : null;
+
+      $out[] = [
+        'id' => (string)$it->ID,
+        'name' => (string)$it->post_title,
+        'description' => (string)apply_filters('the_content', $it->post_content),
+        'priceText' => $price_num !== null ? '£' . number_format($price_num, 2) : '',
+        'image_url' => $image_url,
+        'visible' => true,
+        'dmn_package_id' => (string)(get_post_meta($it->ID, '_dmn_item_id', true) ?: $it->ID),
+      ];
+    }
+
+    return new WP_REST_Response(['data' => array_values($out)], 200);
   }
 
 
   /**
-   * Retrieves add‑on packages for the specified venue.
-   *
-   * @param WP_REST_Request $req The incoming REST request.
-   * @return WP_REST_Response    A response containing an array of package objects.
+   * Registers all public REST API routes for the DMN Booking plugin.
+   * Each route is mapped to a callback for handling requests.
+   * This includes endpoints for venues, booking availability, bookings, packages, and booking types.
    */
-  public function packages(WP_REST_Request $req): WP_REST_Response
+  public function register_routes(): void
   {
-    $venue_id = sanitize_text_field($req->get_param('venue_id'));
+    // GET /dmn/v1/venues
+    register_rest_route('dmn/v1', '/venues', [
+      'methods' => 'GET',
+      'permission_callback' => '__return_true',
+      'callback' => [$this, 'venues'],
+    ]);
+    // POST /dmn/v1/booking-availability
+    register_rest_route('dmn/v1', '/booking-availability', [
+      'methods' => 'POST',
+      'permission_callback' => '__return_true',
+      'callback' => [$this, 'availability'],
+    ]);
+    // POST /dmn/v1/create-booking
+    register_rest_route('dmn/v1', '/create-booking', [
+      'methods' => 'POST',
+      'callback' => [self::class, 'create_booking'],
+      'permission_callback' => '__return_true',
+    ]);
+    // GET /dmn/v1/booking-types
+    register_rest_route('dmn/v1', '/booking-types', [
+      'methods' => 'GET',
+      'permission_callback' => '__return_true',
+      'callback' => [$this, 'get_booking_types'],
+      'args' => [
+        'venue_id' => ['type' => 'string', 'required' => true],
+        'date' => ['type' => 'string', 'required' => false],
+        'num_people' => ['type' => 'integer', 'required' => false],
+        'party_size' => ['type' => 'integer', 'required' => false],
+      ],
+    ]);
+    // GET /dmn/v1/addons
+    register_rest_route('dmn/v1', '/addons', [
+      'methods' => 'GET',
+      'callback' => [self::class, 'get_addons'],
+      'permission_callback' => '__return_true',
+      'args' => [
+        'venue_id' => ['type' => 'string', 'required' => true],
+        'activity_id' => ['type' => 'string', 'required' => false],
+      ],
+    ]);
 
-    // Build query arguments for dmn_package posts.
-    $args = [
-      'post_type' => 'dmn_package',
-      'posts_per_page' => 100,
-      'orderby' => 'menu_order',
-      'order' => 'ASC',
-      'no_found_rows' => true,
-    ];
-    if ($venue_id !== '') {
-      $args['meta_query'] = [
-        [
-          'key' => '_dmn_pkg_venue_ids',
-          'value' => '"' . $venue_id . '"',
-          'compare' => 'LIKE',
+    register_rest_route('dmn/v1', '/public/faqs', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => '__return_true',
+        'callback' => [$this, 'dmn_public_faqs_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'string'],
         ],
-      ];
-    }
+      ],
+    ]);
 
-    $query = new WP_Query($args);
-    $data = [];
-
-    while ($query->have_posts()) {
-      $query->the_post();
-      $id = get_the_ID();
-      $price = (string)get_post_meta($id, '_dmn_pkg_price_text', true);
-      $visible = (bool)get_post_meta($id, '_dmn_pkg_visible', true);
-      $venueIds = (array)get_post_meta($id, '_dmn_pkg_venue_ids', true);
-      $imgId = get_post_thumbnail_id($id);
-      $imgUrl = $imgId ? wp_get_attachment_image_url($imgId, 'large') : null;
-
-      $data[] = [
-        'id' => (string)$id,
-        'name' => get_the_title(),
-        'description' => get_the_content(),
-        'priceText' => $price ?: null,
-        'image_url' => $imgUrl,
-        // Only mark visible if the post is published and the visible flag is true.
-        'visible' => (get_post_status($id) === 'publish') && $visible,
-        'venueIds' => array_values(array_map('strval', $venueIds)),
-      ];
-    }
-
-    wp_reset_postdata();
-
-    return new WP_REST_Response(['data' => $data], 200);
+    register_rest_route('dmn/v1', '/public/large-group-link', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => '__return_true',
+        'callback' => [$this, 'dmn_public_large_group_link_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'string'],
+        ],
+      ],
+    ]);
   }
 
   /**
@@ -290,7 +239,7 @@ class PublicController
       'data' => $res['data'] ?? null,
       'status' => $res['status'] ?? 0,
       'error' => $res['error'] ?? null,
-      'debug' => $res, // include full debug blob
+      'debug' => $res,
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
 
@@ -341,20 +290,10 @@ class PublicController
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
 
-
   /**
    * Retrieves available booking types for a given venue by merging DMN API suggestions with WordPress-configured activities.
    *
-   * Fetches suggested booking types from the DMN API and overlays them with local activity data configured in WordPress,
-   * including additional metadata such as description, price text, and images. Falls back to local configuration if the API returns no suggestions.
-   *
-   * @param WP_REST_Request $r The REST request containing venue and optional filter parameters.
-   * @return WP_REST_Response The response with merged booking type data.
-   */
-  /**
-   * Retrieves available booking types for a given venue by merging DMN API suggestions with WordPress-configured activities.
-   *
-   * I now preserve DMN's `auto confirmable` flag on each type so the front-end can check/label/sort accordingly.
+   * I now preserve DMD's `auto confirmable` flag on each type so the front-end can check/label/sort accordingly.
    *
    * @param WP_REST_Request $r The REST request containing venue and optional filter parameters.
    * @return WP_REST_Response The response with merged booking type data.
@@ -502,6 +441,74 @@ class PublicController
     });
 
     return new WP_REST_Response(['data' => $out], 200);
+  }
+
+  /** ---- Public: FAQs ---- */
+  public function dmn_public_faqs_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_param = $req->get_param('venue_id');
+    $post_id = $this->resolve_venue_post_id($venue_param);
+    if ($post_id <= 0) {
+      return new WP_REST_Response(['faqs' => [], 'error' => 'venue not found'], 404);
+    }
+    $faqs = get_post_meta($post_id, 'dmn_faqs', true);
+    if (!is_array($faqs)) $faqs = [];
+    // normalise
+    $faqs = array_values(array_map(function ($f) {
+      return [
+        'question' => isset($f['question']) ? (string)$f['question'] : '',
+        'answer' => isset($f['answer']) ? (string)$f['answer'] : '',
+      ];
+    }, $faqs));
+    return new WP_REST_Response(['faqs' => $faqs], 200);
+  }
+
+  /** ---- Helpers ---- */
+  private function resolve_venue_post_id($venue_id_param): int
+  {
+    // numeric WP post ID
+    if (is_numeric($venue_id_param)) {
+      $pid = (int)$venue_id_param;
+      return $pid > 0 ? $pid : 0;
+    }
+    // DMN venue id stored in post meta 'dmn_id'
+    $dmn_id = (string)$venue_id_param;
+    $ids = get_posts([
+      'post_type' => 'any',
+      'posts_per_page' => 1,
+      'fields' => 'ids',
+      'no_found_rows' => true,
+      'meta_key' => 'dmn_id',
+      'meta_value' => $dmn_id,
+    ]);
+    return !empty($ids) ? (int)$ids[0] : 0;
+  }
+
+  /** ---- Public: Large group link ---- */
+  public function dmn_public_large_group_link_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_param = $req->get_param('venue_id');
+    $post_id = $this->resolve_venue_post_id($venue_param);
+    if ($post_id <= 0) {
+      return new WP_REST_Response([
+        'enabled' => false, 'minSize' => 12, 'label' => 'Groups of 12+ — Enquire here', 'url' => '',
+        'error' => 'venue not found',
+      ], 404);
+    }
+
+    $url = (string)get_post_meta($post_id, 'dmn_large_group_url', true);
+    $label = (string)get_post_meta($post_id, 'dmn_large_group_label', true);
+    $min = (int)get_post_meta($post_id, 'dmn_large_group_min', true);
+
+    if ($label === '') $label = 'Groups of 12+ — Enquire here';
+    if ($min <= 0) $min = 12;
+
+    return new WP_REST_Response([
+      'enabled' => $url !== '',
+      'minSize' => $min,
+      'label' => $label,
+      'url' => $url,
+    ], 200);
   }
 
 }

@@ -1,9 +1,10 @@
 import { createTheme } from '@mui/material';
+import dayjs from 'dayjs';
 
-export const todayISO = (): string => new Date().toISOString().slice(0, 10);
+export const todayISO = (): string => dayjs().format('YYYY-MM-DD');
 
-export const sixMonthsISO = (): string =>
-  new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 6).toISOString().slice(0, 10);
+// helpers.tsx
+export const sixMonthsISO = (): string => dayjs().add(6, 'month').format('YYYY-MM-DD');
 
 export const darkTheme = createTheme({
   palette: {
@@ -13,38 +14,24 @@ export const darkTheme = createTheme({
     primary: { main: '#fff' },
   },
   components: {
-    // Inline calendar wrapper
     // @ts-ignore
     MuiDateCalendar: {
       styleOverrides: {
         root: {
-          width: '100%', // ← full width
+          width: '100%',
           backgroundColor: '#000',
           color: '#fff',
-
-          // Week rows -> true 7-column grid that fills the width
           '& .MuiDayCalendar-weekContainer': {
             display: 'grid',
             gridTemplateColumns: 'repeat(7, 1fr)',
             gap: 7.5,
             padding: 7.5,
           },
-
-          // Weekday labels
-          '& .MuiDayCalendar-weekDayLabel': {
-            color: 'rgba(255,255,255,.7)',
-          },
-
-          // Each day button sizing/padding
-          '& .MuiPickersDay-root': {
-            width: '100%', // fill the grid cell
-            margin: 0, // no side gaps—use the grid gap above
-          },
+          '& .MuiDayCalendar-weekDayLabel': { color: 'rgba(255,255,255,.7)' },
+          '& .MuiPickersDay-root': { width: '100%', margin: 0 },
         },
       },
     },
-
-    // Individual day buttons (states)
     MuiPickersArrowSwitcher: {
       styleOverrides: {
         root: {
@@ -55,55 +42,69 @@ export const darkTheme = createTheme({
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundSize: 'contain',
-            width: '24px',
-            height: '24px',
+            width: 24,
+            height: 24,
           },
-
-          // first button = "previous month" (left)
-          '& .MuiIconButton-root:first-of-type .MuiSvgIcon-root': {
-            transform: 'rotate(90deg)', // down → left
-          },
-
-          // second button = "next month" (right)
-          '& .MuiIconButton-root:last-of-type .MuiSvgIcon-root': {
-            transform: 'rotate(-90deg)', // down → right
-          },
+          '& .MuiIconButton-root:first-of-type .MuiSvgIcon-root': { transform: 'rotate(90deg)' },
+          '& .MuiIconButton-root:last-of-type .MuiSvgIcon-root': { transform: 'rotate(-90deg)' },
         },
       },
     },
-
-    // Month/Year header row
     MuiPickersCalendarHeader: {
-      styleOverrides: {
-        root: { color: '#fff' },
-        label: { color: '#fff' },
-      },
+      styleOverrides: { root: { color: '#fff' }, label: { color: '#fff' } },
     },
-
-    // Left/right chevrons in the header
     MuiPickersDay: {
       styleOverrides: {
         root: {
           color: '#fff',
-
           '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
-          '&:hover': { backgroundColor: '#FFF', border: '1px solid #fff', color: '#000' }, // your magenta hover
+          '&:hover': { backgroundColor: '#FFF', border: '1px solid #fff', color: '#000' },
           '&.Mui-selected': {
-            // selected state
             backgroundColor: '#FF00FF',
             border: '1px solid #fff',
             color: '#fff',
-            '&:hover': {
-              backgroundColor: '#ff33ff',
-              border: '1px solid #fff',
-            },
+            '&:hover': { backgroundColor: '#ff33ff', border: '1px solid #fff' },
           },
-          '&.MuiPickersDay-today': {
-            border: '1px solid #fff',
-            offset: 'none',
-          },
+          '&.MuiPickersDay-today': { border: '1px solid #fff', offset: 'none' },
         },
       },
     },
   },
 });
+
+export const toNum = (text?: string | null) => {
+  if (!text) return 0;
+  const clean = String(text).replace(/,/g, '');
+  const m = clean.match(/-?\d+(?:\.\d{1,2})?/);
+  const n = m ? Number(m[0]) : 0;
+  return Number.isFinite(n) ? n : 0;
+};
+
+export const fmt = (n: number) =>
+  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(n || 0);
+
+export function fmtDate(d?: string | null) {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, day ?? 1));
+  return dt.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export const extractValidationDateBlock = (res: any) =>
+  res?.payload?.validation?.date ??
+  res?.data?.payload?.validation?.date ??
+  res?.data?.validation?.date ??
+  res?.validation?.date ??
+  null;
+
+export const parseSuggested = (item: any): { iso?: string; valid?: boolean } => {
+  const raw = item?.date ?? item?.value ?? item;
+  if (typeof raw !== 'string') return {};
+  return { iso: dayjs(raw).format('YYYY-MM-DD'), valid: !!item?.valid };
+};

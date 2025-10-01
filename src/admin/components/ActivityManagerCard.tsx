@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { adminListActivities, adminSaveActivity } from '../api';
+import { adminListActivities, adminSaveActivity, adminListMenus } from '../api';
 import { useAdmin } from '../AdminContext';
 
 type AdminActivity = {
@@ -10,15 +10,22 @@ type AdminActivity = {
   priceText?: string;
   image_id?: number | null;
   image_url?: string | null;
+  menu_post_id?: number | null;
 };
 
-declare const wp: any; // WP media global
+type MenuOption = { id: number; title: string; fixed_price?: boolean };
 
-export default function ActivityManagerCard() {
-  const { selectedVenueId } = useAdmin(); // ← follow global venue
+declare const wp: any;
+
+type Props = { onDirty?: (d: boolean) => void };
+
+export default function ActivityManagerCard({ onDirty }: Props) {
+  const { selectedVenueId } = useAdmin();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<AdminActivity[]>([]);
   const [orig, setOrig] = useState<AdminActivity[]>([]);
+  const [menus, setMenus] = useState<MenuOption[]>([]);
+  const [menusLoading, setMenusLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -37,12 +44,36 @@ export default function ActivityManagerCard() {
         r.name !== o.name ||
         (r.description || '') !== (o.description || '') ||
         (r.priceText || '') !== (o.priceText || '') ||
-        (r.image_id || null) !== (o.image_id || null)
+        (r.image_id || null) !== (o.image_id || null) ||
+        (r.menu_post_id || null) !== (o.menu_post_id || null) // ← track menu assignment
       )
         d.add(r.id);
     }
     return d;
   }, [rows, orig]);
+
+  useEffect(() => {
+    onDirty?.(dirty.size > 0);
+  }, [dirty, onDirty]);
+
+  useEffect(() => {
+    // load menus once
+    let cancel = false;
+    (async () => {
+      setMenusLoading(true);
+      try {
+        const r = await adminListMenus();
+        if (!cancel) setMenus(r.menus || []);
+      } catch (e: any) {
+        if (!cancel) setErr(e.message || 'Failed to load menus.');
+      } finally {
+        if (!cancel) setMenusLoading(false);
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedVenueId) {
@@ -110,6 +141,7 @@ export default function ActivityManagerCard() {
             description: r.description ?? '',
             priceText: r.priceText ?? '',
             image_id: r.image_id ?? null,
+            menu_post_id: r.menu_post_id ?? null,
           }),
         ),
       );
@@ -158,7 +190,6 @@ export default function ActivityManagerCard() {
       {!selectedVenueId && (
         <p className="dmn-admin__help">Pick a venue above to manage activities.</p>
       )}
-
       {loading && <p>Loading activities…</p>}
       {err && <p className="err">{err}</p>}
       {!loading && selectedVenueId && rows.length === 0 && (
@@ -189,6 +220,28 @@ export default function ActivityManagerCard() {
                     value={r.priceText || ''}
                     onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
                   />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Pre-order Menu</div>
+                  <select
+                    value={r.menu_post_id ?? ''}
+                    onChange={(e) =>
+                      onCell(r.id, 'menu_post_id', e.target.value ? Number(e.target.value) : null)
+                    }
+                    disabled={menusLoading}
+                  >
+                    <option value="">— No menu —</option>
+                    {menus.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.title}
+                        {m.fixed_price ? ' (fixed price)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">DMN ID</div>
+                  <input type="text" value={r.dmn_type_id || ''} disabled placeholder="Type" />
                 </div>
               </div>
               <div className="table__right">

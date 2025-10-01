@@ -2,9 +2,6 @@
 
 
 .date {
-  border: 1px solid var(--c-white);
-  padding: var(--universal-space);
-
   &__quick-row {
     display: flex;
     flex-wrap: wrap;
@@ -32,7 +29,7 @@
 }
 
 .css-1n1xn3x-MuiPickersSlideTransition-root-MuiDayCalendar-slideTransition {
-  min-height: 255px;
+  min-height: 310px;
 }
 
 .MuiPickersCalendarHeader-root {

@@ -53,4 +53,8 @@
     gap: var(--universal-space);
     align-items: center;
   }
+
+  &__toggle {
+    margin-top: var(--universal-space);
+  }
 }

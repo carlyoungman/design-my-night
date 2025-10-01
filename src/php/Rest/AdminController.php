@@ -4,18 +4,42 @@ namespace DMN\Booking\Rest;
 
 use DMN\Booking\Config\Settings;
 use DMN\Booking\Services\DmnClient;
+use Throwable;
 use WP_Error;
 use WP_Post;
+use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
+use WP_REST_Server;
+use function add_post_meta;
+use function update_post_meta;
+use function wp_insert_post;
+use function wp_strip_all_tags;
+use function wp_update_post;
 
 class AdminController
 {
+
+
+  /**
+   * Register admin REST routes.
+   *
+   * Notes
+   * - Keeps existing route shapes and permissions.
+   * - FAQ callbacks switched to standalone functions for consistency.
+   */
   public function register_routes(): void
   {
-    // --- Settings (existing) ---
+    // Test connection
+    register_rest_route('dmn/v1/admin', '/test', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'test_connection'],
+    ]);
+
+    // Settings: GET
     register_rest_route('dmn/v1/admin', '/settings', [
-      'methods' => 'GET',
+      'methods' => WP_REST_Server::READABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => function () {
         return new WP_REST_Response([
@@ -26,108 +50,144 @@ class AdminController
           'debug_mode' => Settings::get_debug(),
           'has_key' => Settings::get_api_key() !== '',
         ], 200);
-      }
+      },
     ]);
 
-    // POST /dmn/v1/admin/settings (existing)
+    // Settings: POST
     register_rest_route('dmn/v1/admin', '/settings', [
-      'methods' => 'POST',
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => function (WP_REST_Request $req) {
-        Settings::set((array)($req->get_json_params() ?? []));
+        Settings::set($req->get_json_params() ?? []);
         return new WP_REST_Response([
           'ok' => true,
           'environment' => Settings::get_env(),
           'debug_mode' => Settings::get_debug(),
           'venue_group' => Settings::get_vg(),
         ], 200);
-      }
+      },
     ]);
 
-    // GET /dmn/v1/admin/test (existing)
-    register_rest_route('dmn/v1/admin', '/test', [
-      'methods' => 'GET',
-      'permission_callback' => fn() => current_user_can('manage_options'),
-      'callback' => [$this, 'test_connection'],
-    ]);
-
-    // --- Admin data & editing routes ---
-    // GET /wp-json/dmn/v1/admin/venues
+    // Venues: list
     register_rest_route('dmn/v1/admin', '/venues', [
-      'methods' => 'GET',
+      'methods' => WP_REST_Server::READABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_list_venues'],
     ]);
 
-    // POST /wp-json/dmn/v1/admin/sync/venues
+    // Venues: sync
     register_rest_route('dmn/v1/admin', '/sync/venues', [
-      'methods' => 'POST',
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_venues'],
     ]);
 
-    // POST /wp-json/dmn/v1/admin/sync/types
+    // Types: sync for all venues
     register_rest_route('dmn/v1/admin', '/sync/types', [
-      'methods' => 'POST',
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_types_all'],
     ]);
 
-    // GET /wp-json/dmn/v1/admin/venues/{venue}/activities
+    // Activities: list by venue
     register_rest_route('dmn/v1/admin', '/venues/(?P<venue>\d+)/activities', [
-      'methods' => 'GET',
+      'methods' => WP_REST_Server::READABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_list_activities'],
       'args' => ['venue' => ['type' => 'integer', 'required' => true]],
     ]);
 
-    // POST /wp-json/dmn/v1/admin/activities/{id}
+    // Activities: update
     register_rest_route('dmn/v1/admin', '/activities/(?P<id>\d+)', [
-      'methods' => 'POST',
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_save_activity'],
       'args' => ['id' => ['type' => 'integer', 'required' => true]],
     ]);
 
-    // POST /wp-json/dmn/v1/admin/sync/all
+    // Sync all
     register_rest_route('dmn/v1/admin', '/sync/all', [
-      'methods' => 'POST',
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_all'],
     ]);
 
-    // GET /wp-json/dmn/v1/admin/packages?venue_id=XXX&search=foo
-    register_rest_route('dmn/v1/admin', '/packages', [
-      'methods' => 'GET',
+    // Menus: list
+    register_rest_route('dmn/v1/admin', '/menus', [
+      'methods' => WP_REST_Server::READABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
-      'callback' => [$this, 'dmn_admin_list_packages'],
-      'args' => [
-        'venue_id' => ['type' => 'string', 'required' => false],
-        'search' => ['type' => 'string', 'required' => false],
-      ],
+      'callback' => [$this, 'dmn_admin_list_menus'],
     ]);
 
-    // POST /wp-json/dmn/v1/admin/packages  (bulk upsert)
-    register_rest_route('dmn/v1/admin', '/packages', [
-      'methods' => 'POST',
+    // Menu items: list by venue (grouped)
+    register_rest_route('dmn/v1/admin', '/menu-items', [
+      'methods' => WP_REST_Server::READABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
-      'callback' => [$this, 'dmn_admin_packages_bulk_save'],
+      'callback' => [$this, 'dmn_admin_list_menu_items'],
+      'args' => ['venue' => ['type' => 'integer', 'required' => true]],
     ]);
 
-    // DELETE /wp-json/dmn/v1/admin/packages/{id}
-    register_rest_route('dmn/v1/admin', '/packages/(?P<id>\d+)', [
-      'methods' => 'DELETE',
+    // Menu item: update
+    register_rest_route('dmn/v1/admin', '/menu-items/(?P<id>\d+)', [
+      'methods' => WP_REST_Server::CREATABLE,
       'permission_callback' => fn() => current_user_can('manage_options'),
-      'callback' => [$this, 'dmn_admin_delete_package'],
+      'callback' => [$this, 'dmn_admin_save_menu_item'],
       'args' => ['id' => ['type' => 'integer', 'required' => true]],
     ]);
 
+    // FAQs (already using constants)
+    register_rest_route('dmn/v1', '/admin/faqs', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_faqs_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+        ],
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_faqs_save'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+          'faqs' => ['required' => true, 'type' => 'array'],
+        ],
+      ],
+    ]);
+
+    // AdminController.php — inside register_routes()
+    register_rest_route('dmn/v1', '/admin/large-group-link', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_large_group_link_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+        ],
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_large_group_link_save'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+          'url' => ['required' => true, 'type' => 'string'], // blank hides link
+          'label' => ['required' => false, 'type' => 'string'],
+          'minSize' => ['required' => false, 'type' => 'integer'],
+        ],
+      ],
+    ]);
 
   }
 
-  // -------------------------
-  // Existing method (unchanged)
-  // -------------------------
+
+  /**
+   * Test DMN API connectivity using /venues.
+   *
+   * @param WP_REST_Request $req Request with optional 'debug' and 'venue_group'.
+   * @return WP_REST_Response Response with status, headers, sample, and debug.
+   */
   public function test_connection(WP_REST_Request $req): WP_REST_Response
   {
     $debug = $req->get_param('debug') !== null
@@ -141,7 +201,7 @@ class AdminController
     $client = new DmnClient();
 
     $t0 = microtime(true);
-    $r = $client->request('GET', '/venues', $q, null);
+    $r = $client->request('GET', '/venues', $q);
     $t1 = microtime(true);
 
     $debugPayload = null;
@@ -194,21 +254,23 @@ class AdminController
     ], 200);
   }
 
-  // -------------------------
-  // List venues for admin UI
-  // -------------------------
-  public function dmn_admin_list_venues(WP_REST_Request $r): WP_REST_Response
+  /**
+   * List dmn_venue posts.
+   *
+   * @return WP_REST_Response Response with 'venues'.
+   */
+  public function dmn_admin_list_venues(): WP_REST_Response
   {
     $posts = get_posts([
       'post_type' => 'dmn_venue',
-      'numberposts' => -1,
+      'numberposts' => 1000,
       'orderby' => 'title',
       'order' => 'ASC',
     ]);
 
     $venues = array_map(function (WP_Post $p) {
       return [
-        'id' => (int)$p->ID,
+        'id' => $p->ID,
         'title' => $p->post_title,
         'dmn_id' => (string)get_post_meta($p->ID, 'dmn_venue_id', true),
       ];
@@ -217,9 +279,12 @@ class AdminController
     return new WP_REST_Response(['venues' => $venues], 200);
   }
 
-  // -------------------------
-  // List activities for a venue (admin UI)
-  // -------------------------
+  /**
+   * List dmn_activity posts under a venue.
+   *
+   * @param WP_REST_Request $r Request with route param 'venue'.
+   * @return WP_REST_Response Response with 'activities'.
+   */
   public function dmn_admin_list_activities(WP_REST_Request $r): WP_REST_Response
   {
     $venue_id = (int)$r['venue'];
@@ -233,8 +298,9 @@ class AdminController
 
     $rows = array_map(function (WP_Post $p) {
       $img_id = (int)get_post_thumbnail_id($p->ID);
+      $menu_post_id = (int)get_post_meta($p->ID, 'dmn_menu_post_id', true);
       return [
-        'id' => (int)$p->ID,
+        'id' => $p->ID,
         'dmn_type_id' => (string)get_post_meta($p->ID, 'dmn_type_id', true),
         'name' => (string)(get_post_meta($p->ID, 'display_name', true) ?: $p->post_title),
         'description' => (string)get_post_meta($p->ID, 'short_description', true),
@@ -242,15 +308,19 @@ class AdminController
         'image_id' => $img_id ?: null,
         'image_url' => $img_id ? wp_get_attachment_image_url($img_id, 'large') : null,
         'gallery_ids' => array_values(array_filter(array_map('intval', (array)get_post_meta($p->ID, 'gallery', true)))),
+        'menu_post_id' => $menu_post_id > 0 ? $menu_post_id : null,
       ];
     }, $posts);
 
     return new WP_REST_Response(['activities' => $rows], 200);
   }
 
-  // -------------------------
-  // Save activity (admin UI)
-  // -------------------------
+  /**
+   * Update a dmn_activity.
+   *
+   * @param WP_REST_Request $r Request with route 'id' and JSON body.
+   * @return WP_REST_Response 200 on success, 404 on missing post.
+   */
   public function dmn_admin_save_activity(WP_REST_Request $r): WP_REST_Response
   {
     $id = (int)$r['id'];
@@ -273,42 +343,43 @@ class AdminController
     }
     if (array_key_exists('image_id', $b)) {
       $img_id = (int)$b['image_id'];
-      if ($img_id > 0) {
-        set_post_thumbnail($id, $img_id);
-      } else {
-        delete_post_thumbnail($id);
-      }
+      if ($img_id > 0) set_post_thumbnail($id, $img_id);
+      else delete_post_thumbnail($id);
     }
     if (array_key_exists('gallery_ids', $b)) {
       $ids = array_values(array_filter(array_map('intval', (array)$b['gallery_ids'])));
       update_post_meta($id, 'gallery', $ids);
     }
+    if (array_key_exists('menu_post_id', $b)) {
+      $menu_id = (int)$b['menu_post_id'];
+      if ($menu_id > 0) update_post_meta($id, 'dmn_menu_post_id', $menu_id);
+      else delete_post_meta($id, 'dmn_menu_post_id');
+    }
 
     return new WP_REST_Response(['ok' => true], 200);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  WRAPPER ENDPOINTS (share helpers)                                  */
-  /* ------------------------------------------------------------------ */
-
-  // POST /dmn/v1/admin/sync/venues  → calls helper
-  public function dmn_admin_sync_venues(WP_REST_Request $r): WP_REST_Response
+  /**
+   * Sync venues from DMN.
+   *
+   * @return WP_REST_Response Summary with count.
+   */
+  public function dmn_admin_sync_venues(): WP_REST_Response
   {
     $count = $this->upsert_venues_from_dmn();
     return new WP_REST_Response([
       'ok' => true,
-      'count' => (int)$count,
-      'message' => "Imported/updated {$count} venues.",
+      'count' => $count,
+      'message' => "Imported/updated $count venues.",
     ], 200);
   }
 
-  // POST /dmn/v1/admin/sync/types  → calls helper
-
   /**
-   * Fetch venues from DMN and upsert local dmn_venue posts.
-   * @return int number of venues upserted/updated
+   * Upsert venues from /venues.
+   *
+   * @return int Number of upserts.
    */
-  private function upsert_venues_from_dmn(): int
+  public function upsert_venues_from_dmn(): int
   {
     $client = new DmnClient();
 
@@ -316,9 +387,8 @@ class AdminController
     $vg = Settings::get_vg();
     if ($vg) $q['venue_group'] = $vg;
 
-    $resp = $client->request('GET', '/venues', $q, null);
+    $resp = $client->request('GET', '/venues', $q);
     if (!$resp['ok']) {
-      // Optionally log $resp here
       return 0;
     }
 
@@ -363,34 +433,33 @@ class AdminController
     return $count;
   }
 
-  // POST /dmn/v1/admin/sync/all  → venues + types
-
-  public function dmn_admin_sync_types_all(WP_REST_Request $r): WP_REST_Response
+  /**
+   * Sync activity types for all venues.
+   *
+   * @return WP_REST_Response Summary with count.
+   */
+  public function dmn_admin_sync_types_all(): WP_REST_Response
   {
     $count = $this->upsert_types_for_all_venues();
     return new WP_REST_Response([
       'ok' => true,
-      'count' => (int)$count,
-      'message' => "Imported/updated {$count} activity types.",
+      'count' => $count,
+      'message' => "Imported/updated $count activity types.",
     ], 200);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  PRIVATE HELPERS (shared logic)                                     */
-  /* ------------------------------------------------------------------ */
-
   /**
-   * For every local dmn_venue, fetch suggested booking types from DMN and upsert dmn_activity children.
-   * Uses the venue-scoped booking-availability with fields=type (recommended).
-   * @return int number of activity posts created/updated
+   * Upsert activity types using booking-availability suggested values.
+   *
+   * @return int Number of upserts.
    */
-  private function upsert_types_for_all_venues(): int
+  public function upsert_types_for_all_venues(): int
   {
     $client = new DmnClient();
 
     $venues = get_posts([
       'post_type' => 'dmn_venue',
-      'numberposts' => -1,
+      'numberposts' => 1000,
       'fields' => 'ids',
     ]);
 
@@ -408,7 +477,7 @@ class AdminController
 
       $resp = $client->request(
         'POST',
-        "/venues/{$ext_id}/booking-availability",
+        "/venues/$ext_id/booking-availability",
         ['fields' => 'type'],
         $payload
       );
@@ -420,7 +489,6 @@ class AdminController
       if (!is_array($suggested)) $suggested = [];
 
       foreach ($suggested as $item) {
-        // supports { value: {id,name} } or {id,name} or "id"
         $v = (is_array($item) && isset($item['value'])) ? $item['value'] : $item;
         $typeId = is_array($v) ? (string)($v['id'] ?? '') : (string)$v;
         $typeName = is_array($v) ? (string)($v['name'] ?? $typeId) : $typeId;
@@ -459,158 +527,537 @@ class AdminController
     return $total;
   }
 
-  public function dmn_admin_sync_all(WP_REST_Request $r): WP_REST_Response
+  /**
+   * Sync venues, types, menus, and items.
+   *
+   * @return WP_REST_Response Summary with counts and duration.
+   */
+  public function dmn_admin_sync_all(): WP_REST_Response
   {
     $t0 = microtime(true);
+
     $venues_count = $this->upsert_venues_from_dmn();
     $types_count = $this->upsert_types_for_all_venues();
+
+    $menus_count = 0;
+    $menu_items_count = 0;
+    $vg = Settings::get_vg();
+    if ($vg) {
+      try {
+        $client = new DmnClient();
+        $m = $this->import_preorder_menus($client, $vg);
+        $menus_count = (int)($m['menus_count'] ?? 0);
+        $menu_items_count = (int)($m['items_count'] ?? 0);
+      } catch (Throwable) {
+        // optional: log error
+      }
+    }
+
     $ms = (int)round((microtime(true) - $t0) * 1000);
 
     return new WP_REST_Response([
       'ok' => true,
-      'venues_count' => (int)$venues_count,
-      'types_count' => (int)$types_count,
+      'venues_count' => $venues_count,
+      'types_count' => $types_count,
+      'menus_count' => $menus_count,
+      'menu_items_count' => $menu_items_count,
       'duration_ms' => $ms,
-      'message' => "Imported/updated {$venues_count} venues and {$types_count} activity types.",
+      'message' => sprintf(
+        'Imported/updated %d venues, %d activity types, %d menus and %d menu items.',
+        $venues_count,
+        $types_count,
+        $menus_count,
+        $menu_items_count
+      ),
     ], 200);
   }
 
-  /* -------------------------
- * Admin Packages — List
- * ------------------------- */
-  public function dmn_admin_list_packages(WP_REST_Request $r): WP_REST_Response
+  /**
+   * Import preorder menus and items for a venue group.
+   *
+   * @param DmnClient $client DMN client.
+   * @param string $venue_group_id Venue group ID.
+   * @return array {menus_count:int, items_count:int}
+   */
+  public function import_preorder_menus(DmnClient $client, string $venue_group_id): array
   {
-    $venueId = (string)($r->get_param('venue_id') ?? '');
-    $search = (string)($r->get_param('search') ?? '');
+    $menus_count = 0;
+    $items_count = 0;
 
-    $args = [
-      'post_type' => 'dmn_package',
-      'post_status' => ['publish', 'draft'],
-      's' => $search ?: '',
-      'posts_per_page' => 200,
+    $resp = $client->request('GET', "/venue-groups/$venue_group_id", ['fields' => 'preorder_menus']);
+    if (!($resp['ok'] ?? false)) return compact('menus_count', 'items_count');
+
+    $menus = $resp['data']['payload']['venueGroup']['preorder_menus'] ?? [];
+    if (!$menus || !is_array($menus)) return compact('menus_count', 'items_count');
+
+    $pkgIndex = $this->build_runtime_package_index($client); // id => details
+
+    foreach ($menus as $m) {
+      $menu_post_id = $this->upsert_menu($m);
+      if (!$menu_post_id) continue;
+      $menus_count++;
+
+      $items = $m['items'] ?? [];
+      if (!is_array($items)) continue;
+
+      foreach ($items as $it) {
+        $dmn_item_id = (string)($it['id'] ?? '');
+        if ($dmn_item_id === '') continue;
+
+        $pkg = $pkgIndex[$dmn_item_id] ?? null;
+
+        $name = $pkg['name'] ?? (string)($it['name'] ?? 'Item');
+        $desc = $pkg['description'] ?? '';
+        $price = isset($pkg['price']) ? (float)$pkg['price'] : (float)($it['price'] ?? 0);
+        $type = $pkg['type'] ?? (string)($it['type'] ?? '');
+
+        $this->upsert_menu_item([
+          'dmn_item_id' => $dmn_item_id,
+          'menu_post_id' => $menu_post_id,
+          'pkg_post_id' => 0,
+          'name' => $name,
+          'desc' => $desc,
+          'price' => $price,
+          'type' => $type,
+        ]);
+        $items_count++;
+      }
+    }
+
+    return compact('menus_count', 'items_count');
+  }
+
+  /**
+   * Build an in-memory package index from DMN across local venues.
+   *
+   * @param DmnClient $client DMN client.
+   * @return array Map id => {name,description,price,type}
+   */
+  public function build_runtime_package_index(DmnClient $client): array
+  {
+    $index = [];
+
+    $venues = get_posts([
+      'post_type' => 'dmn_venue',
+      'numberposts' => 1000,
+      'fields' => 'ids',
+    ]);
+
+    foreach ($venues as $venuePostId) {
+      $venuePostId = (int)$venuePostId;
+      $dmnVenueId = (string)get_post_meta($venuePostId, 'dmn_venue_id', true);
+      if ($dmnVenueId === '') continue;
+
+      $resp = $client->request('GET', "/venues/$dmnVenueId", ['fields' => 'packages']);
+      if (!($resp['ok'] ?? false)) continue;
+
+      $packages = $resp['data']['payload']['venue']['packages'] ?? [];
+      if (!is_array($packages)) continue;
+
+      foreach ($packages as $p) {
+        $id = (string)($p['id'] ?? '');
+        if ($id === '') continue;
+        $index[$id] = [
+          'name' => (string)($p['name'] ?? 'Package'),
+          'description' => (string)($p['description'] ?? ''),
+          'price' => (float)($p['price'] ?? 0),
+          'type' => (string)($p['type'] ?? ''),
+        ];
+      }
+    }
+
+    return $index;
+  }
+
+  /**
+   * Upsert a dmn_menu post.
+   *
+   * @param array $m Menu payload with 'id','name','description','fixed_price'.
+   * @return int Post ID or 0.
+   */
+  public function upsert_menu(array $m): int
+  {
+    $dmn_menu_id = (string)($m['id'] ?? '');
+    if (!$dmn_menu_id) return 0;
+
+    $existing = new WP_Query([
+      'post_type' => 'dmn_menu',
+      'posts_per_page' => 1,
       'no_found_rows' => true,
-      'orderby' => 'date',
-      'order' => 'DESC',
-    ];
+      'fields' => 'ids',
+      'meta_key' => '_dmn_menu_id',
+      'meta_value' => $dmn_menu_id,
+    ]);
 
-    if ($venueId !== '') {
-      $args['meta_query'] = [
+    if ($existing->have_posts()) {
+      $post_id = (int)$existing->posts[0];
+      wp_update_post([
+        'ID' => $post_id,
+        'post_title' => wp_strip_all_tags($m['name'] ?? 'Untitled Menu'),
+        'post_content' => (string)($m['description'] ?? ''),
+      ]);
+    } else {
+      $post_id = wp_insert_post([
+        'post_type' => 'dmn_menu',
+        'post_status' => 'publish',
+        'post_title' => wp_strip_all_tags($m['name'] ?? 'Untitled Menu'),
+        'post_content' => (string)($m['description'] ?? ''),
+      ]);
+      if ($post_id) {
+        add_post_meta($post_id, '_dmn_menu_id', $dmn_menu_id, true);
+      }
+    }
+
+    if (!empty($post_id)) {
+      update_post_meta($post_id, '_dmn_menu_fixed_price', !empty($m['fixed_price']));
+      update_post_meta($post_id, '_dmn_menu_description', (string)($m['description'] ?? ''));
+    }
+
+    return (int)$post_id;
+  }
+
+  /**
+   * Upsert a dmn_menu_item post.
+   *
+   * @param array $args {dmn_item_id,menu_post_id,pkg_post_id,name,desc,price,type}
+   * @return void
+   */
+  public function upsert_menu_item(array $args): void
+  {
+    $dmn_item_id = (string)($args['dmn_item_id'] ?? '');
+    $menu_post_id = (int)($args['menu_post_id'] ?? 0);
+    if ($dmn_item_id === '' || !$menu_post_id) {
+      return;
+    }
+
+    $existing = new WP_Query([
+      'post_type' => 'dmn_menu_item',
+      'posts_per_page' => 1,
+      'no_found_rows' => true,
+      'fields' => 'ids',
+      'meta_query' => [
+        ['key' => '_dmn_menu_post_id', 'value' => $menu_post_id, 'compare' => '='],
+        ['key' => '_dmn_item_id', 'value' => $dmn_item_id, 'compare' => '='],
+      ],
+    ]);
+
+    $title = wp_strip_all_tags((string)($args['name'] ?? 'Menu Item'));
+
+    if ($existing->have_posts()) {
+      $post_id = (int)$existing->posts[0];
+      wp_update_post(['ID' => $post_id, 'post_title' => $title]);
+    } else {
+      $post_id = wp_insert_post([
+        'post_type' => 'dmn_menu_item',
+        'post_status' => 'publish',
+        'post_title' => $title,
+      ]);
+      if ($post_id) {
+        add_post_meta($post_id, '_dmn_item_id', $dmn_item_id, true);
+        add_post_meta($post_id, '_dmn_menu_post_id', $menu_post_id, true);
+      }
+    }
+
+    if (!empty($post_id)) {
+      update_post_meta($post_id, '_dmn_package_post_id', (int)($args['pkg_post_id'] ?? 0));
+      update_post_meta($post_id, '_dmn_item_type', (string)($args['type'] ?? ''));
+      update_post_meta($post_id, '_dmn_item_name_ro', (string)($args['name'] ?? ''));
+      update_post_meta($post_id, '_dmn_item_description_ro', (string)($args['desc'] ?? ''));
+      update_post_meta($post_id, '_dmn_item_price_ro', (float)($args['price'] ?? 0));
+    }
+  }
+
+  /**
+   * List dmn_menu posts.
+   *
+   * @return WP_REST_Response Response with 'menus'.
+   */
+  public function dmn_admin_list_menus(): WP_REST_Response
+  {
+    $posts = get_posts([
+      'post_type' => 'dmn_menu',
+      'numberposts' => 1000,
+      'orderby' => 'title',
+      'order' => 'ASC',
+      'fields' => 'all',
+    ]);
+
+    $menus = array_map(function (WP_Post $p) {
+      return [
+        'id' => $p->ID,
+        'title' => $p->post_title,
+        'fixed_price' => (bool)get_post_meta($p->ID, '_dmn_menu_fixed_price', true),
+      ];
+    }, $posts);
+
+    return new WP_REST_Response(['menus' => $menus], 200);
+  }
+
+  /**
+   * List menu items grouped by menu for activities under a venue.
+   *
+   * @param WP_REST_Request $r Request with query param 'venue'.
+   * @return WP_REST_Response Response with 'menus' groups.
+   */
+  public function dmn_admin_list_menu_items(WP_REST_Request $r): WP_REST_Response
+  {
+    $venue_id = (int)$r->get_param('venue');
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['menus' => []], 200);
+    }
+
+    // Activities with assigned menu
+    $activities = get_posts([
+      'post_type' => 'dmn_activity',
+      'post_parent' => $venue_id,
+      'numberposts' => 100,
+      'fields' => 'all',
+      'orderby' => 'menu_order title',
+      'order' => 'ASC',
+      'meta_query' => [
+        ['key' => 'dmn_menu_post_id', 'compare' => 'EXISTS'],
+      ],
+    ]);
+
+    $menu_to_activities = [];
+    $menu_ids = [];
+    foreach ($activities as $p) {
+      $menu_post_id = (int)get_post_meta($p->ID, 'dmn_menu_post_id', true);
+      if ($menu_post_id <= 0) continue;
+      $menu_ids[$menu_post_id] = $menu_post_id;
+      $menu_to_activities[$menu_post_id] ??= [];
+      $menu_to_activities[$menu_post_id][] = [
+        'id' => $p->ID,
+        'dmn_type_id' => (string)get_post_meta($p->ID, 'dmn_type_id', true),
+        'name' => (string)(get_post_meta($p->ID, 'display_name', true) ?: $p->post_title),
+      ];
+    }
+
+    if (!$menu_ids) {
+      return new WP_REST_Response(['menus' => []], 200);
+    }
+
+    // Menu titles
+    $menus_posts = get_posts([
+      'post_type' => 'dmn_menu',
+      'post__in' => array_values($menu_ids),
+      'numberposts' => -1,
+      'fields' => 'all',
+    ]);
+    $menu_titles = [];
+    foreach ($menus_posts as $mp) {
+      $menu_titles[$mp->ID] = $mp->post_title;
+    }
+
+    // Items under those menus
+    $items = get_posts([
+      'post_type' => 'dmn_menu_item',
+      'numberposts' => -1,
+      'fields' => 'all',
+      'meta_query' => [
         [
-          'key' => '_dmn_pkg_venue_ids',
-          'value' => '"' . $venueId . '"', // match serialized array containing venueId
-          'compare' => 'LIKE',
+          'key' => '_dmn_menu_post_id',
+          'value' => array_values($menu_ids),
+          'compare' => 'IN',
         ],
-      ];
-    }
+      ],
+    ]);
 
-    $posts = get_posts($args);
-    $out = array_map([$this, 'dmn_format_package_admin'], $posts);
-
-    return new WP_REST_Response(['packages' => $out], 200);
-  }
-
-  /* -------------------------
-   * Admin Packages — Bulk Save
-   * Body: { packages: [ {id?, name, description?, priceText?, visible?, image_id?, venueIds?: string[]} ] }
-   * ------------------------- */
-  public function dmn_admin_packages_bulk_save(WP_REST_Request $r): WP_REST_Response
-  {
-    $body = $r->get_json_params();
-    $items = is_array($body['packages'] ?? null) ? $body['packages'] : [];
-
-    $updated = [];
-
+    $grouped = [];
     foreach ($items as $it) {
-      $id = isset($it['id']) ? (int)$it['id'] : 0;
-      $name = sanitize_text_field($it['name'] ?? '');
-      $desc = wp_kses_post($it['description'] ?? '');
-      $priceText = sanitize_text_field($it['priceText'] ?? '');
-      $visible = !empty($it['visible']);
-      $imageId = isset($it['image_id']) ? (int)$it['image_id'] : 0;
-      $venueIds = array_values(array_filter(array_map('sanitize_text_field', (array)($it['venueIds'] ?? []))));
-
-      $postarr = [
-        'ID' => $id,
-        'post_type' => 'dmn_package',
-        'post_title' => $name ?: __('Untitled', 'dmn'),
-        'post_content' => $desc,
-        'post_status' => $visible ? 'publish' : 'draft',
+      $menu_post_id = (int)get_post_meta($it->ID, '_dmn_menu_post_id', true);
+      if ($menu_post_id <= 0) continue;
+      $img_id = (int)get_post_thumbnail_id($it->ID);
+      $grouped[$menu_post_id] ??= [];
+      $grouped[$menu_post_id][] = [
+        'id' => $it->ID,
+        'name' => $it->post_title,
+        'description' => $it->post_content,
+        'type' => (string)get_post_meta($it->ID, '_dmn_item_type', true),
+        'price_ro' => (float)get_post_meta($it->ID, '_dmn_item_price_ro', true),
+        'image_id' => $img_id ?: null,
+        'image_url' => $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null,
+        'dmn_item_id' => (string)get_post_meta($it->ID, '_dmn_item_id', true),
+        'menu_post_id' => $menu_post_id,
       ];
-
-      if ($id) {
-        $id = wp_update_post($postarr, true);
-      } else {
-        $id = wp_insert_post($postarr, true);
-      }
-
-      if (is_wp_error($id)) {
-        return new WP_REST_Response(['error' => $id->get_error_message()], 400);
-      }
-
-      update_post_meta($id, '_dmn_pkg_price_text', $priceText);
-      update_post_meta($id, '_dmn_pkg_visible', (bool)$visible);
-      
-      $venueIds = [];
-      foreach ((array)($it['venueIds'] ?? []) as $vid) {
-        $vid = sanitize_text_field($vid);
-        if (ctype_digit($vid)) {
-          $dmnId = (string)get_post_meta((int)$vid, 'dmn_venue_id', true);
-          $venueIds[] = $dmnId ?: $vid;
-        } else {
-          $venueIds[] = $vid;
-        }
-      }
-      update_post_meta($id, '_dmn_pkg_venue_ids', $venueIds);
-
-      if ($imageId > 0) {
-        set_post_thumbnail($id, $imageId);
-      }
-
-      $updated[] = $this->dmn_format_package_admin(get_post($id));
     }
 
-    return new WP_REST_Response(['packages' => $updated], 200);
+    $out = [];
+    foreach ($menu_ids as $mid) {
+      $out[] = [
+        'menu_post_id' => (int)$mid,
+        'menu_title' => (string)($menu_titles[$mid] ?? 'Menu'),
+        'activities' => array_values($menu_to_activities[$mid] ?? []),
+        'items' => array_values($grouped[$mid] ?? []),
+      ];
+    }
+
+    usort($out, fn($a, $b) => strcmp($a['menu_title'], $b['menu_title']));
+
+    return new WP_REST_Response(['menus' => $out], 200);
   }
 
-  /* -------------------------
-   * Admin Packages — Delete
-   * ------------------------- */
-
-  private function dmn_format_package_admin(WP_Post $p): array
-  {
-    $price = (string)get_post_meta($p->ID, '_dmn_pkg_price_text', true);
-    $visible = (bool)get_post_meta($p->ID, '_dmn_pkg_visible', true);
-    $venueIds = (array)get_post_meta($p->ID, '_dmn_pkg_venue_ids', true);
-    $imgId = (int)get_post_thumbnail_id($p->ID);
-    $imgUrl = $imgId ? wp_get_attachment_image_url($imgId, 'large') : null;
-
-    return [
-      'id' => (int)$p->ID,
-      'name' => (string)get_the_title($p),
-      'description' => (string)$p->post_content,
-      'image_id' => $imgId ?: null,
-      'image_url' => $imgUrl,
-      'priceText' => $price ?: null,
-      'visible' => $p->post_status === 'publish' ? (bool)$visible : false,
-      'venueIds' => array_values(array_map('strval', $venueIds)),
-    ];
-  }
-
-  /* -------------------------
-   * Helper: normalize a package row for admin UI
-   * ------------------------- */
-
-  public function dmn_admin_delete_package(WP_REST_Request $r): WP_REST_Response
+  /**
+   * Update a dmn_menu_item.
+   *
+   * @param WP_REST_Request $r Request with route 'id' and JSON body.
+   * @return WP_REST_Response 200 on success, 404 on missing post.
+   */
+  public function dmn_admin_save_menu_item(WP_REST_Request $r): WP_REST_Response
   {
     $id = (int)$r['id'];
-    if ($id <= 0) {
-      return new WP_REST_Response(['error' => 'Invalid ID'], 400);
-    }
     $p = get_post($id);
-    if (!$p || $p->post_type !== 'dmn_package') {
-      return new WP_REST_Response(['error' => 'Not found'], 404);
+    if (!$p || $p->post_type !== 'dmn_menu_item') {
+      return new WP_REST_Response(['message' => 'Not found'], 404);
     }
-    wp_delete_post($id, true);
-    return new WP_REST_Response(['deleted' => $id], 200);
+
+    $b = $r->get_json_params() ?: [];
+
+    if (array_key_exists('name', $b)) {
+      wp_update_post(['ID' => $id, 'post_title' => sanitize_text_field($b['name'] ?? '')]);
+    }
+    if (array_key_exists('description', $b)) {
+      wp_update_post(['ID' => $id, 'post_content' => wp_kses_post($b['description'] ?? '')]);
+    }
+    if (array_key_exists('image_id', $b)) {
+      $img_id = (int)$b['image_id'];
+      if ($img_id > 0) {
+        set_post_thumbnail($id, $img_id);
+      } else {
+        delete_post_thumbnail($id);
+      }
+    }
+
+    return new WP_REST_Response(['ok' => true], 200);
+  }
+
+  /**
+   * GET /dmn/v1/admin/faqs
+   *
+   * Return FAQs for a venue.
+   *
+   * @param WP_REST_Request $req Request with 'venue_id' param.
+   * @return WP_REST_Response {faqs: [{question,answer}]}
+   */
+  public function dmn_admin_faqs_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_id = (int)$req->get_param('venue_id');
+    $faqs = get_post_meta($venue_id, 'dmn_faqs', true);
+    if (!is_array($faqs)) $faqs = [];
+
+    $faqs = array_values(array_map(
+      fn($r) => [
+        'question' => isset($r['question']) ? (string)$r['question'] : '',
+        'answer' => isset($r['answer']) ? (string)$r['answer'] : '',
+      ],
+      $faqs
+    ));
+
+    return new WP_REST_Response(['faqs' => $faqs], 200);
+  }
+
+  /**
+   * POST /dmn/v1/admin/faqs
+   *
+   * Save FAQs for a venue.
+   *
+   * @param WP_REST_Request $req JSON body with 'venue_id' and 'faqs'.
+   * @return WP_Error|WP_REST_Response Error on bad input or {ok:true}.
+   */
+  public function dmn_admin_faqs_save(WP_REST_Request $req): WP_Error|WP_REST_Response
+  {
+    $json = $req->get_json_params();
+    $venue_id = (int)($json['venue_id'] ?? $req->get_param('venue_id'));
+    $faqs = $json['faqs'] ?? $req->get_param('faqs');
+
+    if (!$venue_id || !is_array($faqs)) {
+      return new WP_Error('bad_request', 'venue_id and faqs required', ['status' => 400]);
+    }
+
+    $clean = [];
+    foreach ($faqs as $row) {
+      $clean[] = [
+        'question' => isset($row['question']) ? wp_kses_post($row['question']) : '',
+        'answer' => isset($row['answer']) ? wp_kses_post($row['answer']) : '',
+      ];
+    }
+
+    update_post_meta($venue_id, 'dmn_faqs', $clean);
+
+    return new WP_REST_Response(['ok' => true], 200);
+  }
+
+  /**
+   * Retrieve the large group enquiry link details for a venue.
+   *
+   * Accepts a REST request with a 'venue_id' parameter, fetches the large group
+   * enquiry URL, label, and minimum group size from post meta, and returns them.
+   * Provides default values for label and minSize if not set.
+   *
+   * @param WP_REST_Request $req REST request containing 'venue_id'.
+   * @return WP_REST_Response Response with 'enabled', 'minSize', 'label', and 'url'.
+   */
+  public function dmn_admin_large_group_link_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_id = (int)$req->get_param('venue_id');
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['error' => 'venue_id required'], 400);
+    }
+
+    $url = (string)get_post_meta($venue_id, 'dmn_large_group_url', true);
+    $label = (string)get_post_meta($venue_id, 'dmn_large_group_label', true);
+    $min = (int)get_post_meta($venue_id, 'dmn_large_group_min', true);
+
+    if ($label === '') $label = 'Groups of 12+ — Enquire here';
+    if ($min <= 0) $min = 12;
+
+    return new WP_REST_Response([
+      'enabled' => $url !== '',
+      'minSize' => $min,
+      'label' => $label,
+      'url' => $url,
+    ], 200);
+  }
+
+
+  /**
+   * Save or update the large group enquiry link for a venue.
+   *
+   * Accepts a REST request with JSON body containing 'venue_id', 'url', optional 'label', and optional 'minSize'.
+   * Validates the input, updates the relevant post meta fields, and returns a success response.
+   *
+   * @param WP_REST_Request $req REST request with large group link data.
+   * @return WP_REST_Response 200 on success, 400 on invalid input.
+   */
+  public function dmn_admin_large_group_link_save(WP_REST_Request $req): WP_REST_Response
+  {
+    $b = $req->get_json_params() ?: $req->get_body_params();
+
+    $venue_id = isset($b['venue_id']) ? (int)$b['venue_id'] : 0;
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['error' => 'venue_id required'], 400);
+    }
+
+    $url = isset($b['url']) ? trim((string)$b['url']) : '';
+    if ($url !== '' && !preg_match('#^(https?://|/)#i', $url)) {
+      return new WP_REST_Response(['error' => 'Invalid URL'], 400);
+    }
+
+    // persist
+    update_post_meta($venue_id, 'dmn_large_group_url', mb_substr($url, 0, 300));
+
+    if (array_key_exists('label', $b)) {
+      $label = sanitize_text_field((string)$b['label']);
+      update_post_meta($venue_id, 'dmn_large_group_label', mb_substr($label, 0, 80));
+    }
+
+    if (array_key_exists('minSize', $b)) {
+      $min = max(1, (int)$b['minSize']);
+      update_post_meta($venue_id, 'dmn_large_group_min', $min);
+    }
+
+    return new WP_REST_Response(['ok' => true], 200);
   }
 }
+
+

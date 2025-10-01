@@ -1,13 +1,7 @@
 // state.ts
 
-// ---- Steps in DMN-recommended order ----
-import { AddOnPackage } from './types';
-
-export type Step = 'party' | 'venue' | 'date_time' | 'type' | 'packages' | 'details' | 'review';
-
-// Keep Customer in sync with how it's used in the widget (message + gdpr supported)
 export type Customer = {
-  first_name: string; // I split name for DMN
+  first_name: string;
   last_name: string;
   email: string;
   phone?: string;
@@ -21,153 +15,141 @@ export type Availability = {
   nextWeb?: string | null;
 } | null;
 
-export type State = {
-  step: Step;
-  venueId?: string | null;
-
-  partySize: number;
-  date?: string | null; // YYYY-MM-DD
-  time?: string | null; // HH:mm
-  bookingType?: string | null;
-
-  avail?: Availability;
-  suggestions: string[]; // suggested times (from API or fallback)
-
-  packages: AddOnPackage[];
-  packagesSelected: string[]; // ids
-  // internal flag to allow advancing past packages
-  packagesResolved?: boolean;
-
-  customer: Customer;
-  error: string | null;
-
-  // review countdown
-  reviewDeadline?: number; // epoch ms
-
-  // create-booking UX flag
-  submitting: boolean;
+export type AddonLine = {
+  id: string;
+  dmn_package_id: string;
+  name: string;
+  priceText: string;
+  quantity: number;
 };
 
-// Single source of truth for flow order
-export const STEP_FLOW: Step[] = [
-  'party',
-  'venue',
-  'date_time',
-  'type',
-  'packages',
-  'details',
-  'review',
-];
+export type State = {
+  venueId?: string | null;
+  partySize: number;
+  date?: string | null;
+  time?: string | null;
+  bookingType?: string | null;
+  avail?: Availability;
+  suggestions: string[];
+  customer: Customer;
+  error: string | null;
+  reviewDeadline?: number;
+  submitting: boolean;
+  addons: AddonLine[];
+  addonsSelected: string[];
+  addonsResolved: boolean;
+};
 
-// derive current step from data so order is enforced
-export function computeStep(s: State): Step {
-  if (!s.partySize) return 'party';
-  if (!s.venueId) return 'venue';
-  if (!s.date || !s.time) return 'date_time'; // type depends on date+time
-  if (!s.bookingType) return 'type';
-  if ((s.packages?.length ?? 0) > 0 && !s.packagesResolved) return 'packages';
-  const c = s.customer || ({} as any);
-  if (!c.first_name || !c.last_name || !c.email || !c.gdpr) return 'details';
-  return 'review';
-}
+// derive current step from data
 
 // ---- Defaults ----
 export const initialState: State = {
-  step: 'venue',
   venueId: null,
-
   partySize: 2,
   date: null,
   time: null,
   bookingType: null,
-
   avail: null,
   suggestions: [],
-
-  packages: [],
-  packagesSelected: [],
-  packagesResolved: false,
-
   customer: { first_name: '', last_name: '', email: '', phone: '', message: '', gdpr: false },
   error: null,
-
   submitting: false,
+  addons: [],
+  addonsSelected: [],
+  addonsResolved: false,
 };
 
 // ---- Actions ----
 export type Action =
-  | { type: 'SET_PARTY_SIZE'; size: number } // size only
+  | { type: 'SET_PARTY_SIZE'; size: number }
   | { type: 'SET_VENUE'; id: string | null }
-  | { type: 'SET_DATE'; date: string | null } // date only
+  | { type: 'SET_DATE'; date: string | null }
   | { type: 'SET_TYPE'; value: string | null }
   | { type: 'SET_TIME'; value: string | null }
   | { type: 'SET_AVAIL'; value: State['avail'] }
   | { type: 'SET_SUGGESTIONS'; value: string[] }
-  | { type: 'SET_PACKAGES'; value: State['packages'] }
-  | { type: 'SET_PACKAGES_SELECTED'; value: string[] }
   | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
-  | { type: 'START_REVIEW_TIMER'; deadline: number }
-  | { type: 'SUBMIT_START' }
-  | { type: 'SUBMIT_END' }
   | { type: 'ERROR'; message: string | null }
-  | { type: 'NEXT' }
-  | { type: 'BACK' };
+  | { type: 'SET_ADDONS'; value: AddonLine[] }
+  | { type: 'SET_ADDONS_SELECTED'; value: string[] };
 
 // ---- Reducer ----
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'SET_PARTY_SIZE': {
-      const next = { ...s, partySize: a.size };
-      return { ...next, step: computeStep(next) };
+      // optional but safer: type/add-ons can depend on party size
+      return {
+        ...s,
+        partySize: a.size,
+        bookingType: null,
+        addons: [],
+        addonsSelected: [],
+        addonsResolved: false,
+      };
     }
     case 'SET_VENUE': {
-      const next = { ...s, venueId: a.id };
-      return { ...next, step: computeStep(next) };
+      return {
+        ...s,
+        venueId: a.id,
+        date: null,
+        time: null,
+        bookingType: null,
+        avail: null, // clear stale availability
+        suggestions: [], // clear stale suggestions
+        error: null,
+        addons: [],
+        addonsSelected: [],
+        addonsResolved: false,
+      };
     }
     case 'SET_DATE': {
-      const next = { ...s, date: a.date, time: null };
-      return { ...next, step: computeStep(next) };
+      return {
+        ...s,
+        date: a.date,
+        time: null,
+        bookingType: null,
+        avail: null, // clear stale availability
+        suggestions: [],
+        error: null,
+        addons: [],
+        addonsSelected: [],
+        addonsResolved: false,
+      };
     }
     case 'SET_TIME': {
-      const next = { ...s, time: a.value };
-      return { ...next, step: computeStep(next) };
+      return {
+        ...s,
+        time: a.value,
+        bookingType: null,
+        avail: null, // clear stale availability
+        suggestions: [],
+        error: null,
+        addons: [],
+        addonsSelected: [],
+        addonsResolved: false,
+      };
     }
     case 'SET_TYPE': {
-      const next = { ...s, bookingType: a.value };
-      return { ...next, step: computeStep(next) };
+      return {
+        ...s,
+        bookingType: a.value,
+        addons: [],
+        addonsSelected: [],
+        addonsResolved: false,
+      };
     }
     case 'SET_AVAIL':
       return { ...s, avail: a.value };
     case 'SET_SUGGESTIONS':
       return { ...s, suggestions: a.value };
-    case 'SET_PACKAGES':
-      return { ...s, packages: a.value };
-    case 'SET_PACKAGES_SELECTED': {
-      const next = { ...s, packagesSelected: a.value, packagesResolved: true };
-      return { ...next, step: computeStep(next) };
-    }
     case 'SET_CUSTOMER':
       return { ...s, customer: { ...s.customer, ...a.value } };
-    case 'START_REVIEW_TIMER':
-      return { ...s, reviewDeadline: a.deadline };
-    case 'SUBMIT_START':
-      return { ...s, submitting: true, error: null };
-    case 'SUBMIT_END':
-      return { ...s, submitting: false };
     case 'ERROR':
       return { ...s, error: a.message };
-
-    case 'NEXT': {
-      const i = Math.max(0, STEP_FLOW.indexOf(s.step));
-      const step = STEP_FLOW[Math.min(i + 1, STEP_FLOW.length - 1)];
-      return { ...s, step };
-    }
-    case 'BACK': {
-      const i = Math.max(0, STEP_FLOW.indexOf(s.step));
-      const step = STEP_FLOW[Math.max(i - 1, 0)];
-      return { ...s, step };
-    }
-
+    case 'SET_ADDONS':
+      return { ...s, addons: a.value };
+    case 'SET_ADDONS_SELECTED':
+      return { ...s, addonsSelected: a.value };
     default:
       return s;
   }
