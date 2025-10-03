@@ -2,11 +2,18 @@ import React, { useCallback, useEffect, useId } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
+import { useBookingLink } from '../../hooks/useBookingLink';
+import LoadingAnimation from '../LoadingAnimation';
 
 export function PartySize() {
-  const { partySize } = useWidgetState();
+  const { partySize, venueId } = useWidgetState();
   const dispatch = useWidgetDispatch();
   const id = useId();
+
+  const enabled = !!venueId;
+
+  // Only fetch large-group link when a venue is set
+  const { data: groupLink } = useBookingLink(venueId, !enabled);
 
   useEffect(() => {
     if (partySize == null) {
@@ -22,6 +29,14 @@ export function PartySize() {
     },
     [dispatch],
   );
+
+  if (!enabled) {
+    return (
+      <section className="party-size">
+        <LoadingAnimation text="Venue required" />
+      </section>
+    );
+  }
 
   return (
     <section className="party-size">
@@ -44,9 +59,18 @@ export function PartySize() {
           </NumberField.Increment>
         </NumberField.Group>
       </NumberField.Root>
-      <a className="party-size__group-link" target="_blank" href="">
-        Group over 12 people? <br></br>Click here
-      </a>
+
+      {groupLink?.enabled && groupLink.url ? (
+        <a
+          className="party-size__group-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          href={groupLink.url}
+        >
+          For Large groups of 12 or more,
+          <br /> please click here
+        </a>
+      ) : null}
     </section>
   );
 }

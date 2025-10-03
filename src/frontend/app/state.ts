@@ -25,6 +25,7 @@ export type AddonLine = {
 
 export type State = {
   venueId?: string | null;
+  venueName?: string | null;
   partySize: number;
   date?: string | null;
   time?: string | null;
@@ -45,6 +46,7 @@ export type State = {
 // ---- Defaults ----
 export const initialState: State = {
   venueId: null,
+  venueName: null,
   partySize: 2,
   date: null,
   time: null,
@@ -63,6 +65,7 @@ export const initialState: State = {
 export type Action =
   | { type: 'SET_PARTY_SIZE'; size: number }
   | { type: 'SET_VENUE'; id: string | null }
+  | { type: 'SET_VENUE_NAME'; name: string | null }
   | { type: 'SET_DATE'; date: string | null }
   | { type: 'SET_TYPE'; value: string | null }
   | { type: 'SET_TIME'; value: string | null }
@@ -101,6 +104,9 @@ export function reducer(s: State, a: Action): State {
         addonsSelected: [],
         addonsResolved: false,
       };
+    }
+    case 'SET_VENUE_NAME': {
+      return { ...s, venueName: a.name };
     }
     case 'SET_DATE': {
       return {

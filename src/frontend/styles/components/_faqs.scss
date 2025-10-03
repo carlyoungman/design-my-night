@@ -1,8 +1,60 @@
+@use '../settings/mixins' as mixin;
+
 .faqs {
   background-color: var(--c-black);
   color: var(--c-white);
-  padding: var(--universal-space);
+  padding: var(--universal-space) 0;
   border-radius: var(--border-radius);
   overflow: hidden;
   margin-top: var(--universal-space-2);
+
+  &__title {
+    padding: 0 var(--universal-space);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--universal-space-2);
+    gap: var(--universal-space-half);
+
+  }
+
+  .MuiButtonBase-root {
+    @include mixin.button-reset;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+
+  .MuiPaper-root {
+    background: none;
+    color: inherit;
+    border-radius: 0;
+    border-top: 1px solid var(--c-white);
+    border-bottom: 1px solid var(--c-white);
+    padding: var(--universal-space-2) var(--universal-space);
+
+    &:hover {
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &.Mui-expanded {
+      border-top: 1px solid var(--c-theme-primary);
+      border-bottom: 1px solid var(--c-theme-primary);
+    }
+
+    h6 {
+      margin: 0;
+    }
+
+    .MuiAccordionDetails-root > div {
+      padding: var(--universal-space);
+      text-align: left;
+    }
+
+
+  }
 }

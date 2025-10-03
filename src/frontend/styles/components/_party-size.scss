@@ -4,6 +4,7 @@
 
 .party-size {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: var(--universal-space);
   @include breakpoint.medium-screen-min {

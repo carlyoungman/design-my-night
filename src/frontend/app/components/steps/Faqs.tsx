@@ -1,12 +1,16 @@
-// src/frontend/app/components/Faqs.tsx
 import React, { useEffect, useState } from 'react';
 import { useWidgetState } from '../../WidgetProvider';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import { ChevronDown } from 'lucide-react';
 
 type Faq = { question: string; answer: string };
 type Props = { faqs?: Faq[]; title?: string };
 
 export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
-  const { venueId } = useWidgetState();
+  const { venueId, venueName } = useWidgetState();
   const [faqs, setFaqs] = useState<Faq[] | null>(initial ?? null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!cancelled) setFaqs(Array.isArray(json?.faqs) ? json.faqs : []);
-      } catch (e: any) {
+      } catch {
         if (!cancelled) setErr('Failed to load FAQs.');
       } finally {
         if (!cancelled) setLoading(false);
@@ -52,16 +56,28 @@ export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
       </section>
     );
   if (!faqs || faqs.length === 0) return null;
-
   return (
     <section className="faqs">
-      <h3 className="faqs__title">{title}</h3>
+      <h5 className="faqs__title">
+        {title} for {venueName}
+      </h5>
       <div className="faqs__list">
         {faqs.map((f, i) => (
-          <details key={i} className="faq">
-            <summary className="faq__q">{f.question}</summary>
-            <div className="faq__a">{f.answer}</div>
-          </details>
+          <Accordion key={i} className="faq" disableGutters>
+            <AccordionSummary
+              className="faq__q"
+              expandIcon={<ChevronDown color="var(--c-white)" />}
+              aria-controls={`faq-panel-${i}-content`}
+              id={`faq-panel-${i}-header`}
+            >
+              <Typography variant="h6" component="h6">
+                {f.question}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails className="faq__a">
+              <div>{f.answer}</div>
+            </AccordionDetails>
+          </Accordion>
         ))}
       </div>
     </section>

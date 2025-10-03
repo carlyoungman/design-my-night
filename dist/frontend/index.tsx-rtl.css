@@ -813,10 +813,66 @@
 .dmn-widget-root .faqs {
   background-color: var(--c-black);
   color: var(--c-white);
-  padding: var(--universal-space);
+  padding: var(--universal-space) 0;
   border-radius: var(--border-radius);
   overflow: hidden;
   margin-top: var(--universal-space-2);
+}
+.dmn-widget-root .faqs__title {
+  padding: 0 var(--universal-space);
+}
+.dmn-widget-root .faqs__list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--universal-space-2);
+  gap: var(--universal-space-half);
+}
+.dmn-widget-root .faqs .MuiButtonBase-root {
+  all: unset;
+  display: inline-block;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none !important;
+  text-align: center;
+  line-height: 1;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.dmn-widget-root .faqs .MuiPaper-root {
+  background: none;
+  color: inherit;
+  border-radius: 0;
+  border-top: 1px solid var(--c-white);
+  border-bottom: 1px solid var(--c-white);
+  padding: var(--universal-space-2) var(--universal-space);
+}
+.dmn-widget-root .faqs .MuiPaper-root:hover {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+}
+.dmn-widget-root .faqs .MuiPaper-root.Mui-expanded {
+  border-top: 1px solid var(--c-theme-primary);
+  border-bottom: 1px solid var(--c-theme-primary);
+}
+.dmn-widget-root .faqs .MuiPaper-root h6 {
+  margin: 0;
+}
+.dmn-widget-root .faqs .MuiPaper-root .MuiAccordionDetails-root > div {
+  padding: var(--universal-space);
+  text-align: right;
+}
+.dmn-widget-root .loading-animation {
+  width: 100%;
 }
 .dmn-widget-root .loading-animation__text {
   margin: 0 0 var(--universal-space-half) 0;
@@ -914,6 +970,7 @@
 }
 .dmn-widget-root .party-size {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: var(--universal-space);
 }
@@ -986,7 +1043,6 @@
 .dmn-widget-root .progress-bar {
   display: grid;
   gap: var(--universal-space);
-  margin-top: var(--universal-space);
 }
 .dmn-widget-root .progress-bar__bar {
   height: var(--universal-space);
@@ -1094,6 +1150,9 @@
 }
 .dmn-widget-root .review__list strong, .dmn-widget-root .review__price strong, .dmn-widget-root .review__row strong, .dmn-widget-root .review__addons strong {
   color: var(--c-theme-primary);
+}
+.dmn-widget-root .review__list {
+  margin-bottom: var(--universal-space-3);
 }
 .dmn-widget-root .review__list > li, .dmn-widget-root .review__list span {
   display: flex;
@@ -1396,6 +1455,9 @@
   padding: var(--universal-space);
   border-radius: var(--border-radius);
   overflow: hidden;
+}
+.dmn-widget-root .dmn-widget__side {
+  padding: var(--universal-space-2) var(--universal-space);
 }
 .dmn-widget-root .dmn-widget__main {
   display: flex;

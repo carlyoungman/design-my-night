@@ -469,18 +469,19 @@ class PublicController
     // numeric WP post ID
     if (is_numeric($venue_id_param)) {
       $pid = (int)$venue_id_param;
-      return $pid > 0 ? $pid : 0;
+      return max($pid, 0);
     }
     // DMN venue id stored in post meta 'dmn_id'
     $dmn_id = (string)$venue_id_param;
     $ids = get_posts([
-      'post_type' => 'any',
-      'posts_per_page' => 1,
+      'post_type' => 'dmn_venue',
+      'numberposts' => 1,
       'fields' => 'ids',
-      'no_found_rows' => true,
-      'meta_key' => 'dmn_id',
+      'meta_key' => 'dmn_venue_id',
       'meta_value' => $dmn_id,
     ]);
+
+
     return !empty($ids) ? (int)$ids[0] : 0;
   }
 

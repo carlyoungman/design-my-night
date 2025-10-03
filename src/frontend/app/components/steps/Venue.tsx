@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useEffect, useId } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
@@ -6,7 +6,6 @@ import LoadingAnimation from '../LoadingAnimation';
 export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-
   const VenueId = useId();
 
   // If a venue is forced (via config), we don’t show this step.
@@ -14,6 +13,7 @@ export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueSte
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
     const id = e.target.value || '';
     dispatch({ type: 'SET_VENUE', id: id || null });
+    dispatch({ type: 'SET_VENUE_NAME', name: e.target.selectedOptions[0].text });
     dispatch({ type: 'SET_DATE', date: null });
     dispatch({ type: 'SET_TIME', value: null });
     dispatch({ type: 'SET_TYPE', value: null });

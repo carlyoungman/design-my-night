@@ -11,7 +11,7 @@ import { useVenues } from './hooks/useVenues';
 import { Details } from './components/steps/Details';
 import { Review } from './components/steps/Review';
 import Addons from './components/steps/Addons';
-import ProgressBar from './components/steps/ProgressBar';
+import ProgressBar from './components/ProgressBar';
 import { Faqs } from './components/steps/Faqs';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
@@ -35,17 +35,8 @@ function WidgetInner() {
         <div className="dmn-widget__main">
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
-              <User className="dmn-widget__icon" />
-              1. How many people in your group?
-            </p>
-            <div className="dmn-widget__body">
-              <PartySize />
-            </div>
-          </section>
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
               <Building className="dmn-widget__icon" />
-              2. Select a venue
+              1. Select a venue
             </p>
             <div className="dmn-widget__body">
               <Venue
@@ -56,6 +47,16 @@ function WidgetInner() {
               />
             </div>
           </section>
+          <section className="dmn-widget__section">
+            <p className="dmn-widget__header">
+              <User className="dmn-widget__icon" />
+              2. How many people in your group?
+            </p>
+            <div className="dmn-widget__body">
+              <PartySize />
+            </div>
+          </section>
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <Calendar className="dmn-widget__icon" />

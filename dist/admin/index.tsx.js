@@ -21160,7 +21160,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const MAX_URL = 300;
-const DEFAULT_LABEL = 'Groups of 12+ — Enquire here';
+const DEFAULT_LABEL = 'Groups of 12 and above — Enquire here';
 const DEFAULT_MIN = 12;
 const isValidUrl = u => u === '' || u.startsWith('http://') || u.startsWith('https://') || u.startsWith('/');
 function LargeGroupLinkEditor({

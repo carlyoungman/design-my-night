@@ -1,6 +1,8 @@
 @use '../settings/mixins' as mixin;
 
 .loading-animation {
+  width: 100%;
+
   &__text {
     @include mixin.loading-animation-text;
   }

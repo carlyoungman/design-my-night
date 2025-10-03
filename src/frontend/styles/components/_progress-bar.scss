@@ -1,7 +1,6 @@
 .progress-bar {
   display: grid;
   gap: var(--universal-space);
-  margin-top: var(--universal-space);
 
   &__bar {
     height: var(--universal-space);

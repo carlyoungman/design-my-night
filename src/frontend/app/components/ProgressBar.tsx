@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useWidgetState } from '../../WidgetProvider';
+import { useWidgetState } from '../WidgetProvider';
 
 function isEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());
@@ -52,7 +52,7 @@ export default function ProgressBar() {
         <div className="progress-bar__fill" style={{ width: `${percent}%` }} />
       </div>
       <div className="progress-bar__text">
-        {completed} of {total} steps complete
+        Steps {completed} of {total} complete
       </div>
     </section>
   );

@@ -11,6 +11,8 @@
   }
 
   &__list {
+    margin-bottom: var(--universal-space-3);
+
     > li, span {
       display: flex;
       flex-wrap: wrap;

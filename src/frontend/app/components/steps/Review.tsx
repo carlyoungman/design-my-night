@@ -179,17 +179,17 @@ export function Review({ sections }: ReviewStepProps) {
           <ul className="review__list">
             <li>
               <span>
-                <User />
-                Group
-              </span>
-              <strong>{state.partySize}</strong>
-            </li>
-            <li>
-              <span>
                 <Building />
                 Venue
               </span>
               <strong>{venueName}</strong>
+            </li>
+            <li>
+              <span>
+                <User />
+                Group
+              </span>
+              <strong>{state.partySize}</strong>
             </li>
             <li>
               <span>

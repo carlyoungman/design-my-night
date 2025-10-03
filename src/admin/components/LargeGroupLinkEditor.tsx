@@ -6,7 +6,7 @@ import { adminGetLargeGroupLink, adminSaveLargeGroupLink } from '../api';
 type Props = { onDirty?: (d: boolean) => void };
 
 const MAX_URL = 300;
-const DEFAULT_LABEL = 'Groups of 12+ — Enquire here';
+const DEFAULT_LABEL = 'Groups of 12 and above — Enquire here';
 const DEFAULT_MIN = 12;
 
 const isValidUrl = (u: string) =>
