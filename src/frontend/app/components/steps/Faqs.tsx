@@ -5,6 +5,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import { ChevronDown } from 'lucide-react';
+import { Notice } from '../Notice';
 
 type Faq = { question: string; answer: string };
 type Props = { faqs?: Faq[]; title?: string };
@@ -58,6 +59,12 @@ export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
   if (!faqs || faqs.length === 0) return null;
   return (
     <section className="faqs">
+      <Notice
+        message={`${title} for ${venueName} have loaded`}
+        severity="success"
+        inlineId="faqs-loaded"
+        invalid={true}
+      />
       <h5 className="faqs__title">
         {title} for {venueName}
       </h5>

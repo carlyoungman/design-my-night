@@ -1,5 +1,5 @@
 import React from 'react';
-import { WidgetProvider, useWidgetConfig } from './WidgetProvider';
+import { WidgetProvider, useWidgetConfig, useWidgetState } from './WidgetProvider';
 import type { RootProps } from './WidgetProvider';
 import { Building, Calendar, PenLine, Rocket, MicVocal, Clock4, User } from 'lucide-react';
 import { Venue } from './components/steps/Venue';
@@ -13,6 +13,8 @@ import { Review } from './components/steps/Review';
 import Addons from './components/steps/Addons';
 import ProgressBar from './components/ProgressBar';
 import { Faqs } from './components/steps/Faqs';
+import { useBookingTypes } from './hooks/useBookingTypes';
+import { hhmmFromState } from './utils/helpers';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -26,11 +28,27 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
 
 function WidgetInner() {
   const { venueGroup, forcedVenueId } = useWidgetConfig();
+  const state = useWidgetState();
   const { venues, loading, error } = useVenues(venueGroup, !!forcedVenueId);
+
+  const timeHHmm = hhmmFromState(state.time);
+  const enabled = !!state.venueId && state.partySize != null && !!state.date && !!timeHHmm;
+
+  const {
+    types = [],
+    loading: typesLoading,
+    error: typesError,
+  } = useBookingTypes({
+    venueId: state.venueId ?? null,
+    partySize: state.partySize ?? null,
+    date: state.date ?? null,
+    time: timeHHmm,
+    enabled,
+  });
 
   return (
     <>
-      {' '}
+      <ProgressBar></ProgressBar>
       <div className="dmn-widget__grid">
         <div className="dmn-widget__main">
           <section className="dmn-widget__section">
@@ -56,7 +74,6 @@ function WidgetInner() {
               <PartySize />
             </div>
           </section>
-
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <Calendar className="dmn-widget__icon" />
@@ -81,7 +98,7 @@ function WidgetInner() {
               5. Choose your experience
             </p>
             <div className="dmn-widget__body">
-              <Type />
+              <Type types={types} loading={typesLoading} error={typesError} enabled={enabled} />
             </div>
           </section>
           <section className="dmn-widget__section">
@@ -105,7 +122,7 @@ function WidgetInner() {
         </div>
         <div className="dmn-widget__side">
           <ProgressBar></ProgressBar>
-          <Review sections={{ details: false }} />
+          <Review sections={{ details: false }} venues={venues} types={types} />
         </div>
       </div>
       <Faqs />

@@ -28,8 +28,9 @@
   height: unset;
 }
 
-.css-1n1xn3x-MuiPickersSlideTransition-root-MuiDayCalendar-slideTransition {
-  min-height: 310px;
+.MuiPickersSlideTransition-root {
+  height: 310px;
+  font-size: 16px;
 }
 
 .MuiPickersCalendarHeader-root {

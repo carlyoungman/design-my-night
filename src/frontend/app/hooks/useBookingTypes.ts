@@ -5,10 +5,12 @@ import { getBookingTypes } from '../../api/public';
 type Params = {
   /** ID of the selected venue; null when no venue is selected */
   venueId: string | null;
-  /** Optional booking date (YYYY‑MM‑DD) */
-  date?: string | null;
   /** Number of people in the party; null or undefined when not set */
   partySize: number | null | undefined;
+  /** booking date (YYYY‑MM‑DD) */
+  date?: string | null;
+  /** time */
+  time?: string | null;
   /** Whether the hook should fetch data; set false to disable */
   enabled?: boolean;
 };
@@ -33,7 +35,13 @@ type Return = {
   reload: () => void;
 };
 
-export function useBookingTypes({ venueId, date, partySize, enabled = true }: Params): Return {
+export function useBookingTypes({
+  venueId,
+  date,
+  partySize,
+  time,
+  enabled = true,
+}: Params): Return {
   const [types, setTypes] = useState<BookingTypeItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,14 +63,13 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
 
     // Abort any ongoing request before starting a new one
     ctrlRef.current?.abort();
-    const ctrl = new AbortController();
-    ctrlRef.current = ctrl;
+    ctrlRef.current = new AbortController();
 
     setLoading(true);
     setError(null);
 
     const key = `${venueId}|${date}|${partySize}`;
-    if (inFlightRef.current === key) return; // prevent overlapping duplicate
+    if (inFlightRef.current === key) return;
     inFlightRef.current = key;
 
     try {
@@ -70,6 +77,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
       const res = await getBookingTypes({
         venueId: String(venueId),
         numPeople: partySize,
+        time: time ?? undefined,
         date: date ?? undefined,
       });
 
@@ -114,7 +122,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
       setLoading(false);
       inFlightRef.current = '';
     }
-  }, [enabled, venueId, date, partySize]);
+  }, [enabled, venueId, partySize, date, time]);
 
   // Fetch types on mount and whenever dependencies change; ensure we abort
   // outstanding requests during cleanup to avoid setting state on unmounted components

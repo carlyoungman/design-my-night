@@ -93,6 +93,7 @@ class PostTypes
     // Venues
     self::meta('dmn_venue', 'dmn_id', 'integer');
     self::meta('dmn_venue', 'dmn_path', 'string');
+    self::meta('dmn_venue', 'dmn_return_url', 'string');
     self::meta('dmn_venue', 'is_active', 'boolean');
 
     // Activities

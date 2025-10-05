@@ -4,6 +4,16 @@
   width: 100%;
 
   &__text {
-    @include mixin.loading-animation-text;
+    margin: 0 0 var(--universal-space-half) 0;
+  }
+
+  &--required {
+    p {
+      opacity: 0.5;
+    }
+  }
+
+  &--loading {
+    color: var(--c-theme-primary);
   }
 }

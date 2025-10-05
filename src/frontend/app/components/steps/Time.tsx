@@ -91,9 +91,11 @@ export function Time() {
 
   return (
     <section className="time">
-      {loading && <LoadingAnimation text="Checking availability…"></LoadingAnimation>}
+      {loading && (
+        <LoadingAnimation type="loading" text="Checking availability…"></LoadingAnimation>
+      )}
       {!loading && times.length === 0 && (
-        <LoadingAnimation text="Venue, party size and date required" />
+        <LoadingAnimation type="required" text="Venue, party size and date required" />
       )}
       {!loading && times.length > 0 && (
         <FormControl component="fieldset" variant="standard" className="time">

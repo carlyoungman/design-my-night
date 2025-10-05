@@ -1,8 +1,7 @@
-// src/admin/components/AdditionalCard.tsx
 import React, { useEffect, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import FaqEditor from './FaqEditor';
-import LargeGroupLinkEditor from './LargeGroupLinkEditor';
+import LinkEditor from './LinkEditor';
 
 type Props = { onDirty?: (d: boolean) => void };
 
@@ -36,7 +35,7 @@ export default function AdditionalCard({ onDirty }: Props) {
       )}
       {selectedVenueId && (
         <div className="dmn-admin__sections">
-          <LargeGroupLinkEditor onDirty={setLinkDirty} />
+          <LinkEditor onDirty={setLinkDirty} />
           <FaqEditor onDirty={setFaqDirty} />
         </div>
       )}

@@ -56,6 +56,7 @@ export function checkAvailability(p: AvailabilityReq, fields?: CheckFields) {
 export type BookingTypeQuery = {
   venueId: string;
   numPeople?: number;
+  time?: string;
   date?: string;
 };
 
@@ -64,6 +65,7 @@ export function getBookingTypes(params: BookingTypeQuery) {
   qs.set('venue_id', params.venueId);
   if (params.numPeople) qs.set('num_people', String(params.numPeople));
   if (params.date) qs.set('date', params.date);
+  if (params.time) qs.set('time', String(params.time));
   return j<{
     data: Array<{
       id: string;
@@ -77,28 +79,6 @@ export function getBookingTypes(params: BookingTypeQuery) {
     }>;
   }>('booking-types?' + qs.toString());
 }
-
-export type BookingReq = {
-  source: 'partner';
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone?: string;
-  dob?: string; // YYYY-MM-DD
-  num_people: number;
-  type: string; // DMN type id
-  venue_id: string; // DMN venue id
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  duration?: number; // minutes
-  offer?: string | null; // offer id
-  notes?: string | null;
-  package?: string | null; // add-on/package id (single)
-  newsletter_signup?: boolean;
-  marketing_preferences?: string[];
-  custom_field_value?: string | null;
-};
-
 export type CreateBookingPayload = {
   source: 'partner';
   venue_id: string;
@@ -203,4 +183,8 @@ export async function getFaqsAndLink(venue_id: number | string): Promise<{
 }> {
   const [faqsRes, linkRes] = await Promise.all([getFaqs(venue_id), getLargeGroupLink(venue_id)]);
   return { faqs: faqsRes.faqs ?? [], largeGroup: linkRes };
+}
+
+export function getReturnUrl(venue_id: string | number): Promise<{ url?: string }> {
+  return wpPublicFetch(`return-url?venue_id=${encodeURIComponent(String(venue_id))}`);
 }

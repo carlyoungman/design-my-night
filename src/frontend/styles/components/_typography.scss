@@ -2,7 +2,6 @@
 
 p {
   margin: var(--universal-space) 0;
-  @include base-settings;
 
   a {
     text-decoration: underline;
@@ -13,35 +12,6 @@ p {
   }
 }
 
-h1,
-.h1 {
-  @include headline-h1;
-}
-
-h2,
-.h2 {
-  @include headline-h2;
-}
-
-h3,
-.h3 {
-  @include headline-h3;
-}
-
-h4,
-.h4 {
-  @include headline-h4;
-}
-
-h5,
-.h5 {
-  @include headline-h5;
-}
-
-h6,
-.h6 {
-  @include headline-h6;
-}
 
 h1,
 h2,
@@ -49,6 +19,6 @@ h3,
 h4,
 h5,
 h6 {
-  @include headline-settings;
+  //@include headline-settings;
   margin: var(--universal-space-2) 0 var(--universal-space) 0;
 }

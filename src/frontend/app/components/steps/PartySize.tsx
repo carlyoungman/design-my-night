@@ -33,11 +33,10 @@ export function PartySize() {
   if (!enabled) {
     return (
       <section className="party-size">
-        <LoadingAnimation text="Venue required" />
+        <LoadingAnimation type="required" text="Venue required" />
       </section>
     );
   }
-
   return (
     <section className="party-size">
       <NumberField.Root
@@ -67,8 +66,8 @@ export function PartySize() {
           rel="noopener noreferrer"
           href={groupLink.url}
         >
-          For Large groups of 12 or more,
-          <br /> please click here
+          Large groups of 12 or more,
+          <br /> click here
         </a>
       ) : null}
     </section>

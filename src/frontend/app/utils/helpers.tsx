@@ -108,3 +108,21 @@ export const parseSuggested = (item: any): { iso?: string; valid?: boolean } => 
   if (typeof raw !== 'string') return {};
   return { iso: dayjs(raw).format('YYYY-MM-DD'), valid: !!item?.valid };
 };
+
+/**
+ * Extracts an `hh:mm` time string from the input, if possible.
+ * @param input A string or null/undefined value to parse.
+ * @returns The `hh:mm` time string, or null if not found.
+ */
+export function hhmmFromState(input?: string | null): string | null {
+  if (!input) return null;
+  const m = /(\d{2}:\d{2})/.exec(input);
+  if (m) return m[1];
+  const d = new Date(input);
+  if (!Number.isNaN(d.getTime())) {
+    const h = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${h}:${mm}`;
+  }
+  return null;
+}

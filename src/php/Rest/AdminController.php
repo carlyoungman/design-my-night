@@ -179,6 +179,28 @@ class AdminController
       ],
     ]);
 
+    register_rest_route('dmn/v1', '/admin/return-url', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_return_url_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+        ],
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_return_url_save'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+          'url' => ['required' => true, 'type' => 'string'], // blank hides
+          'enabled' => ['required' => false, 'type' => 'boolean'],
+        ],
+      ],
+    ]);
+
+
   }
 
 
@@ -1058,6 +1080,73 @@ class AdminController
 
     return new WP_REST_Response(['ok' => true], 200);
   }
+
+
+  /**
+   * Retrieve the return URL for a venue.
+   *
+   * Accepts a REST request with a 'venue_id' parameter, fetches the return URL from post meta,
+   * and returns whether it is enabled (non-empty) along with the URL (max 300 chars).
+   *
+   * @param WP_REST_Request $req REST request containing 'venue_id'.
+   * @return WP_REST_Response Response with 'enabled' and 'url' fields, or error if missing.
+   */
+
+  public function dmn_admin_return_url_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_id = (int)$req->get_param('venue_id');
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['message' => 'venue_id required'], 400);
+    }
+
+    $url = (string)get_post_meta($venue_id, 'dmn_return_url', true);
+    $url = mb_substr($url, 0, 300);
+
+    return new WP_REST_Response([
+      'enabled' => $url !== '',
+      'url' => $url,
+    ], 200);
+  }
+
+
+  /**
+   * Save or update the return URL for a venue.
+   *
+   * Accepts a REST request with JSON body containing 'venue_id' and 'url'.
+   * Validates the input, sanitizes the URL, updates the relevant post meta field,
+   * and returns a success response.
+   *
+   * @param WP_REST_Request $req REST request with return URL data.
+   * @return WP_REST_Response 200 on success, 400 on invalid input.
+   */
+  public function dmn_admin_return_url_save(WP_REST_Request $req): WP_REST_Response
+  {
+    $b = $req->get_json_params() ?: [];
+    $venue_id = isset($b['venue_id']) ? (int)$b['venue_id'] : 0;
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['message' => 'venue_id required'], 400);
+    }
+
+    $raw = isset($b['url']) ? (string)$b['url'] : '';
+    $raw = trim($raw);
+
+    // Allow absolute http(s) or site-relative paths.
+    if ($raw === '') {
+      $san = '';
+    } elseif (str_starts_with($raw, '/')) {
+      $san = wp_strip_all_tags($raw);
+    } else {
+      $tmp = esc_url_raw($raw);
+      $san = is_string($tmp) ? $tmp : '';
+    }
+
+    $san = mb_substr($san, 0, 300);
+    update_post_meta($venue_id, 'dmn_return_url', $san);
+
+    return new WP_REST_Response(['ok' => true], 200);
+  }
+
 }
+
 
 

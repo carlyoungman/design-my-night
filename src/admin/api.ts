@@ -177,3 +177,36 @@ export async function adminSaveLargeGroupLink(
 ): Promise<{ ok: true }> {
   return wpFetch<{ ok: true }>('large-group-link', { method: 'POST', body: { venue_id, ...body } });
 }
+
+export type AdminMenuItemsResponse = {
+  menus: Array<{
+    menu_post_id: number;
+    menu_title: string;
+    activities: Array<{ id: number; dmn_type_id: string; name: string }>;
+    items: Array<{
+      id: number;
+      dmn_item_id: string;
+      name: string;
+      description: string;
+      type: string;
+      price_ro: number;
+      image_id: number | null;
+      image_url: string | null;
+      menu_post_id: number;
+    }>;
+  }>;
+};
+
+// Return URL
+export async function adminGetReturnUrl(
+  venue_id: number,
+): Promise<{ url?: string; enabled?: boolean }> {
+  return wpFetch(`return-url?venue_id=${encodeURIComponent(venue_id)}`);
+}
+
+export async function adminSaveReturnUrl(
+  venue_id: number,
+  body: { enabled: boolean; url: string },
+): Promise<void> {
+  await wpFetch('return-url', { method: 'POST', body: { venue_id, ...body } });
+}

@@ -1,4 +1,3 @@
-// components/ErrorNotice.tsx
 import React, { useEffect, useState } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import type { AlertColor, SnackbarOrigin } from '@mui/material';
@@ -14,7 +13,7 @@ type Props = {
   onClose?: () => void;
 };
 
-export function ErrorNotice({
+export function Notice({
   invalid,
   message,
   inlineId,
@@ -27,7 +26,7 @@ export function ErrorNotice({
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(!!invalid);
+    setOpen(invalid);
   }, [invalid]);
 
   const handleClose = (_: unknown, reason?: 'timeout' | 'clickaway' | 'escapeKeyDown') => {

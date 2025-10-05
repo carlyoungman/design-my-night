@@ -88,7 +88,7 @@ export function Date() {
     return () => {
       cancelled = true;
     };
-  }, [monthKey, venueId, partySize, minDate, maxDate, extractValidationDateBlock, parseSuggested]);
+  }, [monthKey, venueId, minDate, maxDate, extractValidationDateBlock, parseSuggested]);
 
   // Selection rules:
   // - Always enforce min/max.
@@ -111,7 +111,6 @@ export function Date() {
   const pick = useCallback(
     (d: Dayjs) => {
       if (!isSelectable(d)) return;
-
       // Set date, then clear dependent selections so types & times refresh
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
@@ -126,8 +125,12 @@ export function Date() {
 
   return (
     <section className="date">
-      {!loading && validDates.size === 0 && <LoadingAnimation text="Venue required" />}
-      {loading && validDates.size === 0 && <LoadingAnimation text="Checking availability…" />}
+      {!loading && validDates.size === 0 && (
+        <LoadingAnimation type="required" text="Venue required" />
+      )}
+      {loading && validDates.size === 0 && (
+        <LoadingAnimation type="loading" text="Checking availability…" />
+      )}
       {!loading && validDates.size !== 0 && (
         <>
           <div className="date__quick-row" aria-label="Quick date picks">

@@ -12,6 +12,7 @@
 
   &__list {
     margin-bottom: var(--universal-space-3);
+    gap: var(--universal-space-2);
 
     > li, span {
       display: flex;

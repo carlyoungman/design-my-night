@@ -22,10 +22,10 @@ const theme = createTheme({
   },
 });
 
-export default function LoadingAnimation({ text }: { text?: string }) {
+export default function LoadingAnimation({ text, type }: { text?: string; type?: string }) {
   return (
     <ThemeProvider theme={theme}>
-      <Box className="loading-animation">
+      <Box className={`loading-animation${type ? ` loading-animation--${type}` : ''}`}>
         {text && <p className="loading-animation__text">{text}</p>}
         <Skeleton
           animation="wave"

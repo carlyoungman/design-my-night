@@ -1,4 +1,4 @@
-import React, { useEffect, useId } from 'react';
+import React, { useId } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
@@ -22,8 +22,10 @@ export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueSte
 
   return (
     <section className="venues">
-      {initialLoading && <LoadingAnimation text="Loading venues…"></LoadingAnimation>}
-      {error && <p className="venues__error">{error}</p>}
+      {initialLoading && (
+        <LoadingAnimation type="loading" text="Loading venues…"></LoadingAnimation>
+      )}
+      {error && <p className="dmn-widget__error">{error}</p>}
       {!initialLoading && !error && (
         <div className="venues__select-wrapper">
           <select

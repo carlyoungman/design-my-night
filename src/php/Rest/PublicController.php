@@ -194,6 +194,7 @@ class PublicController
       ],
     ]);
 
+    // Public: FAQs
     register_rest_route('dmn/v1', '/public/faqs', [
       [
         'methods' => WP_REST_Server::READABLE,
@@ -204,7 +205,7 @@ class PublicController
         ],
       ],
     ]);
-
+    // Large group link
     register_rest_route('dmn/v1', '/public/large-group-link', [
       [
         'methods' => WP_REST_Server::READABLE,
@@ -215,6 +216,42 @@ class PublicController
         ],
       ],
     ]);
+    // Return URL (for redirect after booking)
+    register_rest_route('dmn/v1', '/public/return-url', [[
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => '__return_true',
+      'callback' => function (WP_REST_Request $req): WP_REST_Response {
+        $venue_param = $req->get_param('venue_id');
+        // Reuse your existing venue-id resolver style
+        $post_id = $this->resolve_venue_post_id($venue_param);
+        if ($post_id <= 0) return new WP_REST_Response(['url' => ''], 404);
+        $url = (string)get_post_meta($post_id, 'dmn_return_url', true);
+        return new WP_REST_Response(['url' => mb_substr($url, 0, 300)], 200);
+      },
+      'args' => ['venue_id' => ['required' => true, 'type' => 'string']],
+    ]]);
+  }
+
+  /** ---- Helpers ---- */
+  private function resolve_venue_post_id($venue_id_param): int
+  {
+    // numeric WP post ID
+    if (is_numeric($venue_id_param)) {
+      $pid = (int)$venue_id_param;
+      return max($pid, 0);
+    }
+    // DMN venue id stored in post meta 'dmn_id'
+    $dmn_id = (string)$venue_id_param;
+    $ids = get_posts([
+      'post_type' => 'dmn_venue',
+      'numberposts' => 1,
+      'fields' => 'ids',
+      'meta_key' => 'dmn_venue_id',
+      'meta_value' => $dmn_id,
+    ]);
+
+
+    return !empty($ids) ? (int)$ids[0] : 0;
   }
 
   /**
@@ -461,28 +498,6 @@ class PublicController
       ];
     }, $faqs));
     return new WP_REST_Response(['faqs' => $faqs], 200);
-  }
-
-  /** ---- Helpers ---- */
-  private function resolve_venue_post_id($venue_id_param): int
-  {
-    // numeric WP post ID
-    if (is_numeric($venue_id_param)) {
-      $pid = (int)$venue_id_param;
-      return max($pid, 0);
-    }
-    // DMN venue id stored in post meta 'dmn_id'
-    $dmn_id = (string)$venue_id_param;
-    $ids = get_posts([
-      'post_type' => 'dmn_venue',
-      'numberposts' => 1,
-      'fields' => 'ids',
-      'meta_key' => 'dmn_venue_id',
-      'meta_value' => $dmn_id,
-    ]);
-
-
-    return !empty($ids) ? (int)$ids[0] : 0;
   }
 
   /** ---- Public: Large group link ---- */

@@ -1,3 +1,5 @@
+@use '../settings/breakpoints' as breakpoint;
+
 .progress-bar {
   display: grid;
   gap: var(--universal-space);
@@ -12,7 +14,7 @@
   &__fill {
     height: 100%;
     width: 0;
-    background: var(--c-theme-primary);
+    background: var(--c-success);
     transition: var(--transition);
   }
 
@@ -23,3 +25,19 @@
 }
 
 
+.dmn-widget > .progress-bar {
+  position: sticky;
+  z-index: 2;
+  top: var(--universal-space);
+  margin-right: var(--universal-space);
+  margin-left: var(--universal-space);
+  margin-bottom: var(--universal-space-2);
+
+  .progress-bar__text {
+    display: none;
+  }
+
+  @include breakpoint.medium-screen-min {
+    display: none;
+  }
+}

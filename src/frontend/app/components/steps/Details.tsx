@@ -1,6 +1,6 @@
 import React, { useId, useState } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import { ErrorNotice } from '../ErrorNotice';
+import { Notice } from '../Notice';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import LoadingAnimation from '../LoadingAnimation';
 
@@ -54,7 +54,7 @@ export function Details() {
   if (!enabled) {
     return (
       <section className="details">
-        <LoadingAnimation text="Venue, date, time and experience required" />
+        <LoadingAnimation type="required" text="Venue, date, time and experience required" />
       </section>
     );
   }
@@ -74,7 +74,7 @@ export function Details() {
             onBlur={() => setTouched((t) => ({ ...t, first: true }))}
             aria-invalid={firstNameInvalid}
           />
-          <ErrorNotice
+          <Notice
             invalid={firstNameInvalid}
             message={ERR_MSG.firstName}
             inlineId={`${firstId}-err`}
@@ -93,11 +93,7 @@ export function Details() {
             onBlur={() => setTouched((t) => ({ ...t, last: true }))}
             aria-invalid={lastNameInvalid}
           />
-          <ErrorNotice
-            invalid={lastNameInvalid}
-            message={ERR_MSG.lastName}
-            inlineId={`${lastId}-err`}
-          />
+          <Notice invalid={lastNameInvalid} message={ERR_MSG.lastName} inlineId={`${lastId}-err`} />
         </div>
 
         <div className="details__field-wrapper">
@@ -113,7 +109,7 @@ export function Details() {
             onBlur={() => setTouched((t) => ({ ...t, email: true }))}
             aria-invalid={emailInvalid}
           />
-          <ErrorNotice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${emailId}-err`} />
+          <Notice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${emailId}-err`} />
         </div>
 
         <div className="details__field-wrapper">
@@ -129,7 +125,7 @@ export function Details() {
             onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
             aria-invalid={phoneInvalid}
           />
-          <ErrorNotice invalid={phoneInvalid} message={ERR_MSG.phone} inlineId={`${phoneId}-err`} />
+          <Notice invalid={phoneInvalid} message={ERR_MSG.phone} inlineId={`${phoneId}-err`} />
         </div>
 
         <div className="details__field-wrapper">
@@ -144,7 +140,7 @@ export function Details() {
             onChange={(e) => set({ message: e.target.value })}
           />
           <div className="details__hint">{(customer.message || '').length}/500</div>
-          <ErrorNotice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
+          <Notice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
         </div>
 
         <div className="details__field-wrapper">

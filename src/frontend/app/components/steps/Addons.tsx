@@ -3,6 +3,7 @@ import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import LoadingAnimation from '../LoadingAnimation';
 import { useAddons } from '../../hooks/useAddons';
 import { AddonLine } from '../../state';
+import { Notice } from '../Notice';
 
 export default function Addons() {
   const dispatch = useWidgetDispatch();
@@ -53,25 +54,51 @@ export default function Addons() {
   if (!enabled) {
     return (
       <section className="addons">
-        <LoadingAnimation text="Venue, date, time and experience required" />
+        <LoadingAnimation type="required" text="Venue, date, time and experience required" />
       </section>
     );
   }
 
   return (
     <section className="addons">
-      {loading && <LoadingAnimation text="Loading add-ons…" />}
+      {loading && <LoadingAnimation type="loading" text="Loading add-ons…" />}
 
       {!loading && error && (
-        <p>We couldn’t load add-ons. You can continue without selecting any.</p>
+        <>
+          <p className="dmn-widget__error">
+            We couldn’t load add-ons. You can continue without selecting any.
+          </p>
+          <Notice
+            message="We couldn’t load add-ons. You can continue without selecting any."
+            severity="success"
+            inlineId="addons-load-error"
+            invalid={true}
+          />
+        </>
       )}
 
       {!loading && !error && addons.length === 0 && (
-        <p>No add-ons are available for this selection. You can continue.</p>
+        <>
+          <p className="dmn-widget__error">
+            No add-ons are available for this experience.<br></br> <span>You can continue.</span>
+          </p>
+          <Notice
+            message="No add-ons are available for this experience. You can continue."
+            severity="success"
+            inlineId="no-addons"
+            invalid={true}
+          />
+        </>
       )}
 
       {!loading && !error && addons.length > 0 && (
         <div className="package-grid">
+          <Notice
+            message="Add-ons found for this experience!."
+            severity="success"
+            inlineId="addons-available"
+            invalid={true}
+          />
           {addons.map((pkg) => {
             const id = String(pkg.dmn_package_id);
             const isSelected = (state.addonsSelected || []).includes(id);
