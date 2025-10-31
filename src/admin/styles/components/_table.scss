@@ -22,6 +22,7 @@
     gap: var(--universal-space);
   }
 
+
   &__image-picker {
     &__image,
     &__image-preview {
@@ -35,7 +36,7 @@
     &__image-preview {
       background-color: var(--c-off-white);
     }
-
+    
     &__button-wrap {
       display: flex;
       flex-wrap: wrap;
@@ -56,5 +57,19 @@
 
   &__toggle {
     margin-top: var(--universal-space);
+  }
+}
+
+.MuiToggleButtonGroup-root {
+  display: flex;
+  flex-wrap: wrap;
+
+  button {
+    flex: 1;
+
+    &.Mui-selected {
+      background-color: var(--c-green) !important;
+      color: var(--c-white) !important;
+    }
   }
 }

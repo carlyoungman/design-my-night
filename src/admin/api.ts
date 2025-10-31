@@ -5,12 +5,12 @@ import apiFetch from '@wordpress/api-fetch';
  */
 export async function wpFetch<T = any>(
   slug: string,
-  opts: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: any } = {},
+  opts: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: any } = {}
 ): Promise<T> {
   return (await apiFetch({
     path: `/dmn/v1/admin/${slug}`,
     method: opts.method || 'GET',
-    data: opts.body,
+    data: opts.body
   })) as Promise<T>;
 }
 
@@ -97,7 +97,8 @@ export async function adminSaveActivity(
     image_id?: number | null;
     gallery_ids?: number[];
     menu_post_id?: number | null;
-  },
+    visible?: boolean;
+  }
 ): Promise<{ ok: boolean }> {
   return wpFetch(`activities/${id}`, { method: 'POST', body });
 }
@@ -128,6 +129,7 @@ export async function adminListMenuItems(venueId: number): Promise<{
     menu_title: string;
     activities: Array<{ id: number; dmn_type_id: string; name: string }>;
     items: Array<{
+      visible: boolean;
       id: number;
       dmn_item_id: string;
       name: string;
@@ -145,35 +147,40 @@ export async function adminListMenuItems(venueId: number): Promise<{
 
 export async function adminSaveMenuItem(
   id: number,
-  body: { name?: string; description?: string; image_id?: number | null },
-): Promise<{ ok: true }> {
-  return wpFetch<{ ok: true }>(`menu-items/${id}`, { method: 'POST', body });
+  payload: {
+    name?: string;
+    description?: string;
+    image_id?: number | null;
+    visible?: boolean;
+  }
+) {
+  return wpFetch(`menu-items/${id}`, { method: 'POST', body: payload });
 }
 
 /** FAQs */
 export async function adminListFaqs(
-  venue_id: number,
+  venue_id: number
 ): Promise<{ faqs: { question: string; answer: string }[] }> {
   return wpFetch(`faqs?venue_id=${encodeURIComponent(venue_id)}`);
 }
 
 export async function adminSaveFaqs(
   venue_id: number,
-  faqs: Array<{ question: string; answer: string }>,
+  faqs: Array<{ question: string; answer: string }>
 ): Promise<{ ok: true }> {
   return wpFetch<{ ok: true }>('faqs', { method: 'POST', body: { venue_id, faqs } });
 }
 
 /** Large Group Link */
 export async function adminGetLargeGroupLink(
-  venue_id: number,
+  venue_id: number
 ): Promise<{ enabled: boolean; minSize: number; label: string; url: string }> {
   return wpFetch(`large-group-link?venue_id=${encodeURIComponent(venue_id)}`);
 }
 
 export async function adminSaveLargeGroupLink(
   venue_id: number,
-  body: { enabled: boolean; minSize: number; label: string; url: string },
+  body: { enabled: boolean; minSize: number; label: string; url: string }
 ): Promise<{ ok: true }> {
   return wpFetch<{ ok: true }>('large-group-link', { method: 'POST', body: { venue_id, ...body } });
 }
@@ -184,6 +191,7 @@ export type AdminMenuItemsResponse = {
     menu_title: string;
     activities: Array<{ id: number; dmn_type_id: string; name: string }>;
     items: Array<{
+      visible: boolean;
       id: number;
       dmn_item_id: string;
       name: string;
@@ -199,14 +207,14 @@ export type AdminMenuItemsResponse = {
 
 // Return URL
 export async function adminGetReturnUrl(
-  venue_id: number,
+  venue_id: number
 ): Promise<{ url?: string; enabled?: boolean }> {
   return wpFetch(`return-url?venue_id=${encodeURIComponent(venue_id)}`);
 }
 
 export async function adminSaveReturnUrl(
   venue_id: number,
-  body: { enabled: boolean; url: string },
+  body: { enabled: boolean; url: string }
 ): Promise<void> {
   await wpFetch('return-url', { method: 'POST', body: { venue_id, ...body } });
 }

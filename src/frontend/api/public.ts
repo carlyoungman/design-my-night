@@ -15,10 +15,10 @@ export function getVenues(q: { venue_group?: string; fields?: string } = {}) {
 export type AvailabilityReq = {
   venue_id: string;
   num_people?: number;
-  date?: string; // YYYY-MM-DD
-  time?: string; // HH:mm or ISO if your proxy accepts
-  type?: string; // DMN type id
-  duration?: number; // hours (decimal) if you use it
+  date?: string;
+  time?: string;
+  type?: string;
+  duration?: number;
   getOffers?: boolean;
 };
 
@@ -78,41 +78,6 @@ export function getBookingTypes(params: BookingTypeQuery) {
       message?: string | null;
     }>;
   }>('booking-types?' + qs.toString());
-}
-export type CreateBookingPayload = {
-  source: 'partner';
-  venue_id: string;
-  type: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  num_people: number;
-  first_name: string;
-  last_name: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
-  preorder_details?: string[];
-  preorder?: string[];
-};
-
-export async function createBooking(payload: CreateBookingPayload) {
-  const clean: CreateBookingPayload = {
-    ...payload,
-  };
-
-  const res = await fetch('/wp-json/dmn/v1/create-booking', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify(clean),
-  });
-
-  if (!res.ok) {
-    // try to surface API error text
-    const text = await res.text().catch(() => '');
-    throw new Error(text || 'Booking failed');
-  }
-  return res.json();
 }
 
 /* ---------- Addons ---------- */

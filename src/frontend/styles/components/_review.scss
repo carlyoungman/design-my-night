@@ -10,6 +10,7 @@
     }
   }
 
+
   &__list {
     margin-bottom: var(--universal-space-3);
     gap: var(--universal-space-2);
@@ -20,7 +21,6 @@
       gap: var(--universal-space-half);
       align-items: center;
     }
-
 
   }
 
@@ -45,5 +45,8 @@
   &__button {
     @include mixin.button-settings;
     margin-top: var(--universal-space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }

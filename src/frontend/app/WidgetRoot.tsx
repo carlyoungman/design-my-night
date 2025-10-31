@@ -15,6 +15,7 @@ import ProgressBar from './components/ProgressBar';
 import { Faqs } from './components/steps/Faqs';
 import { useBookingTypes } from './hooks/useBookingTypes';
 import { hhmmFromState } from './utils/helpers';
+import AddonsNew from './components/steps/AddonsNew';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -27,9 +28,9 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
 }
 
 function WidgetInner() {
-  const { venueGroup, forcedVenueId } = useWidgetConfig();
+  const { venueGroup, defaultVenueId } = useWidgetConfig();
   const state = useWidgetState();
-  const { venues, loading, error } = useVenues(venueGroup, !!forcedVenueId);
+  const { venues, loading, error } = useVenues(venueGroup);
 
   const timeHHmm = hhmmFromState(state.time);
   const enabled = !!state.venueId && state.partySize != null && !!state.date && !!timeHHmm;
@@ -61,14 +62,14 @@ function WidgetInner() {
                 venues={venues}
                 initialLoading={loading}
                 error={error}
-                forcedVenueId={forcedVenueId}
+                defaultVenueId={defaultVenueId}
               />
             </div>
           </section>
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <User className="dmn-widget__icon" />
-              2. How many people in your group?
+              2. Size of your group?
             </p>
             <div className="dmn-widget__body">
               <PartySize />
@@ -101,19 +102,19 @@ function WidgetInner() {
               <Type types={types} loading={typesLoading} error={typesError} enabled={enabled} />
             </div>
           </section>
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <MicVocal className="dmn-widget__icon" />
-              6. Choose your add-ons
-            </p>
-            <div className="dmn-widget__body">
-              <Addons />
-            </div>
-          </section>
+          {/*<section className="dmn-widget__section">*/}
+          {/*  <p className="dmn-widget__header">*/}
+          {/*    <MicVocal className="dmn-widget__icon" />*/}
+          {/*    6. Choose your add-ons*/}
+          {/*  </p>*/}
+          {/*  <div className="dmn-widget__body">*/}
+          {/*    <Addons />*/}
+          {/*  </div>*/}
+          {/*</section>*/}
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <PenLine className="dmn-widget__icon" />
-              7. Confirm your details
+              6. Confirm your details
             </p>
             <div className="dmn-widget__body">
               <Details />
@@ -125,7 +126,8 @@ function WidgetInner() {
           <Review sections={{ details: false }} venues={venues} types={types} />
         </div>
       </div>
-      <Faqs />
+      <Faqs venues={venues} />
+      <AddonsNew />
     </>
   );
 }

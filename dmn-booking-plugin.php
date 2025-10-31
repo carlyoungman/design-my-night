@@ -26,20 +26,26 @@ use DMN\Booking\PostTypes;
 
 // Registers the 'dmn_booking' shortcode to render the DMN booking widget with venue data.
 add_action('init', function () {
-  add_shortcode('dmn_booking', function (array $atts = []) {
-    $atts = shortcode_atts([
+  add_shortcode('dmn_booking', function ($atts = []) {
+    $a = shortcode_atts([
       'venue_group' => get_option(Settings::OPT_VG, ''),
-      'venue_id' => ''
+      'venue_id' => '',
     ], $atts, 'dmn_booking');
+
+    $venueId = $a['venue_id'];
+    if (isset($_GET['venue_id']) && $_GET['venue_id'] !== '') {
+      $venueId = sanitize_text_field(wp_unslash($_GET['venue_id']));
+    }
 
     ob_start(); ?>
     <div class="dmn-widget-root"
-         data-venue-group="<?php echo esc_attr($atts['venue_group']); ?>"
-         data-venue-id="<?php echo esc_attr($atts['venue_id']); ?>"></div>
+         data-venue-group="<?php echo esc_attr(sanitize_text_field($a['venue_group'])); ?>"
+         data-venue-id="<?php echo esc_attr($venueId); ?>"></div>
     <?php
     return ob_get_clean();
   });
 });
+
 // Adds a top-level admin menu page for the DMN Booking plugin in the WordPress dashboard.
 add_action('admin_menu', function () {
   add_menu_page(

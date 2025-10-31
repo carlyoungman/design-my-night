@@ -21,7 +21,8 @@
 
   &__title {
     padding: 0 var(--universal-space);
-    
+
+    //font-size: 24px;
     @include breakpoint.large-screen-min {
       margin-bottom: var(--universal-space-2);
     }

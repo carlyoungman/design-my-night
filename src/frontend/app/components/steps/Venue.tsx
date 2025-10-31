@@ -1,16 +1,16 @@
 import React, { useId } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
 
-export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueStepProps) {
+export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const VenueId = useId();
+  const locked = Boolean(defaultVenueId);
 
-  // If a venue is forced (via config), we don’t show this step.
-  if (forcedVenueId) return null;
   const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    if (locked) return; // ignore when locked
     const id = e.target.value || '';
     dispatch({ type: 'SET_VENUE', id: id || null });
     dispatch({ type: 'SET_VENUE_NAME', name: e.target.selectedOptions[0].text });
@@ -33,6 +33,7 @@ export function Venue({ venues, initialLoading, error, forcedVenueId }: VenueSte
             className="venues__select"
             value={state.venueId || ''}
             onChange={handleChange}
+            disabled={locked}
           >
             <option value="" disabled>
               Choose…

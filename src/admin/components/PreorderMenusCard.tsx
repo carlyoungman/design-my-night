@@ -1,10 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import { adminListMenuItems, adminSaveMenuItem, type AdminMenuItemsResponse } from '../api';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ToggleButton from '@mui/material/ToggleButton';
 
 declare const wp: any;
 
-type ItemRow = AdminMenuItemsResponse['menus'][number]['items'][number];
+type ItemRow = AdminMenuItemsResponse['menus'][number]['items'][number] & {
+  visible?: boolean;
+};
 type Group = AdminMenuItemsResponse['menus'][number];
 
 type Props = { onDirty?: (d: boolean) => void };
@@ -18,14 +22,12 @@ export default function PreorderMenusCard({ onDirty }: Props) {
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  // Track edits
   const dirtyIds = useMemo(() => {
     const set = new Set<number>();
     const byMenu = new Map<number, Group>(orig.map((g) => [g.menu_post_id, g]));
     for (const g of groups) {
       const og = byMenu.get(g.menu_post_id);
       if (!og) {
-        // new group somehow
         g.items.forEach((i) => set.add(i.id));
         continue;
       }
@@ -39,9 +41,11 @@ export default function PreorderMenusCard({ onDirty }: Props) {
         if (
           (i.name ?? '') !== (oi.name ?? '') ||
           (i.description ?? '') !== (oi.description ?? '') ||
-          (i.image_id ?? null) !== (oi.image_id ?? null)
-        )
+          (i.image_id ?? null) !== (oi.image_id ?? null) ||
+          (i.visible ?? true) !== (oi.visible ?? true)
+        ) {
           set.add(i.id);
+        }
       }
     }
     return set;
@@ -63,8 +67,12 @@ export default function PreorderMenusCard({ onDirty }: Props) {
       setOk(null);
       try {
         const r = await adminListMenuItems(Number(selectedVenueId));
-        setGroups(r.menus || []);
-        setOrig(r.menus || []);
+        const withDefaults = r.menus.map((g) => ({
+          ...g,
+          items: g.items.map((i) => ({ ...i, visible: i.visible ?? true })),
+        }));
+        setGroups(withDefaults);
+        setOrig(withDefaults);
       } catch (e: any) {
         setErr(e.message || 'Failed to load menu items.');
       } finally {
@@ -114,10 +122,9 @@ export default function PreorderMenusCard({ onDirty }: Props) {
     setOk(null);
     try {
       const changes: ItemRow[] = [];
-      const dirty = dirtyIds;
       for (const g of groups) {
         for (const i of g.items) {
-          if (dirty.has(i.id)) changes.push(i);
+          if (dirtyIds.has(i.id)) changes.push(i);
         }
       }
       if (changes.length === 0) {
@@ -130,6 +137,7 @@ export default function PreorderMenusCard({ onDirty }: Props) {
             name: i.name,
             description: i.description,
             image_id: i.image_id ?? null,
+            visible: i.visible ?? true,
           }),
         ),
       );
@@ -140,11 +148,14 @@ export default function PreorderMenusCard({ onDirty }: Props) {
         );
       } else {
         setOk(`Saved ${changes.length} item${changes.length === 1 ? '' : 's'}.`);
-        // refresh
         if (selectedVenueId) {
           const r = await adminListMenuItems(Number(selectedVenueId));
-          setGroups(r.menus || []);
-          setOrig(r.menus || []);
+          const refreshed = r.menus.map((g) => ({
+            ...g,
+            items: g.items.map((i) => ({ ...i, visible: i.visible ?? true })),
+          }));
+          setGroups(refreshed);
+          setOrig(refreshed);
         }
       }
     } catch (e: any) {
@@ -214,7 +225,7 @@ export default function PreorderMenusCard({ onDirty }: Props) {
                       <div className="table__label">Price</div>
                       <input
                         type="text"
-                        value={typeof i.price_ro === 'number' ? `£${i.price_ro.toFixed(2)}` : ''}
+                        value={`£${i.price_ro.toFixed(2)}`}
                         disabled
                         placeholder="Price"
                       />
@@ -246,6 +257,20 @@ export default function PreorderMenusCard({ onDirty }: Props) {
                           </button>
                         ) : null}
                       </div>
+                    </div>
+                    <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                      <div className="table__label">Visibility</div>
+                      <ToggleButtonGroup
+                        value={i.visible ? 'enabled' : 'disabled'}
+                        exclusive
+                        onChange={(_, newValue) =>
+                          onItem(g.menu_post_id, i.id, { visible: newValue === 'enabled' })
+                        }
+                        aria-label="Visibility"
+                      >
+                        <ToggleButton value="enabled">Enabled</ToggleButton>
+                        <ToggleButton value="disabled">Disabled</ToggleButton>
+                      </ToggleButtonGroup>
                     </div>
                   </div>
                 </div>

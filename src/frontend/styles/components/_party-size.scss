@@ -7,11 +7,15 @@
   width: 100%;
   align-items: center;
   gap: var(--universal-space);
+  flex-wrap: wrap;
   @include breakpoint.medium-screen-min {
     gap: var(--universal-space-2);
+    flex-wrap: nowrap;
   }
 
   &__group-link {
+    color: var(--c-success);
+
     &:hover {
       color: var(--c-theme-primary);
     }

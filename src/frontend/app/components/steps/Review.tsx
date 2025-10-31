@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
 import { fmt, fmtDate, toNum } from '../../utils/helpers';
 import { continueCheckout } from '../../utils/checkout';
+import CircularProgress from '@mui/material/CircularProgress';
 
 type ReviewStepProps = {
   sections?: { booking?: boolean; details?: boolean; payment?: boolean };
@@ -14,6 +15,8 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const { returnUrl } = useWidgetConfig();
+
+  const [submitting, setSubmitting] = useState(false);
 
   const venueName = useMemo(
     () =>
@@ -48,15 +51,40 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     !state.bookingType ||
     !state.customer.first_name ||
     !state.customer.last_name ||
-    !state.customer.email;
+    !state.customer.email ||
+    !state.customer.phone;
 
-  const handleContinue = () => continueCheckout({ state, returnUrl, dispatch });
+  const handleContinue = async () => {
+    if (disabled || submitting) return;
+    try {
+      setSubmitting(true);
+      await continueCheckout({ state, returnUrl, dispatch });
+      // likely redirects; if not, we'll re-enable below
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const show = {
     booking: sections?.booking ?? true,
     details: sections?.details ?? true,
     payment: sections?.payment ?? true,
   };
+
+  const timeRange = useMemo(() => {
+    if (!state.time) return '';
+    let s = String(state.time);
+    try {
+      s = decodeURIComponent(s);
+    } catch {}
+    const m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return s;
+    const h = parseInt(m[1], 10);
+    const mm = m[2];
+    const endH = (h + 1) % 24;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(h)}:${mm} to ${pad(endH)}:${mm}`;
+  }, [state.time]);
 
   return (
     <section className="review">
@@ -90,7 +118,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
                 <Clock4 />
                 Time
               </span>
-              <strong>{state.time}</strong>
+              <strong>{timeRange || state.time}</strong>
             </li>
             <li>
               <span>
@@ -166,15 +194,25 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
           </h6>
         </div>
       </section>
+
       {show.payment && (
         <button
           type="button"
           className="review__button"
           onClick={handleContinue}
-          disabled={disabled}
+          disabled={disabled || submitting}
+          aria-busy={submitting}
           data-return-url={returnUrl || undefined}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          Continue to payment
+          {submitting ? (
+            <>
+              <CircularProgress size={18} thickness={5} />
+              <span>Processing…</span>
+            </>
+          ) : (
+            <span>Continue to payment</span>
+          )}
         </button>
       )}
     </section>

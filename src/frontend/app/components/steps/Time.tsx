@@ -1,8 +1,10 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { checkAvailability } from '../../../api/public';
-import { FormControl, FormControlLabel, RadioGroup, Radio } from '@mui/material';
+import { FormControl, FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import LoadingAnimation from '../LoadingAnimation';
+import { scrollToSection } from '../../utils/scroll';
+
 type SuggestedTime = { iso: string; label: string };
 
 export function Time() {
@@ -87,6 +89,7 @@ export function Time() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_TIME', value: e.target.value });
+    scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
   };
 
   return (

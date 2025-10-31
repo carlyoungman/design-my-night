@@ -331,7 +331,9 @@ class AdminController
         'image_url' => $img_id ? wp_get_attachment_image_url($img_id, 'large') : null,
         'gallery_ids' => array_values(array_filter(array_map('intval', (array)get_post_meta($p->ID, 'gallery', true)))),
         'menu_post_id' => $menu_post_id > 0 ? $menu_post_id : null,
+        'visible' => get_post_meta($p->ID, 'visible', true) !== '0',
       ];
+
     }, $posts);
 
     return new WP_REST_Response(['activities' => $rows], 200);
@@ -376,6 +378,10 @@ class AdminController
       $menu_id = (int)$b['menu_post_id'];
       if ($menu_id > 0) update_post_meta($id, 'dmn_menu_post_id', $menu_id);
       else delete_post_meta($id, 'dmn_menu_post_id');
+    }
+
+    if (array_key_exists('visible', $b)) {
+      update_post_meta($id, 'visible', $b['visible'] ? '1' : '0');
     }
 
     return new WP_REST_Response(['ok' => true], 200);
@@ -815,12 +821,6 @@ class AdminController
     return new WP_REST_Response(['menus' => $menus], 200);
   }
 
-  /**
-   * List menu items grouped by menu for activities under a venue.
-   *
-   * @param WP_REST_Request $r Request with query param 'venue'.
-   * @return WP_REST_Response Response with 'menus' groups.
-   */
   public function dmn_admin_list_menu_items(WP_REST_Request $r): WP_REST_Response
   {
     $venue_id = (int)$r->get_param('venue');
@@ -828,7 +828,6 @@ class AdminController
       return new WP_REST_Response(['menus' => []], 200);
     }
 
-    // Activities with assigned menu
     $activities = get_posts([
       'post_type' => 'dmn_activity',
       'post_parent' => $venue_id,
@@ -844,6 +843,8 @@ class AdminController
     $menu_to_activities = [];
     $menu_ids = [];
     foreach ($activities as $p) {
+      $visible = get_post_meta($p->ID, 'visible', true) !== '0';
+      if (!$visible) continue;
       $menu_post_id = (int)get_post_meta($p->ID, 'dmn_menu_post_id', true);
       if ($menu_post_id <= 0) continue;
       $menu_ids[$menu_post_id] = $menu_post_id;
@@ -859,7 +860,6 @@ class AdminController
       return new WP_REST_Response(['menus' => []], 200);
     }
 
-    // Menu titles
     $menus_posts = get_posts([
       'post_type' => 'dmn_menu',
       'post__in' => array_values($menu_ids),
@@ -871,7 +871,6 @@ class AdminController
       $menu_titles[$mp->ID] = $mp->post_title;
     }
 
-    // Items under those menus
     $items = get_posts([
       'post_type' => 'dmn_menu_item',
       'numberposts' => -1,
@@ -889,6 +888,8 @@ class AdminController
     foreach ($items as $it) {
       $menu_post_id = (int)get_post_meta($it->ID, '_dmn_menu_post_id', true);
       if ($menu_post_id <= 0) continue;
+      $visible = get_post_meta($it->ID, '_dmn_visible', true) !== '0';
+      if (!$visible) continue;
       $img_id = (int)get_post_thumbnail_id($it->ID);
       $grouped[$menu_post_id] ??= [];
       $grouped[$menu_post_id][] = [
@@ -901,6 +902,7 @@ class AdminController
         'image_url' => $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null,
         'dmn_item_id' => (string)get_post_meta($it->ID, '_dmn_item_id', true),
         'menu_post_id' => $menu_post_id,
+        'visible' => get_post_meta($it->ID, '_dmn_visible', true) !== '0',
       ];
     }
 
@@ -919,12 +921,6 @@ class AdminController
     return new WP_REST_Response(['menus' => $out], 200);
   }
 
-  /**
-   * Update a dmn_menu_item.
-   *
-   * @param WP_REST_Request $r Request with route 'id' and JSON body.
-   * @return WP_REST_Response 200 on success, 404 on missing post.
-   */
   public function dmn_admin_save_menu_item(WP_REST_Request $r): WP_REST_Response
   {
     $id = (int)$r['id'];
@@ -948,6 +944,9 @@ class AdminController
       } else {
         delete_post_thumbnail($id);
       }
+    }
+    if (array_key_exists('visible', $b)) {
+      update_post_meta($id, '_dmn_visible', $b['visible'] ? '1' : '0');
     }
 
     return new WP_REST_Response(['ok' => true], 200);

@@ -33,9 +33,11 @@
     background: var(--c-white);
     color: var(--c-black);
     opacity: 0.3;
+    pointer-events: none;
 
     &:hover {
       cursor: not-allowed;
+      background: var(--c-green);
     }
   }
 }

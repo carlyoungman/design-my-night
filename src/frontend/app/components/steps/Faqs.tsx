@@ -8,10 +8,19 @@ import { ChevronDown } from 'lucide-react';
 import { Notice } from '../Notice';
 
 type Faq = { question: string; answer: string };
-type Props = { faqs?: Faq[]; title?: string };
+type Props = { faqs?: Faq[]; title?: string; venues: any[] };
 
-export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
-  const { venueId, venueName } = useWidgetState();
+export function Faqs({ faqs: initial, title = 'FAQs', venues = [] }: Props) {
+  const { venueId } = useWidgetState();
+
+  const venueName = React.useMemo(
+    () =>
+      venues.find((v: any) => v._id === venueId)?.name ??
+      venues.find((v: any) => v._id === venueId)?.title ??
+      '',
+    [venues, venueId],
+  );
+
   const [faqs, setFaqs] = useState<Faq[] | null>(initial ?? null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -65,9 +74,9 @@ export function Faqs({ faqs: initial, title = 'FAQs' }: Props) {
         inlineId="faqs-loaded"
         invalid={true}
       />
-      <h5 className="faqs__title">
+      <h4 className="faqs__title">
         {title} for {venueName}
-      </h5>
+      </h4>
       <div className="faqs__list">
         {faqs.map((f, i) => (
           <Accordion key={i} className="faq" disableGutters>

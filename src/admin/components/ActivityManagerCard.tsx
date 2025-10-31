@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { adminListActivities, adminSaveActivity, adminListMenus } from '../api';
 import { useAdmin } from '../AdminContext';
 
@@ -11,6 +13,7 @@ type AdminActivity = {
   image_id?: number | null;
   image_url?: string | null;
   menu_post_id?: number | null;
+  visible?: boolean;
 };
 
 type MenuOption = { id: number; title: string; fixed_price?: boolean };
@@ -45,7 +48,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         (r.description || '') !== (o.description || '') ||
         (r.priceText || '') !== (o.priceText || '') ||
         (r.image_id || null) !== (o.image_id || null) ||
-        (r.menu_post_id || null) !== (o.menu_post_id || null) // ← track menu assignment
+        (r.menu_post_id || null) !== (o.menu_post_id || null) ||
+        (r.visible ?? true) !== (o.visible ?? true)
       )
         d.add(r.id);
     }
@@ -57,7 +61,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
   }, [dirty, onDirty]);
 
   useEffect(() => {
-    // load menus once
     let cancel = false;
     (async () => {
       setMenusLoading(true);
@@ -87,8 +90,12 @@ export default function ActivityManagerCard({ onDirty }: Props) {
       setOk(null);
       try {
         const r = await adminListActivities(Number(selectedVenueId));
-        setRows(r.activities);
-        setOrig(r.activities);
+        const rowsWithDefaults = r.activities.map((a: AdminActivity) => ({
+          ...a,
+          visible: a.visible ?? true,
+        }));
+        setRows(rowsWithDefaults);
+        setOrig(rowsWithDefaults);
       } catch (e: any) {
         setErr(e.message || 'Failed to load activities.');
       } finally {
@@ -142,6 +149,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             priceText: r.priceText ?? '',
             image_id: r.image_id ?? null,
             menu_post_id: r.menu_post_id ?? null,
+            visible: r.visible ?? true,
           }),
         ),
       );
@@ -154,8 +162,12 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         setOk(`Saved ${changed.length} activities.`);
         if (selectedVenueId) {
           const r = await adminListActivities(Number(selectedVenueId));
-          setRows(r.activities);
-          setOrig(r.activities);
+          const updatedRows = r.activities.map((a: AdminActivity) => ({
+            ...a,
+            visible: a.visible ?? true,
+          }));
+          setRows(updatedRows);
+          setOrig(updatedRows);
         }
       }
     } catch (e: any) {
@@ -270,6 +282,18 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                       </button>
                     ) : null}
                   </div>
+                </div>
+                <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                  <div className="table__label">Visibility</div>
+                  <ToggleButtonGroup
+                    value={r.visible ? 'enabled' : 'disabled'}
+                    exclusive
+                    onChange={(_, newValue) => onCell(r.id, 'visible', newValue === 'enabled')}
+                    aria-label="Visibility"
+                  >
+                    <ToggleButton value="enabled">Enabled</ToggleButton>
+                    <ToggleButton value="disabled">Disabled</ToggleButton>
+                  </ToggleButtonGroup>
                 </div>
               </div>
             </div>

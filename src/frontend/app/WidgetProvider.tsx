@@ -8,9 +8,7 @@ import {
 
 export type RootProps = {
   venueGroup?: string;
-  forcedVenueId?: string;
-  corpThreshold?: number;
-  corpEnquiryUrl?: string;
+  defaultVenueId?: string;
   returnUrl?: string;
   children?: React.ReactNode;
 };
@@ -26,40 +24,30 @@ type WidgetContextValue = {
 const WidgetCtx = createContext<WidgetContextValue | null>(null);
 
 export function WidgetProvider({ children, ...config }: RootProps) {
-  // useReducer initializer keeps this tiny (no extra useMemo for boot state)
   const [state, dispatch] = useReducer(
     reducer,
     config,
     (cfg: Config): WidgetState => ({
       ...initialState,
-      venueId: cfg.forcedVenueId ?? null,
+      // lock beats prefill
+      venueId: cfg.defaultVenueId ?? null,
     }),
   );
 
-  // small memo so consumers don't re-render more than needed
   const value = useMemo(
     () => ({ state, dispatch, config }),
-    [
-      state,
-      config.venueGroup,
-      config.forcedVenueId,
-      config.corpThreshold,
-      config.corpEnquiryUrl,
-      config.returnUrl,
-    ],
+    [state, config.venueGroup, config.defaultVenueId, config.returnUrl],
   );
 
   return <WidgetCtx.Provider value={value}>{children}</WidgetCtx.Provider>;
 }
 
-/** Single hook */
 export function useWidget() {
   const ctx = useContext(WidgetCtx);
   if (!ctx) throw new Error('useWidget must be used within <WidgetProvider>');
   return ctx;
 }
 
-/** Back-compat tiny helpers (optional) */
 export const useWidgetState = () => useWidget().state;
 export const useWidgetDispatch = () => useWidget().dispatch;
 export const useWidgetConfig = () => useWidget().config;

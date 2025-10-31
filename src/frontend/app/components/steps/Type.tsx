@@ -1,10 +1,10 @@
-// src/frontend/app/components/steps/Type.tsx
 import React, { useEffect, useId } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 import LoadingAnimation from '../LoadingAnimation';
 import { hhmmFromState } from '../../utils/helpers';
+import { scrollToSection } from '../../utils/scroll';
 
 type Props = {
   types: any[];
@@ -71,6 +71,10 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                   const next = String(value);
                   if (next !== (state.bookingType ?? '')) {
                     dispatch({ type: 'SET_TYPE', value: next });
+                    scrollToSection('section.details', {
+                      offset: { mobile: 190, desktop: 200 },
+                      delay: 400,
+                    });
                   }
                 }}
                 className="radio-group"

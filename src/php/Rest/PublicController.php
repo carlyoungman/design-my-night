@@ -6,7 +6,6 @@ use DMN\Booking\Services\DmnClient;
 use Throwable;
 use WP_Error;
 use WP_Post;
-use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -30,21 +29,13 @@ class PublicController
     }
   }
 
-  // In src/php/Rest/PublicController.php, inside the PublicController class
-
-  /**
-   * Handles the creation of a booking via the DMN API.
-   *
-   * Extracts allowed booking fields from the request payload, sends them to the DMN API,
-   * and returns the API response as a WP_REST_Response.
-   *
-   * @param WP_REST_Request $req The REST request containing booking data.
-   * @return WP_REST_Response The response from the DMN API, including debug info.
-   */
-
   /**
    * GET /dmn/v1/addons?venue_id=.&activity_id=..
-   * Returns add-ons mapped to the front-end shape used in Addons.tsx
+   * Returns add-ons mapped to the front-end shape used in Addons.tsx.
+   *
+   * Now filters out:
+   * - Activities with meta `visible` set to `'0'` (disabled).
+   * - Menu items (add-ons) with meta `_dmn_visible` set to `'0'` (disabled).
    */
   public static function get_addons(WP_REST_Request $r): WP_REST_Response
   {
@@ -80,16 +71,16 @@ class PublicController
       $activity_meta[] = [
         'relation' => 'OR',
         ['key' => 'dmn_type_id', 'value' => $activity_id],
-        ['key' => 'dmn_type_ids', 'value' => '"' . $activity_id . '"', 'compare' => 'LIKE'],
-        // keep these fallbacks if you used older keys at any point:
+        ['key' => 'dmn_type_ids', 'value' => '\"' . $activity_id . '\"', 'compare' => 'LIKE'],
+        // keep these fallbacks if older keys exist
         ['key' => 'activity_id', 'value' => $activity_id],
-        ['key' => 'activity_ids', 'value' => '"' . $activity_id . '"', 'compare' => 'LIKE'],
+        ['key' => 'activity_ids', 'value' => '\"' . $activity_id . '\"', 'compare' => 'LIKE'],
       ];
     }
 
     $activities = get_posts([
       'post_type' => 'dmn_activity',
-      'post_parent' => $venue_post_id,           // <-- local ID (fix)
+      'post_parent' => $venue_post_id,           // local ID
       'numberposts' => -1,
       'fields' => 'ids',
       'orderby' => 'menu_order title',
@@ -98,12 +89,25 @@ class PublicController
       'no_found_rows' => true,
     ]);
 
-    // 3) Collect menu IDs from those activities
     if (empty($activities)) {
       return new WP_REST_Response(['data' => []], 200);
     }
-    $menu_ids = [];
+
+    // 2b) Filter out activities that are disabled (visible === '0')
+    $visible_activity_ids = [];
     foreach ($activities as $aid) {
+      $is_visible = get_post_meta((int)$aid, 'visible', true) !== '0';
+      if ($is_visible) {
+        $visible_activity_ids[] = (int)$aid;
+      }
+    }
+    if (empty($visible_activity_ids)) {
+      return new WP_REST_Response(['data' => []], 200);
+    }
+
+    // 3) Collect menu IDs from only *visible* activities
+    $menu_ids = [];
+    foreach ($visible_activity_ids as $aid) {
       $mid = (int)get_post_meta((int)$aid, 'dmn_menu_post_id', true);
       if ($mid > 0) $menu_ids[$mid] = $mid;
     }
@@ -123,9 +127,15 @@ class PublicController
       'no_found_rows' => true,
     ]);
 
-    // 5) Map to frontend AddOnPackage shape (flat list)
+    // 5) Map to frontend AddOnPackage shape (flat list), skipping disabled items
     $out = [];
     foreach ($items as $it) {
+      // Skip if the add-on itself is disabled
+      $item_visible = get_post_meta($it->ID, '_dmn_visible', true) !== '0';
+      if (!$item_visible) {
+        continue;
+      }
+
       $img_id = (int)get_post_thumbnail_id($it->ID);
       $image_url = $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null;
       $price_ro = get_post_meta($it->ID, '_dmn_item_price_ro', true);
@@ -137,7 +147,7 @@ class PublicController
         'description' => (string)apply_filters('the_content', $it->post_content),
         'priceText' => $price_num !== null ? '£' . number_format($price_num, 2) : '',
         'image_url' => $image_url,
-        'visible' => true,
+        'visible' => true, // we only include visible ones
         'dmn_package_id' => (string)(get_post_meta($it->ID, '_dmn_item_id', true) ?: $it->ID),
       ];
     }
@@ -148,8 +158,6 @@ class PublicController
 
   /**
    * Registers all public REST API routes for the DMN Booking plugin.
-   * Each route is mapped to a callback for handling requests.
-   * This includes endpoints for venues, booking availability, bookings, packages, and booking types.
    */
   public function register_routes(): void
   {
@@ -222,7 +230,6 @@ class PublicController
       'permission_callback' => '__return_true',
       'callback' => function (WP_REST_Request $req): WP_REST_Response {
         $venue_param = $req->get_param('venue_id');
-        // Reuse your existing venue-id resolver style
         $post_id = $this->resolve_venue_post_id($venue_param);
         if ($post_id <= 0) return new WP_REST_Response(['url' => ''], 404);
         $url = (string)get_post_meta($post_id, 'dmn_return_url', true);
@@ -240,7 +247,7 @@ class PublicController
       $pid = (int)$venue_id_param;
       return max($pid, 0);
     }
-    // DMN venue id stored in post meta 'dmn_id'
+    // DMN venue id stored in post meta 'dmn_venue_id'
     $dmn_id = (string)$venue_id_param;
     $ids = get_posts([
       'post_type' => 'dmn_venue',
@@ -250,23 +257,18 @@ class PublicController
       'meta_value' => $dmn_id,
     ]);
 
-
     return !empty($ids) ? (int)$ids[0] : 0;
   }
 
   /**
-   * Retrieves a list of venues from the DMN API, optionally filtered by venue group.
-   *
-   * @param WP_REST_Request $req The REST request containing optional query parameters.
-   * @return WP_REST_Response The response with venue data, status, error, and debug info.
+   * GET /dmn/v1/venues
    */
-  public function venues(WP_REST_Request $req): WP_REST_Response
+  public function venues(WP_REST_Request $req): WP_REST_RESPONSE
   {
     $query = [];
     if ($vg = $req->get_param('venue_group')) {
       $query['venue_group'] = sanitize_text_field($vg);
     }
-    // Keep payload lean per DMN guidance
     $query['fields'] = $req->get_param('fields') ? sanitize_text_field((string)$req->get_param('fields')) : 'path,name,title';
 
     $dmn = new DmnClient();
@@ -281,13 +283,7 @@ class PublicController
   }
 
   /**
-   * Retrieves booking availability for a given venue from the DMN API.
-   *
-   * Validates the required `venue_id`, builds the request payload from provided parameters,
-   * and returns available booking slots, validation info, and debug data.
-   *
-   * @param WP_REST_Request $req The REST request containing booking search parameters.
-   * @return WP_REST_Response The response with availability data, status, error, validation, and debug info.
+   * POST /dmn/v1/booking-availability
    */
   public function availability(WP_REST_Request $req): WP_REST_Response
   {
@@ -315,7 +311,6 @@ class PublicController
     $dmn = new DmnClient();
     $res = $dmn->request('POST', "/venues/{$venueId}/booking-availability", $q, $payload);
 
-    // Expose validation (for suggestedValues of type/time)
     $validation = $res['validation'] ?? ($res['data']['payload']['validation'] ?? null);
 
     return new WP_REST_Response([
@@ -323,19 +318,16 @@ class PublicController
       'status' => $res['status'] ?? 0,
       'error' => $res['error'] ?? null,
       'validation' => $validation,
-      'debug' => $res, // include full debug blob
+      'debug' => $res,
     ], $res['ok'] ? 200 : ($res['status'] ?: 500));
   }
 
   /**
-   * Retrieves available booking types for a given venue by merging DMN API suggestions with WordPress-configured activities.
-   *
-   * I now preserve DMD's `auto confirmable` flag on each type so the front-end can check/label/sort accordingly.
-   *
-   * @param WP_REST_Request $r The REST request containing venue and optional filter parameters.
-   * @return WP_REST_Response The response with merged booking type data.
+   * GET /dmn/v1/booking-types
+   * Merge DMN suggested types with WP-configured activities,
+   * filtering out activities where meta `visible` is `'0'`.
    */
-  function get_booking_types(WP_REST_Request $r): WP_REST_Response
+  public function get_booking_types(WP_REST_Request $r): WP_REST_Response
   {
     $venueExtId = sanitize_text_field((string)$r->get_param('venue_id'));
     if (!$venueExtId) {
@@ -343,7 +335,6 @@ class PublicController
     }
 
     $date = $r->get_param('date') ?: gmdate('Y-m-d');
-    // allow either num_people or party_size
     $numPeople = (int)($r->get_param('num_people') ?: $r->get_param('party_size') ?: 2);
 
     // 1) DMN suggestions (venue-scoped + fields=type)
@@ -357,7 +348,6 @@ class PublicController
       $payload
     );
 
-    // Use `valid` + `message` from DMN instead of `auto confirmable`
     $suggested = []; // [typeId => ['id','name','valid','message']]
     if (!empty($dmnResp['ok'])) {
       $data = $dmnResp['data'] ?? [];
@@ -365,12 +355,9 @@ class PublicController
       $sv = $validation['type']['suggestedValues'] ?? [];
       if (is_array($sv)) {
         foreach ($sv as $item) {
-          // supports { value:{id,name,...}, valid, message } OR {id,name} OR "id"
           $v = (is_array($item) && isset($item['value'])) ? $item['value'] : $item;
-
           $id = is_array($v) ? (string)($v['id'] ?? '') : (string)$v;
           if (!$id) continue;
-
           $name = is_array($v) ? (string)($v['name'] ?? $id) : $id;
           $valid = is_array($item) && array_key_exists('valid', $item) ? (bool)$item['valid'] : null;
           $message = is_array($item) && array_key_exists('message', $item) ? (string)($item['message'] ?? '') : null;
@@ -385,7 +372,7 @@ class PublicController
       }
     }
 
-    // 2) WP-configured activities under the matching venue post
+    // 2) WP-configured activities under the matching venue post (only visible ones)
     $venuePosts = get_posts([
       'post_type' => 'dmn_venue',
       'numberposts' => 1,
@@ -407,6 +394,11 @@ class PublicController
 
       foreach ($acts as $p) {
         /** @var WP_Post $p */
+        // Skip if disabled
+        $is_visible = get_post_meta($p->ID, 'visible', true) !== '0';
+        if (!$is_visible) {
+          continue;
+        }
         $typeId = (string)get_post_meta($p->ID, 'dmn_type_id', true);
         if (!$typeId) continue;
 
@@ -429,6 +421,10 @@ class PublicController
       foreach ($suggested as $id => $base) {
         $conf = $configuredById[$id] ?? null;
 
+        // If no visible WP-configured activity for this type, skip entirely
+        if ($conf === null) {
+          continue;
+        }
 
         $valid = array_key_exists('valid', $base) ? $base['valid'] : null;
         $msg = array_key_exists('message', $base) ? ($base['message'] ?? '') : '';

@@ -13,7 +13,7 @@ export type VenueStepProps = {
   venues: Venue[];
   initialLoading: boolean;
   error: string | null;
-  forcedVenueId?: string;
+  defaultVenueId?: string | undefined;
 };
 
 // types.ts

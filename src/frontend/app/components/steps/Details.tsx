@@ -114,7 +114,7 @@ export function Details() {
 
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={phoneId}>
-            Phone <span className="details__label-hint">( optional )</span>
+            Phone <span className="details__label-hint">*</span>
           </label>
           <input
             id={phoneId}
@@ -142,7 +142,6 @@ export function Details() {
           <div className="details__hint">{(customer.message || '').length}/500</div>
           <Notice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
         </div>
-
         <div className="details__field-wrapper">
           <FormControlLabel
             required

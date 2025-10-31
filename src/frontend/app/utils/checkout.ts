@@ -1,19 +1,19 @@
 // src/frontend/app/helpers/checkout.ts
-import { checkAvailability, createBooking, getReturnUrl } from '../../api/public';
+import { checkAvailability, getReturnUrl } from '../../api/public';
 
-type BookingCustomer = {
+// ——— Types ———
+export type BookingCustomer = {
   first_name: string;
   last_name: string;
   email: string;
   phone?: string;
   message?: string;
-  // optional extras passed through verbatim if present
   newsletter?: boolean;
   marketing_prefs?: unknown[];
   [k: string]: unknown;
 };
 
-type WidgetState = {
+export type WidgetState = {
   venueId?: string | null;
   partySize?: number | null;
   date?: string | null;
@@ -22,107 +22,157 @@ type WidgetState = {
   customer: BookingCustomer;
 };
 
-type ErrorDispatch = (action: { type: 'ERROR'; message: string }) => void;
+export type ErrorDispatch = (action: { type: 'ERROR'; message: string }) => void;
 
-type NextInfo = { api?: boolean; web?: string | null };
-type BookingDetails = {
+// API shapes from DMN responses
+export type NextInfo = { api?: boolean; web?: string | null };
+export type BookingDetails = {
   venue_id: string;
   type: string;
   date: string;
-  time: string;
+  time: string; // HH:mm
   num_people: number;
   duration?: number;
   offer?: string;
   package?: string;
 };
-type AvailPayload = {
+export type AvailPayload = {
   valid: boolean;
   next?: NextInfo;
-  depositRequired?: unknown;
-  preordersAvailable?: boolean;
+  depositRequired?: unknown; // presence indicates redirect flow
+  preordersAvailable?: boolean; // true indicates redirect flow
   bookingDetails?: BookingDetails;
 };
 
+// ——— Small helpers ———
+const decodeMaybe = (v: string) => {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
+  }
+};
+
+const normalizeTime = (t: string): string => {
+  const s = decodeMaybe(String(t));
+  if (/^\d{2}:\d{2}$/.test(s)) return s; // already HH:mm
+  if (/^\d{1}:\d{2}$/.test(s)) return s.padStart(5, '0'); // H:mm -> HH:mm
+  if (/^\d{4}$/.test(s)) return `${s.slice(0, 2)}:${s.slice(2)}`; // HHmm -> HH:mm
+  // fallback: last two are minutes
+  const digits = s.replace(/\D/g, '');
+  if (digits.length >= 3) return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+  return s.padStart(5, '0');
+};
+
+const resolveReturnUrl = async (
+  venueId: string | null | undefined,
+  explicitReturnUrl: string | null | undefined,
+  buttonSelector: string,
+): Promise<string> => {
+  const fromButton = (document.querySelector(buttonSelector) as HTMLElement | null)?.dataset
+    ?.returnUrl;
+  const perVenue = venueId ? ((await getReturnUrl(venueId)).url ?? '') : '';
+  return (
+    fromButton ||
+    perVenue ||
+    explicitReturnUrl || // widget‑level default
+    window.location.href // final fallback
+  );
+};
+
+const buildRedirectUrl = (base: string, params: Record<string, unknown>) => {
+  const url = new URL(base, window.location.origin);
+  const qs = new URLSearchParams(url.search);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v == null) return;
+    if (Array.isArray(v)) v.forEach((item) => qs.append(k, String(item)));
+    else qs.set(k, String(v));
+  });
+  url.search = qs.toString();
+  return url.toString();
+};
+
+const ensureRequiredState = (state: WidgetState) => {
+  const venue_id = state.venueId ?? null;
+  const type = state.bookingType ?? null;
+  const num_people = state.partySize ?? null;
+  const date = state.date ?? null;
+  const time = state.time ? normalizeTime(state.time) : null;
+
+  if (!venue_id) throw new Error('Missing venue');
+  if (!type) throw new Error('Missing booking type');
+  if (!num_people) throw new Error('Missing party size');
+  if (!date) throw new Error('Missing date');
+  if (!time) throw new Error('Missing time');
+
+  return { venue_id, type, num_people, date, time } as const;
+};
+
+const buildBookingPayload = (
+  bd: BookingDetails,
+  customer: BookingCustomer,
+  return_url: string,
+) => ({
+  venue_id: bd.venue_id,
+  type: bd.type,
+  date: bd.date,
+  time: normalizeTime(bd.time),
+  num_people: bd.num_people,
+  duration: bd.duration ?? 1,
+  ...(bd.offer ? { offer: bd.offer } : {}),
+  ...(bd.package ? { package: bd.package } : {}),
+  source: 'partner' as const,
+  first_name: customer.first_name,
+  last_name: customer.last_name,
+  email: customer.email,
+  ...(customer.phone ? { phone: customer.phone } : {}),
+  ...(typeof customer.newsletter === 'boolean' ? { newsletter_signup: customer.newsletter } : {}),
+  ...(Array.isArray(customer.marketing_prefs) && customer.marketing_prefs.length
+    ? { marketing_preferences: customer.marketing_prefs }
+    : {}),
+  ...(customer.message ? { notes: String(customer.message).trim() } : {}),
+  return_url,
+});
+
+// ——— Main ———
 export async function continueCheckout(opts: {
   state: WidgetState;
   returnUrl?: string | null;
-  buttonSelector?: string; // defaults to '.review__button'
+  buttonSelector?: string;
   dispatch?: ErrorDispatch;
 }): Promise<void> {
   const { state, returnUrl, buttonSelector = '.review__button', dispatch } = opts;
 
   try {
+    // 1) Validate inputs up front
+    const required = ensureRequiredState(state);
+
+    // 2) Availability check using normalized time
     const avail = await checkAvailability(
       {
-        venue_id: state.venueId!,
-        type: state.bookingType!,
-        num_people: state.partySize!,
-        date: state.date!,
-        time: String(state.time!).padStart(5, '0'),
+        venue_id: required.venue_id,
+        type: required.type,
+        num_people: required.num_people,
+        date: required.date,
+        time: required.time,
       },
       'time',
     );
 
     const p = (avail?.data?.payload ?? {}) as AvailPayload;
     if (!p.valid) throw new Error('Selected time is no longer valid. Choose another.');
-    const perVenue = state.venueId ? ((await getReturnUrl(state.venueId)).url ?? '') : '';
-    const ru =
-      (document.querySelector(buttonSelector) as HTMLElement | null)?.dataset?.returnUrl ||
-      perVenue ||
-      returnUrl || // allow widget-level default
-      window.location.href; // final fallback
 
-    const mustRedirect = !p.next?.api || !!p.depositRequired || p.preordersAvailable === true;
-    if (mustRedirect) {
-      const base = p.next?.web;
-      if (!base) throw new Error('Redirect URL not available for this slot.');
-      const url = `${base}${base.includes('?') ? '&' : '?'}return_url=${encodeURIComponent(ru)}`;
-      window.location.assign(url);
-      return;
-    }
+    // 3) Resolve single source of truth for return_url
+    const ru = await resolveReturnUrl(state.venueId ?? null, returnUrl ?? null, buttonSelector);
 
-    const bd = p.bookingDetails;
-    if (!bd) throw new Error('Missing booking details for API submission.');
-
-    const bookingPayload = {
-      venue_id: bd.venue_id,
-      type: bd.type,
-      date: bd.date,
-      time: bd.time.padStart(5, '0'),
-      num_people: bd.num_people,
-      ...(bd.duration != null ? { duration: bd.duration } : {}),
-      ...(bd.offer ? { offer: bd.offer } : {}),
-      ...(bd.package ? { package: bd.package } : {}),
-      source: 'partner' as const,
-      first_name: state.customer.first_name!,
-      last_name: state.customer.last_name!,
-      email: state.customer.email!,
-      ...(state.customer.phone ? { phone: state.customer.phone } : {}),
-      ...(typeof state.customer.newsletter === 'boolean'
-        ? { newsletter_signup: state.customer.newsletter }
-        : {}),
-      ...(Array.isArray(state.customer.marketing_prefs) && state.customer.marketing_prefs.length
-        ? { marketing_preferences: state.customer.marketing_prefs }
-        : {}),
-      ...(state.customer.message ? { notes: state.customer.message.trim() } : {}),
-      return_url: returnUrl || window.location.href,
-    };
-
-    const res = await createBooking(bookingPayload);
-
-    const nextWeb =
-      res?.data?.next?.web ||
-      (res as any)?.next?.web ||
-      res?.data?.payment_url ||
-      (res as any)?.payment_url ||
-      null;
-
-    if (nextWeb) {
-      window.location.assign(String(nextWeb));
-      return;
-    }
-
-    console.log('Booking confirmed. Confirmation sent by email.');
+    // 4) Always redirect with full booking params in query
+    if (!p.bookingDetails) throw new Error('Missing booking details for web submission.');
+    const payload = buildBookingPayload(p.bookingDetails, state.customer, ru);
+    const base = p.next?.web;
+    if (!base) throw new Error('Redirect URL not available for this slot.');
+    const url = buildRedirectUrl(base, payload);
+    window.location.assign(url);
+    return;
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Booking failed. Please try again.';
     if (dispatch) dispatch({ type: 'ERROR', message: msg });

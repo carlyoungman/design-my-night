@@ -112,7 +112,7 @@ export default function Addons() {
                 <article className="package-card__article">
                   {pkg.name && <h6 className="package-card__name">{pkg.name}</h6>}
                   {pkg.description && (
-                    <p
+                    <span
                       className="package-card__description"
                       dangerouslySetInnerHTML={{ __html: pkg.description }}
                     />

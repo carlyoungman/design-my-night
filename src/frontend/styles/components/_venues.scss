@@ -13,6 +13,11 @@
 
   &__select {
     @include mixin.select;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+
   }
 }
 

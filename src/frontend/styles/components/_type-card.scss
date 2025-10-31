@@ -5,24 +5,31 @@
   overflow: hidden;
   text-align: left;
   border: 5px solid var(--c-black);
+  background: var(--c-white);
+  color: var(--c-black);
 
   &__image-wrapper {
     @include aspect-ratio-16-9;
   }
 
   &__article {
-    background-color: var(--c-white);
-    color: var(--c-black);
     padding: var(--universal-space);
   }
 
   &__name {
     margin-top: var(--universal-space);
     font-weight: bold;
+    color: inherit;
   }
+
+  &__description {
+    color: inherit;
+  }
+
 
   &__price {
     margin: 0;
+    color: inherit;
   }
 
   &__article-footer {

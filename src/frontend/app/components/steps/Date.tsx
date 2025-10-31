@@ -15,6 +15,7 @@ import {
 } from '../../utils/helpers';
 import { checkAvailability } from '../../../api/public';
 import LoadingAnimation from '../LoadingAnimation';
+import { scrollToSection } from '../../utils/scroll';
 
 export function Date() {
   const minDateISO = todayISO();
@@ -115,6 +116,7 @@ export function Date() {
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
       dispatch({ type: 'SET_TYPE', value: '' as any });
+      scrollToSection('section.time', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
     },
     [dispatch, isSelectable],
   );

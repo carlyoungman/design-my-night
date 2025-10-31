@@ -6,10 +6,7 @@ import WidgetRoot from './app/WidgetRoot';
 function boot(el: HTMLElement) {
   const props = {
     venueGroup: el.dataset.venueGroup || undefined,
-    forcedVenueId: el.dataset.venueId || undefined,
-    corpThreshold: Number(el.dataset.corpThreshold || 20),
-    corpEnquiryUrl: el.dataset.corpEnquiryUrl || undefined,
-    returnUrl: el.dataset.returnUrl || undefined,
+    defaultVenueId: el.dataset.venueId || undefined,
   };
   createRoot(el).render(<WidgetRoot {...(props as any)} />);
 }
