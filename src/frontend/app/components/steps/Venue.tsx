@@ -2,6 +2,7 @@ import React, { useId } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
+import { scrollToSection } from '../../utils/scroll';
 
 export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueStepProps) {
   const state = useWidgetState();
@@ -17,7 +18,7 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
     dispatch({ type: 'SET_DATE', date: null });
     dispatch({ type: 'SET_TIME', value: null });
     dispatch({ type: 'SET_TYPE', value: null });
-    dispatch({ type: 'SET_AVAIL', value: null });
+    scrollToSection('section.date', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
   };
 
   return (

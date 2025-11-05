@@ -45,6 +45,7 @@
     background: var(--c-white);
     position: sticky;
     top: var(--universal-space-2);
+    z-index: 10;
 
     &__inner {
       display: flex;

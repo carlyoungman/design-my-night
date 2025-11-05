@@ -9,12 +9,6 @@ export type Customer = {
   gdpr?: boolean;
 };
 
-export type Availability = {
-  valid: boolean;
-  action?: 'accept' | 'enquire' | 'may_enquire' | 'reject';
-  nextWeb?: string | null;
-} | null;
-
 export type AddonLine = {
   id: string;
   dmn_package_id: string;
@@ -30,10 +24,7 @@ export type State = {
   date?: string | null;
   time?: string | null;
   bookingType?: string | null;
-  avail?: Availability;
-  suggestions: string[];
   customer: Customer;
-  error: string | null;
   reviewDeadline?: number;
   submitting: boolean;
   addons: AddonLine[];
@@ -41,9 +32,6 @@ export type State = {
   addonsResolved: boolean;
 };
 
-// derive current step from data
-
-// ---- Defaults ----
 export const initialState: State = {
   venueId: null,
   venueName: null,
@@ -51,17 +39,13 @@ export const initialState: State = {
   date: null,
   time: null,
   bookingType: null,
-  avail: null,
-  suggestions: [],
   customer: { first_name: '', last_name: '', email: '', phone: '', message: '', gdpr: false },
-  error: null,
   submitting: false,
   addons: [],
   addonsSelected: [],
   addonsResolved: false,
 };
 
-// ---- Actions ----
 export type Action =
   | { type: 'SET_PARTY_SIZE'; size: number }
   | { type: 'SET_VENUE'; id: string | null }
@@ -69,40 +53,29 @@ export type Action =
   | { type: 'SET_DATE'; date: string | null }
   | { type: 'SET_TYPE'; value: string | null }
   | { type: 'SET_TIME'; value: string | null }
-  | { type: 'SET_AVAIL'; value: State['avail'] }
-  | { type: 'SET_SUGGESTIONS'; value: string[] }
   | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
-  | { type: 'ERROR'; message: string | null }
   | { type: 'SET_ADDONS'; value: AddonLine[] }
   | { type: 'SET_ADDONS_SELECTED'; value: string[] };
 
-// ---- Reducer ----
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
-    case 'SET_PARTY_SIZE': {
-      // optional but safer: type/add-ons can depend on party size
-      return {
-        ...s,
-        partySize: a.size,
-        bookingType: null,
-        addons: [],
-        addonsSelected: [],
-        addonsResolved: false,
-      };
-    }
     case 'SET_VENUE': {
       return {
         ...s,
         venueId: a.id,
+        partySize: 2,
         date: null,
-        time: null,
         bookingType: null,
-        avail: null, // clear stale availability
-        suggestions: [], // clear stale suggestions
-        error: null,
-        addons: [],
-        addonsSelected: [],
-        addonsResolved: false,
+        time: null,
+      };
+    }
+    case 'SET_PARTY_SIZE': {
+      return {
+        ...s,
+        partySize: a.size,
+        date: null,
+        bookingType: null,
+        time: null,
       };
     }
     case 'SET_VENUE_NAME': {
@@ -112,46 +85,25 @@ export function reducer(s: State, a: Action): State {
       return {
         ...s,
         date: a.date,
-        time: null,
         bookingType: null,
-        avail: null, // clear stale availability
-        suggestions: [],
-        error: null,
-        addons: [],
-        addonsSelected: [],
-        addonsResolved: false,
+        time: null,
       };
     }
     case 'SET_TIME': {
       return {
         ...s,
         time: a.value,
-        bookingType: null,
-        avail: null, // clear stale availability
-        suggestions: [],
-        error: null,
-        addons: [],
-        addonsSelected: [],
-        addonsResolved: false,
       };
     }
     case 'SET_TYPE': {
       return {
         ...s,
         bookingType: a.value,
-        addons: [],
-        addonsSelected: [],
-        addonsResolved: false,
+        time: null,
       };
     }
-    case 'SET_AVAIL':
-      return { ...s, avail: a.value };
-    case 'SET_SUGGESTIONS':
-      return { ...s, suggestions: a.value };
     case 'SET_CUSTOMER':
       return { ...s, customer: { ...s.customer, ...a.value } };
-    case 'ERROR':
-      return { ...s, error: a.message };
     case 'SET_ADDONS':
       return { ...s, addons: a.value };
     case 'SET_ADDONS_SELECTED':

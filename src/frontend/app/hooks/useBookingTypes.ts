@@ -77,7 +77,7 @@ export function useBookingTypes({
       const res = await getBookingTypes({
         venueId: String(venueId),
         numPeople: partySize,
-        time: time ?? undefined,
+        // time: time ?? undefined,
         date: date ?? undefined,
       });
 
@@ -122,7 +122,7 @@ export function useBookingTypes({
       setLoading(false);
       inFlightRef.current = '';
     }
-  }, [enabled, venueId, partySize, date, time]);
+  }, [enabled, venueId, partySize, date]);
 
   // Fetch types on mount and whenever dependencies change; ensure we abort
   // outstanding requests during cleanup to avoid setting state on unmounted components

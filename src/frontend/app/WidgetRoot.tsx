@@ -33,7 +33,7 @@ function WidgetInner() {
   const { venues, loading, error } = useVenues(venueGroup);
 
   const timeHHmm = hhmmFromState(state.time);
-  const enabled = !!state.venueId && state.partySize != null && !!state.date && !!timeHHmm;
+  const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
   const {
     types = [],
@@ -86,20 +86,20 @@ function WidgetInner() {
           </section>
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
-              <Clock4 className="dmn-widget__icon" />
-              4. Pick a time
+              <Rocket className="dmn-widget__icon" />
+              4. Choose your experience
             </p>
             <div className="dmn-widget__body">
-              <Time />
+              <Type types={types} loading={typesLoading} error={typesError} enabled={enabled} />
             </div>
           </section>
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
-              <Rocket className="dmn-widget__icon" />
-              5. Choose your experience
+              <Clock4 className="dmn-widget__icon" />
+              5. Pick a time
             </p>
             <div className="dmn-widget__body">
-              <Type types={types} loading={typesLoading} error={typesError} enabled={enabled} />
+              <Time />
             </div>
           </section>
           {/*<section className="dmn-widget__section">*/}

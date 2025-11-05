@@ -58,7 +58,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     if (disabled || submitting) return;
     try {
       setSubmitting(true);
-      await continueCheckout({ state, returnUrl, dispatch });
+      await continueCheckout({ state, returnUrl });
       // likely redirects; if not, we'll re-enable below
     } finally {
       setSubmitting(false);
@@ -115,13 +115,6 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
             </li>
             <li>
               <span>
-                <Clock4 />
-                Time
-              </span>
-              <strong>{timeRange || state.time}</strong>
-            </li>
-            <li>
-              <span>
                 <Rocket />
                 Experience
               </span>
@@ -130,6 +123,13 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
                   <span dangerouslySetInnerHTML={{ __html: selectedType.name }} />
                 )}
               </strong>
+            </li>
+            <li>
+              <span>
+                <Clock4 />
+                Time
+              </span>
+              <strong>{timeRange || state.time}</strong>
             </li>
           </ul>
         </section>
@@ -168,10 +168,10 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
       <section className="review__section">
         <h4 className="review__heading">Summary</h4>
         <div className="review__price">
-          <div className="review__row">
-            <span>Base {state.partySize ? `(x${state.partySize})` : ''}</span>
-            <strong>{fmt(basePrice)}</strong>
-          </div>
+          {/*<div className="review__row">*/}
+          {/*  <span>Base {state.partySize ? `(x${state.partySize})` : ''}</span>*/}
+          {/*  <strong>{fmt(basePrice)}</strong>*/}
+          {/*</div>*/}
 
           {selectedAddons.length > 0 && (
             <div className="review__addons">

@@ -116,7 +116,7 @@ export function Date() {
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
       dispatch({ type: 'SET_TYPE', value: '' as any });
-      scrollToSection('section.time', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
+      scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
     },
     [dispatch, isSelectable],
   );
@@ -128,7 +128,7 @@ export function Date() {
   return (
     <section className="date">
       {!loading && validDates.size === 0 && (
-        <LoadingAnimation type="required" text="Venue required" />
+        <LoadingAnimation type="required" text="Venue and party size required" />
       )}
       {loading && validDates.size === 0 && (
         <LoadingAnimation type="loading" text="Checking availability…" />

@@ -14,14 +14,6 @@ export function useAvailability() {
 
   async function runAvailability(opts: { includeTime?: boolean; field?: 'date' | 'time' } = {}) {
     // Basic guardrails: require venue + party size at minimum; if we're checking time, also require date
-    if (!state.venueId || !state.partySize) {
-      dispatch({ type: 'ERROR', message: 'Please choose venue and guests first.' });
-      return null;
-    }
-    if ((opts.includeTime || opts.field === 'time') && !state.date) {
-      dispatch({ type: 'ERROR', message: 'Please choose a date first.' });
-      return null;
-    }
 
     // Build payload with only known fields (faster + doc‑recommended)
     const payload: AvailabilityReq = {
@@ -49,19 +41,8 @@ export function useAvailability() {
         .map((s) => s.value as string)
         .slice(0, 3);
 
-      // Update global state
-      dispatch({ type: 'SET_SUGGESTIONS', value: apiSuggestions });
-      dispatch({
-        type: 'SET_AVAIL',
-        value: { valid, action, nextWeb },
-      });
-
-      // Clear any previous error
-      dispatch({ type: 'ERROR', message: null });
-
       return res; // allow callers to inspect next, validation, etc.
     } catch (e: any) {
-      dispatch({ type: 'ERROR', message: e?.message || 'Availability check failed.' });
       return null;
     }
   }

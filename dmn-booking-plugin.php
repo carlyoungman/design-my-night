@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('DMN_BP_VER', '0.1.0');
+define('DMN_BP_VER', '1.0.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 

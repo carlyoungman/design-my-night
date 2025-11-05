@@ -313,9 +313,9 @@ class AdminController
     $posts = get_posts([
       'post_type' => 'dmn_activity',
       'post_parent' => $venue_id,
-      'numberposts' => -1,
-      'orderby' => 'menu_order title',
-      'order' => 'ASC',
+      'numberposts' => 1000,
+//      'orderby' => 'menu_order title',
+//      'order' => 'ASC',
     ]);
 
     $rows = array_map(function (WP_Post $p) {

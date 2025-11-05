@@ -3,7 +3,6 @@ import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 import LoadingAnimation from '../LoadingAnimation';
-import { hhmmFromState } from '../../utils/helpers';
 import { scrollToSection } from '../../utils/scroll';
 
 type Props = {
@@ -17,8 +16,6 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
   const captionId = useId();
-
-  const timeHHmm = hhmmFromState(state.time);
 
   // Clear selection if prerequisites are not met
   useEffect(() => {
@@ -42,14 +39,7 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
   return (
     <section className="type">
       {!enabled ? (
-        <LoadingAnimation
-          type="required"
-          text={
-            state.time && !timeHHmm
-              ? 'Time format invalid. Please pick a slot.'
-              : 'Venue, party size, date and time required'
-          }
-        />
+        <LoadingAnimation type="required" text="Venue, party size, date required" />
       ) : (
         <>
           {loading && <LoadingAnimation type="loading" text="Loading experiences…" />}
@@ -71,7 +61,7 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                   const next = String(value);
                   if (next !== (state.bookingType ?? '')) {
                     dispatch({ type: 'SET_TYPE', value: next });
-                    scrollToSection('section.details', {
+                    scrollToSection('section.time', {
                       offset: { mobile: 190, desktop: 200 },
                       delay: 400,
                     });

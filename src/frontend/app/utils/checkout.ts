@@ -139,9 +139,8 @@ export async function continueCheckout(opts: {
   state: WidgetState;
   returnUrl?: string | null;
   buttonSelector?: string;
-  dispatch?: ErrorDispatch;
 }): Promise<void> {
-  const { state, returnUrl, buttonSelector = '.review__button', dispatch } = opts;
+  const { state, returnUrl, buttonSelector = '.review__button' } = opts;
 
   try {
     // 1) Validate inputs up front
@@ -175,7 +174,5 @@ export async function continueCheckout(opts: {
     return;
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Booking failed. Please try again.';
-    if (dispatch) dispatch({ type: 'ERROR', message: msg });
-    else throw err;
   }
 }

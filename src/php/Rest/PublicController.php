@@ -305,8 +305,10 @@ class PublicController
       'date' => isset($p['date']) ? sanitize_text_field((string)$p['date']) : null,
       'time' => isset($p['time']) ? sanitize_text_field((string)$p['time']) : null,
       'duration' => isset($p['duration']) ? (int)$p['duration'] : null,
-      'getOffers' => isset($p['getOffers']) ? (bool)$p['getOffers'] : null,
+      'source' => 'partner',
+      'getOffers' => true,
     ], fn($v) => $v !== null);
+
 
     $dmn = new DmnClient();
     $res = $dmn->request('POST', "/venues/{$venueId}/booking-availability", $q, $payload);

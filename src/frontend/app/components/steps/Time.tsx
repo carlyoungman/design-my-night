@@ -40,10 +40,8 @@ export function Time() {
     return out;
   }, []);
 
-  // Fetch "fields=time" whenever required inputs exist.
-  // (We don't gate on state.step—this prefetches after date pick so the list is ready.)
   useEffect(() => {
-    if (!state.venueId || state.partySize == null || !state.date) {
+    if (!state.venueId || state.partySize == null || !state.date || !state.bookingType) {
       setTimes([]);
       return;
     }
@@ -58,6 +56,9 @@ export function Time() {
             venue_id: state.venueId!,
             ...(state.partySize != null ? { num_people: state.partySize } : {}),
             ...(state.date ? { date: state.date } : {}),
+            ...(state.bookingType
+              ? { activity_id: state.bookingType, type: state.bookingType }
+              : {}),
           },
           'time',
         );
@@ -65,17 +66,13 @@ export function Time() {
         if (cancelled) return;
         const parsed = parseTimes(res);
         setTimes(parsed);
-
-        // Surface a short list of suggestions into global state (chips, etc.)
-        const top3 = parsed.slice(0, 3).map((t) => t.label);
-        dispatch({ type: 'SET_SUGGESTIONS', value: top3 });
       } catch {
         if (!cancelled) {
           setTimes([]);
-          dispatch({
-            type: 'ERROR',
-            message: 'Unable to load available times. Please adjust date or party size.',
-          });
+          // dispatch({
+          //   type: 'ERROR',
+          //   message: 'Unable to load available times. Please adjust date or party size.',
+          // });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -85,11 +82,11 @@ export function Time() {
     return () => {
       cancelled = true;
     };
-  }, [state.venueId, state.partySize, state.date, dispatch, parseTimes]);
+  }, [state.venueId, state.partySize, state.date, state.bookingType, dispatch, parseTimes]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_TIME', value: e.target.value });
-    scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
+    scrollToSection('section.details', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
   };
 
   return (
@@ -98,7 +95,7 @@ export function Time() {
         <LoadingAnimation type="loading" text="Checking availability…"></LoadingAnimation>
       )}
       {!loading && times.length === 0 && (
-        <LoadingAnimation type="required" text="Venue, party size and date required" />
+        <LoadingAnimation type="required" text="Venue, party size, date and experience required" />
       )}
       {!loading && times.length > 0 && (
         <FormControl component="fieldset" variant="standard" className="time">

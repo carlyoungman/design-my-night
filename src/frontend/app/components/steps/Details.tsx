@@ -54,7 +54,10 @@ export function Details() {
   if (!enabled) {
     return (
       <section className="details">
-        <LoadingAnimation type="required" text="Venue, date, time and experience required" />
+        <LoadingAnimation
+          type="required"
+          text="Venue, party size, date, experience and time required"
+        />
       </section>
     );
   }
@@ -142,24 +145,24 @@ export function Details() {
           <div className="details__hint">{(customer.message || '').length}/500</div>
           <Notice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
         </div>
-        <div className="details__field-wrapper">
-          <FormControlLabel
-            required
-            className="details__checkbox"
-            control={
-              <Checkbox
-                id={termsId}
-                checked={!!customer.gdpr}
-                sx={{
-                  color: 'var(--c-theme-primary)',
-                  '&.Mui-checked': { color: 'var(--c-theme-primary)' },
-                }}
-                onChange={(e) => set({ gdpr: e.target.checked })}
-              />
-            }
-            label="I am happy for NQ64 to send me exclusive information and deals from time to time."
-          />
-        </div>
+        {/*<div className="details__field-wrapper">*/}
+        {/*  <FormControlLabel*/}
+        {/*    required*/}
+        {/*    className="details__checkbox"*/}
+        {/*    control={*/}
+        {/*      <Checkbox*/}
+        {/*        id={termsId}*/}
+        {/*        checked={!!customer.gdpr}*/}
+        {/*        sx={{*/}
+        {/*          color: 'var(--c-theme-primary)',*/}
+        {/*          '&.Mui-checked': { color: 'var(--c-theme-primary)' },*/}
+        {/*        }}*/}
+        {/*        onChange={(e) => set({ gdpr: e.target.checked })}*/}
+        {/*      />*/}
+        {/*    }*/}
+        {/*    label="I am happy for NQ64 to send me exclusive information and deals from time to time."*/}
+        {/*  />*/}
+        {/*</div>*/}
       </div>
     </section>
   );
