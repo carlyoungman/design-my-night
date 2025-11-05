@@ -19,6 +19,7 @@ export type WidgetState = {
   date?: string | null;
   time?: string | null;
   bookingType?: string | null;
+  duration?: number | null; // ← add duration to state
   customer: BookingCustomer;
 };
 
@@ -32,15 +33,15 @@ export type BookingDetails = {
   date: string;
   time: string; // HH:mm
   num_people: number;
-  duration?: number;
+  duration?: number; // minutes
   offer?: string;
   package?: string;
 };
 export type AvailPayload = {
   valid: boolean;
   next?: NextInfo;
-  depositRequired?: unknown; // presence indicates redirect flow
-  preordersAvailable?: boolean; // true indicates redirect flow
+  depositRequired?: unknown;
+  preordersAvailable?: boolean;
   bookingDetails?: BookingDetails;
 };
 
@@ -58,7 +59,6 @@ const normalizeTime = (t: string): string => {
   if (/^\d{2}:\d{2}$/.test(s)) return s; // already HH:mm
   if (/^\d{1}:\d{2}$/.test(s)) return s.padStart(5, '0'); // H:mm -> HH:mm
   if (/^\d{4}$/.test(s)) return `${s.slice(0, 2)}:${s.slice(2)}`; // HHmm -> HH:mm
-  // fallback: last two are minutes
   const digits = s.replace(/\D/g, '');
   if (digits.length >= 3) return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
   return s.padStart(5, '0');
@@ -72,12 +72,7 @@ const resolveReturnUrl = async (
   const fromButton = (document.querySelector(buttonSelector) as HTMLElement | null)?.dataset
     ?.returnUrl;
   const perVenue = venueId ? ((await getReturnUrl(venueId)).url ?? '') : '';
-  return (
-    fromButton ||
-    perVenue ||
-    explicitReturnUrl || // widget‑level default
-    window.location.href // final fallback
-  );
+  return fromButton || perVenue || explicitReturnUrl || window.location.href;
 };
 
 const buildRedirectUrl = (base: string, params: Record<string, unknown>) => {
@@ -112,27 +107,37 @@ const buildBookingPayload = (
   bd: BookingDetails,
   customer: BookingCustomer,
   return_url: string,
-) => ({
-  venue_id: bd.venue_id,
-  type: bd.type,
-  date: bd.date,
-  time: normalizeTime(bd.time),
-  num_people: bd.num_people,
-  duration: bd.duration ?? 1,
-  ...(bd.offer ? { offer: bd.offer } : {}),
-  ...(bd.package ? { package: bd.package } : {}),
-  source: 'partner' as const,
-  first_name: customer.first_name,
-  last_name: customer.last_name,
-  email: customer.email,
-  ...(customer.phone ? { phone: customer.phone } : {}),
-  ...(typeof customer.newsletter === 'boolean' ? { newsletter_signup: customer.newsletter } : {}),
-  ...(Array.isArray(customer.marketing_prefs) && customer.marketing_prefs.length
-    ? { marketing_preferences: customer.marketing_prefs }
-    : {}),
-  ...(customer.message ? { notes: String(customer.message).trim() } : {}),
-  return_url,
-});
+  durationOverride?: number | null, // ← optional override from state
+) => {
+  const resolvedDuration =
+    typeof durationOverride === 'number' && durationOverride > 0
+      ? durationOverride
+      : typeof bd.duration === 'number' && bd.duration > 0
+        ? bd.duration
+        : undefined;
+
+  return {
+    venue_id: bd.venue_id,
+    type: bd.type,
+    date: bd.date,
+    time: normalizeTime(bd.time),
+    num_people: bd.num_people,
+    ...(resolvedDuration != null ? { duration: resolvedDuration } : {}), // ← use state or BD
+    ...(bd.offer ? { offer: bd.offer } : {}),
+    ...(bd.package ? { package: bd.package } : {}),
+    source: 'partner' as const,
+    first_name: customer.first_name,
+    last_name: customer.last_name,
+    email: customer.email,
+    ...(customer.phone ? { phone: customer.phone } : {}),
+    ...(typeof customer.newsletter === 'boolean' ? { newsletter_signup: customer.newsletter } : {}),
+    ...(Array.isArray(customer.marketing_prefs) && customer.marketing_prefs.length
+      ? { marketing_preferences: customer.marketing_prefs }
+      : {}),
+    ...(customer.message ? { notes: String(customer.message).trim() } : {}),
+    return_url,
+  };
+};
 
 // ——— Main ———
 export async function continueCheckout(opts: {
@@ -145,8 +150,10 @@ export async function continueCheckout(opts: {
   try {
     // 1) Validate inputs up front
     const required = ensureRequiredState(state);
+    const stateDuration =
+      typeof state.duration === 'number' && state.duration > 0 ? state.duration : undefined;
 
-    // 2) Availability check using normalized time
+    // 2) Availability check using normalized time (+ duration if present)
     const avail = await checkAvailability(
       {
         venue_id: required.venue_id,
@@ -154,6 +161,7 @@ export async function continueCheckout(opts: {
         num_people: required.num_people,
         date: required.date,
         time: required.time,
+        ...(stateDuration ? { duration: stateDuration } : {}), // ← pass duration to check
       },
       'time',
     );
@@ -164,9 +172,9 @@ export async function continueCheckout(opts: {
     // 3) Resolve single source of truth for return_url
     const ru = await resolveReturnUrl(state.venueId ?? null, returnUrl ?? null, buttonSelector);
 
-    // 4) Always redirect with full booking params in query
+    // 4) Redirect with full booking params in query
     if (!p.bookingDetails) throw new Error('Missing booking details for web submission.');
-    const payload = buildBookingPayload(p.bookingDetails, state.customer, ru);
+    const payload = buildBookingPayload(p.bookingDetails, state.customer, ru, stateDuration); // ← inject state.duration
     const base = p.next?.web;
     if (!base) throw new Error('Redirect URL not available for this slot.');
     const url = buildRedirectUrl(base, payload);

@@ -80,11 +80,9 @@ class PublicController
 
     $activities = get_posts([
       'post_type' => 'dmn_activity',
-      'post_parent' => $venue_post_id,           // local ID
-      'numberposts' => -1,
+      'post_parent' => $venue_post_id,
+      'numberposts' => 1000,
       'fields' => 'ids',
-      'orderby' => 'menu_order title',
-      'order' => 'ASC',
       'meta_query' => $activity_meta,
       'no_found_rows' => true,
     ]);
@@ -389,10 +387,9 @@ class PublicController
       $acts = get_posts([
         'post_type' => 'dmn_activity',
         'post_parent' => $venuePostId,
-        'numberposts' => 100,
-        'orderby' => 'menu_order title',
-        'order' => 'ASC',
+        'numberposts' => 1000,
       ]);
+
 
       foreach ($acts as $p) {
         /** @var WP_Post $p */
@@ -405,7 +402,7 @@ class PublicController
         if (!$typeId) continue;
 
         $imgId = (int)get_post_thumbnail_id($p->ID);
-
+        $duration = (int)get_post_meta($p->ID, '_dmn_duration_minutes', true);
         $configuredById[$typeId] = [
           'id' => $typeId,
           'name' => get_the_title($p->ID),
@@ -413,6 +410,7 @@ class PublicController
           'priceText' => (string)get_post_meta($p->ID, 'price_text', true),
           'image_id' => $imgId ?: null,
           'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
+          'duration' => $duration > 0 ? $duration : null,
         ];
       }
     }
@@ -443,6 +441,7 @@ class PublicController
           'image_url' => $conf['image_url'] ?? null,
           'valid' => $valid,
           'message' => $msg ?: null,
+          'duration' => $conf['duration'] ?? null,
         ];
       }
     } else {
@@ -461,19 +460,16 @@ class PublicController
       }
     }
 
-    // Sort: invalid (valid === false) to the end; A–Z within group
-    usort($out, static function (array $a, array $b): int {
-      $aInvalid = array_key_exists('valid', $a) && $a['valid'] === false;
-      $bInvalid = array_key_exists('valid', $b) && $b['valid'] === false;
-      if ($aInvalid !== $bInvalid) return $aInvalid ? 1 : -1;
 
-      $an = (string)($a['name'] ?? '');
-      $bn = (string)($b['name'] ?? '');
-      $cmp = strcasecmp($an, $bn);
-      if ($cmp !== 0) return $cmp;
+    // Stable partition: preserve original order, push invalid to end.
+    $valid = [];
+    $invalid = [];
 
-      return strcasecmp((string)($a['id'] ?? ''), (string)($b['id'] ?? ''));
-    });
+    foreach ($out as $row) {
+      ($row['valid'] ?? null) === false ? $invalid[] = $row : $valid[] = $row;
+    }
+
+    $out = array_merge($valid, $invalid);
 
     return new WP_REST_Response(['data' => $out], 200);
   }

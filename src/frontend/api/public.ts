@@ -76,6 +76,7 @@ export function getBookingTypes(params: BookingTypeQuery) {
       image_id?: number | null;
       valid?: boolean | null;
       message?: string | null;
+      duration?: number | null;
     }>;
   }>('booking-types?' + qs.toString());
 }

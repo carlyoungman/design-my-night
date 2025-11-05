@@ -21,6 +21,7 @@ type BookingTypeItem = {
   name: string;
   description?: string;
   priceText?: string | null;
+  duration?: number | null;
   image_url?: string | null;
   image_id?: number | null;
   valid: boolean | null;
@@ -88,28 +89,12 @@ export function useBookingTypes({
         name: t.name || String(t.id),
         description: t.description || '',
         priceText: t.priceText || '',
+        duration: t.duration || '',
         image_url: t.image_url ?? null,
         image_id: t.image_id ?? null,
         valid: typeof t.valid === 'boolean' ? t.valid : null,
         message: t.message ?? null,
       }));
-
-      // Sort invalid items to the end, then alphabetically by name (case‑insensitive),
-      // then by ID as a final tiebreaker
-      mapped.sort((a, b) => {
-        const aInvalid = a.valid === false;
-        const bInvalid = b.valid === false;
-        if (aInvalid !== bInvalid) return aInvalid ? 1 : -1;
-
-        const byName = (a.name ?? '').localeCompare(b.name ?? '', undefined, {
-          sensitivity: 'base',
-        });
-        if (byName !== 0) return byName;
-
-        return String(a.id).localeCompare(String(b.id), undefined, {
-          sensitivity: 'base',
-        });
-      });
 
       setTypes(mapped);
       lastKeyRef.current = key;

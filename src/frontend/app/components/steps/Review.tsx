@@ -73,18 +73,23 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
   const timeRange = useMemo(() => {
     if (!state.time) return '';
-    let s = String(state.time);
-    try {
-      s = decodeURIComponent(s);
-    } catch {}
-    const m = s.match(/^(\d{1,2}):(\d{2})$/);
-    if (!m) return s;
-    const h = parseInt(m[1], 10);
-    const mm = m[2];
-    const endH = (h + 1) % 24;
+    const match = String(state.time).match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return state.time;
+
+    const [, hStr, mStr] = match;
+    const startH = parseInt(hStr, 10);
+    const startM = parseInt(mStr, 10);
+    const duration = state.duration ?? 0;
+    if (duration <= 0) return state.time; // ← no duration yet, show start only
+
+    const totalStartMin = startH * 60 + startM;
+    const totalEndMin = totalStartMin + duration;
+    const endH = Math.floor(totalEndMin / 60) % 24;
+    const endM = totalEndMin % 60;
+
     const pad = (n: number) => String(n).padStart(2, '0');
-    return `${pad(h)}:${mm} to ${pad(endH)}:${mm}`;
-  }, [state.time]);
+    return `${pad(startH)}:${pad(startM)} to ${pad(endH)}:${pad(endM)}`;
+  }, [state.time, state.duration]);
 
   return (
     <section className="review">

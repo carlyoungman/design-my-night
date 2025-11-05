@@ -21,6 +21,7 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
   useEffect(() => {
     if (!enabled && state.bookingType) {
       dispatch({ type: 'SET_TYPE', value: null });
+      dispatch({ type: 'SET_DURATION', value: null }); // ← clear duration too
     }
   }, [enabled, state.bookingType, dispatch]);
 
@@ -28,7 +29,10 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
   useEffect(() => {
     if (enabled && !loading && types.length === 1 && types[0]?.valid !== false) {
       const only = types[0]!;
-      if (only.id !== state.bookingType) dispatch({ type: 'SET_TYPE', value: only.id });
+      if (only.id !== state.bookingType) {
+        dispatch({ type: 'SET_TYPE', value: only.id });
+        dispatch({ type: 'SET_DURATION', value: only.duration ?? null }); // ← set duration
+      }
     }
   }, [enabled, loading, types, state.bookingType, dispatch]);
 
@@ -61,6 +65,9 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                   const next = String(value);
                   if (next !== (state.bookingType ?? '')) {
                     dispatch({ type: 'SET_TYPE', value: next });
+                    const selected = types.find((t) => t.id === next);
+
+                    dispatch({ type: 'SET_DURATION', value: selected?.duration ?? null });
                     scrollToSection('section.time', {
                       offset: { mobile: 190, desktop: 200 },
                       delay: 400,
@@ -79,6 +86,7 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                     >
                       <Radio.Root
                         value={t.id}
+                        data-duration={t.duration}
                         className="radio__radio"
                         disabled={isDisabled}
                         aria-disabled={isDisabled}

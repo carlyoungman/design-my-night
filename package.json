@@ -1,7 +1,7 @@
 {
   "name": "dmn-booking-plugin",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "start:admin": "wp-scripts start src/admin/index.tsx --output-path=dist/admin",
     "start:frontend": "wp-scripts start src/frontend/index.tsx --output-path=dist/frontend",

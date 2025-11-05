@@ -2,8 +2,10 @@
 
 namespace DMN\Booking\Rest;
 
+use DateInterval;
 use DMN\Booking\Config\Settings;
 use DMN\Booking\Services\DmnClient;
+use Exception;
 use Throwable;
 use WP_Error;
 use WP_Post;
@@ -314,8 +316,6 @@ class AdminController
       'post_type' => 'dmn_activity',
       'post_parent' => $venue_id,
       'numberposts' => 1000,
-//      'orderby' => 'menu_order title',
-//      'order' => 'ASC',
     ]);
 
     $rows = array_map(function (WP_Post $p) {
@@ -332,6 +332,7 @@ class AdminController
         'gallery_ids' => array_values(array_filter(array_map('intval', (array)get_post_meta($p->ID, 'gallery', true)))),
         'menu_post_id' => $menu_post_id > 0 ? $menu_post_id : null,
         'visible' => get_post_meta($p->ID, 'visible', true) !== '0',
+        'duration_minutes' => (int)get_post_meta($p->ID, '_dmn_duration_minutes', true),
       ];
 
     }, $posts);
@@ -547,6 +548,34 @@ class AdminController
         }
 
         if (!empty($pid) && !is_wp_error($pid)) {
+          try {
+            $rules = $client->request('POST', "/venues/$ext_id/booking-rules", [
+              'type' => $typeId,
+              'date' => gmdate('Y-m-d'),
+              'num_people' => 2,
+            ]);
+            if (!empty($rules['ok'])) {
+              $payload = $rules['data']['payload'] ?? [];
+              $minutes = null;
+
+              if (isset($payload['max_duration'])) {
+                $minutes = (int)$payload['max_duration'];
+              } elseif (!empty($payload['max_booking_duration'])) {
+                try {
+                  $d = new DateInterval($payload['max_booking_duration']);
+                  $minutes = ($d->h * 60) + $d->i;
+                } catch (Exception) {
+                }
+              }
+
+              if ($minutes !== null) {
+                update_post_meta($pid, '_dmn_duration_minutes', $minutes);
+              }
+            }
+          } catch (Throwable $e) {
+            error_log("[DMN] Duration fetch failed for type $typeId: " . $e->getMessage());
+          }
+
           $total++;
         }
       }
@@ -554,6 +583,7 @@ class AdminController
 
     return $total;
   }
+
 
   /**
    * Sync venues, types, menus, and items.

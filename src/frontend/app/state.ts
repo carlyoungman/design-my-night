@@ -24,6 +24,7 @@ export type State = {
   date?: string | null;
   time?: string | null;
   bookingType?: string | null;
+  duration?: number | null;
   customer: Customer;
   reviewDeadline?: number;
   submitting: boolean;
@@ -39,6 +40,7 @@ export const initialState: State = {
   date: null,
   time: null,
   bookingType: null,
+  duration: null,
   customer: { first_name: '', last_name: '', email: '', phone: '', message: '', gdpr: false },
   submitting: false,
   addons: [],
@@ -52,6 +54,7 @@ export type Action =
   | { type: 'SET_VENUE_NAME'; name: string | null }
   | { type: 'SET_DATE'; date: string | null }
   | { type: 'SET_TYPE'; value: string | null }
+  | { type: 'SET_DURATION'; value: number | null }
   | { type: 'SET_TIME'; value: string | null }
   | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
   | { type: 'SET_ADDONS'; value: AddonLine[] }
@@ -101,6 +104,9 @@ export function reducer(s: State, a: Action): State {
         bookingType: a.value,
         time: null,
       };
+    }
+    case 'SET_DURATION': {
+      return { ...s, duration: a.value };
     }
     case 'SET_CUSTOMER':
       return { ...s, customer: { ...s.customer, ...a.value } };

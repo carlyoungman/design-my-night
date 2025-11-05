@@ -14,6 +14,7 @@ type AdminActivity = {
   image_url?: string | null;
   menu_post_id?: number | null;
   visible?: boolean;
+  duration_minutes?: number;
 };
 
 type MenuOption = { id: number; title: string; fixed_price?: boolean };
@@ -21,6 +22,13 @@ type MenuOption = { id: number; title: string; fixed_price?: boolean };
 declare const wp: any;
 
 type Props = { onDirty?: (d: boolean) => void };
+
+function formatDuration(minutes?: number): string {
+  if (!minutes || minutes <= 0) return '—';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 export default function ActivityManagerCard({ onDirty }: Props) {
   const { selectedVenueId } = useAdmin();
@@ -254,6 +262,10 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                 <div className="table__cell">
                   <div className="table__label">DMN ID</div>
                   <input type="text" value={r.dmn_type_id || ''} disabled placeholder="Type" />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Duration</div>
+                  <input type="text" value={r.duration_minutes} disabled placeholder="HH:MM" />
                 </div>
               </div>
               <div className="table__right">
