@@ -241,26 +241,26 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                     onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
                   />
                 </div>
+                {/*<div className="table__cell">*/}
+                {/*  <div className="table__label">Pre-order Menu</div>*/}
+                {/*  <select*/}
+                {/*    value={r.menu_post_id ?? ''}*/}
+                {/*    onChange={(e) =>*/}
+                {/*      onCell(r.id, 'menu_post_id', e.target.value ? Number(e.target.value) : null)*/}
+                {/*    }*/}
+                {/*    disabled={menusLoading}*/}
+                {/*  >*/}
+                {/*    <option value="">— No menu —</option>*/}
+                {/*    {menus.map((m) => (*/}
+                {/*      <option key={m.id} value={m.id}>*/}
+                {/*        {m.title}*/}
+                {/*        {m.fixed_price ? ' (fixed price)' : ''}*/}
+                {/*      </option>*/}
+                {/*    ))}*/}
+                {/*  </select>*/}
+                {/*</div>*/}
                 <div className="table__cell">
-                  <div className="table__label">Pre-order Menu</div>
-                  <select
-                    value={r.menu_post_id ?? ''}
-                    onChange={(e) =>
-                      onCell(r.id, 'menu_post_id', e.target.value ? Number(e.target.value) : null)
-                    }
-                    disabled={menusLoading}
-                  >
-                    <option value="">— No menu —</option>
-                    {menus.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.title}
-                        {m.fixed_price ? ' (fixed price)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="table__cell">
-                  <div className="table__label">DMN ID</div>
+                  <div className="table__label">Type ID</div>
                   <input type="text" value={r.dmn_type_id || ''} disabled placeholder="Type" />
                 </div>
                 <div className="table__cell">

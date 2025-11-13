@@ -4,7 +4,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { ThemeProvider } from '@mui/material/styles';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
+import { DateProps, DayName } from '../../types';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import {
   darkTheme,
@@ -17,32 +17,31 @@ import { checkAvailability } from '../../../api/public';
 import LoadingAnimation from '../LoadingAnimation';
 import { scrollToSection } from '../../utils/scroll';
 
-export function Date() {
+export function Date({ allowedDays }: DateProps) {
   const minDateISO = todayISO();
   const maxDateISO = sixMonthsISO();
 
   const { date: selectedDateISO, venueId, partySize } = useWidgetState();
   const dispatch = useWidgetDispatch();
 
-  // Stable Dayjs bounds
   const minDate = useMemo(() => dayjs(minDateISO), [minDateISO]);
   const maxDate = useMemo(() => dayjs(maxDateISO), [maxDateISO]);
 
-  // Visible month anchor
   const initialMonth = useMemo(
     () => (selectedDateISO ? dayjs(selectedDateISO).startOf('month') : dayjs().startOf('month')),
     [selectedDateISO],
   );
   const [visibleMonth] = useState<Dayjs>(initialMonth);
 
-  // Valid ISO dates for the visible month only (from DMN)
   const [validDates, setValidDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Stable key for the visible month (avoid depending on Dayjs objects)
   const monthKey = useMemo(() => visibleMonth.format('YYYY-MM'), [visibleMonth]);
+  const allowedDaySet = useMemo(
+    () => (allowedDays && allowedDays.length ? new Set<DayName>(allowedDays) : null),
+    [allowedDays],
+  );
 
-  // Fetch valid suggestions for the visible month (fields=date)
   useEffect(() => {
     if (!venueId || partySize == null) {
       setValidDates(new Set());
@@ -89,30 +88,28 @@ export function Date() {
     return () => {
       cancelled = true;
     };
-  }, [monthKey, venueId, minDate, maxDate, extractValidationDateBlock, parseSuggested]);
+  }, [monthKey, venueId, partySize, minDate, maxDate]);
 
-  // Selection rules:
-  // - Always enforce min/max.
-  // - If in the visible month: only allow DMN-suggested valid dates.
-  // - Other months (within 6 months): allow freely.
   const isSelectable = useCallback(
     (d: Dayjs) => {
       if (!d || !d.isValid()) return false;
       if (d.isBefore(minDate, 'day') || d.isAfter(maxDate, 'day')) return false;
-
+      if (allowedDaySet && allowedDaySet.size > 0) {
+        const dayName = d.format('dddd') as DayName;
+        if (!allowedDaySet.has(dayName)) return false;
+      }
       const dMonthKey = d.format('YYYY-MM');
       if (dMonthKey === monthKey) {
         return validDates.has(d.format('YYYY-MM-DD'));
       }
       return true;
     },
-    [minDate, maxDate, monthKey, validDates],
+    [minDate, maxDate, monthKey, validDates, allowedDaySet],
   );
 
   const pick = useCallback(
     (d: Dayjs) => {
       if (!isSelectable(d)) return;
-      // Set date, then clear dependent selections so types & times refresh
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
       dispatch({ type: 'SET_TYPE', value: '' as any });
@@ -135,24 +132,26 @@ export function Date() {
       )}
       {!loading && validDates.size !== 0 && (
         <>
-          <div className="date__quick-row" aria-label="Quick date picks">
-            <button
-              type="button"
-              className="date__quick-btn"
-              onClick={() => pick(today)}
-              disabled={!isSelectable(today)}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              className="date__quick-btn"
-              onClick={() => pick(tomorrow)}
-              disabled={!isSelectable(tomorrow)}
-            >
-              Tomorrow
-            </button>
-          </div>
+          {(!allowedDaySet || allowedDaySet.size === 0) && (
+            <div className="date__quick-row" aria-label="Quick date picks">
+              <button
+                type="button"
+                className="date__quick-btn"
+                onClick={() => pick(today)}
+                disabled={!isSelectable(today)}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                className="date__quick-btn"
+                onClick={() => pick(tomorrow)}
+                disabled={!isSelectable(tomorrow)}
+              >
+                Tomorrow
+              </button>
+            </div>
+          )}
           <div className="date__calendar" data-loading={loading ? '' : undefined}>
             <ThemeProvider theme={darkTheme}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>

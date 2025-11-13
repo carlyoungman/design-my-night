@@ -10,9 +10,16 @@ type Props = {
   loading?: boolean;
   error?: string | null;
   enabled: boolean;
+  defaultTypeId?: string | null;
 };
 
-export function Type({ types = [], loading = false, error = null, enabled }: Props) {
+export function Type({
+  types = [],
+  loading = false,
+  error = null,
+  enabled,
+  defaultTypeId = '',
+}: Props) {
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
   const captionId = useId();
@@ -21,23 +28,40 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
   useEffect(() => {
     if (!enabled && state.bookingType) {
       dispatch({ type: 'SET_TYPE', value: null });
-      dispatch({ type: 'SET_DURATION', value: null }); // ← clear duration too
+      dispatch({ type: 'SET_DURATION', value: null });
     }
   }, [enabled, state.bookingType, dispatch]);
 
-  // Auto-select when exactly one valid option and ready
+  // Preselect when defaultTypeId is provided
   useEffect(() => {
-    if (enabled && !loading && types.length === 1 && types[0]?.valid !== false) {
+    if (!enabled || loading) return;
+    if (!defaultTypeId) return;
+
+    const match = types.find((t) => t.id === defaultTypeId && t.valid !== false);
+    if (!match) return;
+
+    if (state.bookingType !== match.id) {
+      dispatch({ type: 'SET_TYPE', value: match.id });
+      dispatch({ type: 'SET_DURATION', value: match.duration ?? null });
+    }
+  }, [enabled, loading, defaultTypeId, types, state.bookingType, dispatch]);
+
+  // Auto-select when exactly one valid option and ready (only if no defaultTypeId)
+  useEffect(() => {
+    if (enabled && !loading && !defaultTypeId && types.length === 1 && types[0]?.valid !== false) {
       const only = types[0]!;
       if (only.id !== state.bookingType) {
         dispatch({ type: 'SET_TYPE', value: only.id });
-        dispatch({ type: 'SET_DURATION', value: only.duration ?? null }); // ← set duration
+        dispatch({ type: 'SET_DURATION', value: only.duration ?? null });
       }
     }
-  }, [enabled, loading, types, state.bookingType, dispatch]);
+  }, [enabled, loading, defaultTypeId, types, state.bookingType, dispatch]);
 
-  const showList = !loading && !error && types.length > 0;
-  const showEmpty = !loading && !error && types.length === 0;
+  // When defaultTypeId is set, only show that type
+  const filteredTypes = defaultTypeId ? types.filter((t) => t.id === defaultTypeId) : types;
+
+  const showList = !loading && !error && filteredTypes.length > 0;
+  const showEmpty = !loading && !error && filteredTypes.length === 0;
   const showError = !loading && !!error;
 
   return (
@@ -76,8 +100,10 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                 }}
                 className="radio-group"
               >
-                {types.map((t: any) => {
+                {filteredTypes.map((t: any) => {
                   const isDisabled = loading || t.valid === false;
+                  const isSelected = state.bookingType === t.id;
+
                   return (
                     <label
                       key={t.id}
@@ -85,6 +111,7 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                       data-disabled={isDisabled ? 'true' : 'false'}
                     >
                       <Radio.Root
+                        id={t.id}
                         value={t.id}
                         data-duration={t.duration}
                         className="radio__radio"
@@ -115,10 +142,10 @@ export function Type({ types = [], loading = false, error = null, enabled }: Pro
                               <span
                                 className={`type-card__button${
                                   isDisabled ? ' type-card__button--disabled' : ''
-                                }`}
+                                }${isSelected ? ' type-card__button--selected' : ''}`}
                                 aria-hidden={isDisabled}
                               >
-                                {isDisabled ? 'Unavailable' : 'Select'}
+                                {isDisabled ? 'Unavailable' : isSelected ? 'Selected' : 'Select'}
                               </span>
                             </div>
                           </article>

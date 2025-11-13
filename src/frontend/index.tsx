@@ -7,6 +7,8 @@ function boot(el: HTMLElement) {
   const props = {
     venueGroup: el.dataset.venueGroup || undefined,
     defaultVenueId: el.dataset.venueId || undefined,
+    defaultTypeId: el.dataset.typeId || undefined,
+    allowedDays: el.dataset.allowedDays || undefined,
   };
   createRoot(el).render(<WidgetRoot {...(props as any)} />);
 }

@@ -9,6 +9,8 @@ import {
 export type RootProps = {
   venueGroup?: string;
   defaultVenueId?: string;
+  defaultTypeId?: string;
+  allowedDays?: string;
   returnUrl?: string;
   children?: React.ReactNode;
 };
@@ -31,12 +33,21 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       ...initialState,
       // lock beats prefill
       venueId: cfg.defaultVenueId ?? null,
+      bookingType: cfg.defaultTypeId ?? null,
+      allowedDays: cfg.allowedDays ?? null,
     }),
   );
 
   const value = useMemo(
     () => ({ state, dispatch, config }),
-    [state, config.venueGroup, config.defaultVenueId, config.returnUrl],
+    [
+      state,
+      config.venueGroup,
+      config.defaultVenueId,
+      config.defaultTypeId,
+      config.allowedDays,
+      config.returnUrl,
+    ],
   );
 
   return <WidgetCtx.Provider value={value}>{children}</WidgetCtx.Provider>;

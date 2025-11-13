@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { WidgetProvider, useWidgetConfig, useWidgetState } from './WidgetProvider';
 import type { RootProps } from './WidgetProvider';
 import { Building, Calendar, PenLine, Rocket, MicVocal, Clock4, User } from 'lucide-react';
@@ -16,6 +16,7 @@ import { Faqs } from './components/steps/Faqs';
 import { useBookingTypes } from './hooks/useBookingTypes';
 import { hhmmFromState } from './utils/helpers';
 import AddonsNew from './components/steps/AddonsNew';
+import { parseAllowedDays } from './utils/parseAllowedDays';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -28,11 +29,12 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
 }
 
 function WidgetInner() {
-  const { venueGroup, defaultVenueId } = useWidgetConfig();
+  const { venueGroup, defaultVenueId, defaultTypeId, allowedDays } = useWidgetConfig();
   const state = useWidgetState();
   const { venues, loading, error } = useVenues(venueGroup);
+  const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
 
-  const timeHHmm = hhmmFromState(state.time);
+  const timeHHmm = useMemo(() => hhmmFromState(state.time), [state.time]);
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
   const {
@@ -81,7 +83,7 @@ function WidgetInner() {
               3. Select a date
             </p>
             <div className="dmn-widget__body">
-              <Date />
+              <Date allowedDays={formattedAllowedDays} />
             </div>
           </section>
           <section className="dmn-widget__section">
@@ -90,7 +92,13 @@ function WidgetInner() {
               4. Choose your experience
             </p>
             <div className="dmn-widget__body">
-              <Type types={types} loading={typesLoading} error={typesError} enabled={enabled} />
+              <Type
+                types={types}
+                loading={typesLoading}
+                error={typesError}
+                enabled={enabled}
+                defaultTypeId={defaultTypeId}
+              />
             </div>
           </section>
           <section className="dmn-widget__section">

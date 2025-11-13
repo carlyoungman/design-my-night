@@ -218,7 +218,7 @@ export default function PreorderMenusCard({ onDirty }: Props) {
                       />
                     </div>
                     <div className="table__cell">
-                      <div className="table__label">DMN ID</div>
+                      <div className="table__label">Type ID</div>
                       <input type="text" value={i.dmn_item_id || ''} disabled placeholder="Type" />
                     </div>
                     <div className="table__cell">

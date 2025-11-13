@@ -1,3 +1,8 @@
+import { sixMonthsISO, todayISO } from './utils/helpers';
+import { useWidgetDispatch, useWidgetState } from './WidgetProvider';
+import { useMemo } from 'react';
+import dayjs from 'dayjs';
+
 export type AvailabilityValidationField = {
   suggestedValues?: string[];
   message?: string;
@@ -14,6 +19,7 @@ export type VenueStepProps = {
   initialLoading: boolean;
   error: string | null;
   defaultVenueId?: string | undefined;
+  defaultTypeId?: string | undefined;
 };
 
 // types.ts
@@ -69,4 +75,17 @@ export type BookingCreate = {
   newsletter_signup?: boolean;
   marketing_preferences?: string[];
   notes?: string;
+};
+
+export type DayName =
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday';
+
+export type DateProps = {
+  allowedDays?: DayName[];
 };

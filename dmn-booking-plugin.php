@@ -2,7 +2,7 @@
 /**
  * Plugin Name: DMN Booking Plugin
  * Description: DesignMyNight booking plugin with React + TypeScript (admin + widget).
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Carl Youngman
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('DMN_BP_VER', '1.0.0');
+define('DMN_BP_VER', '2.0.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 
@@ -30,17 +30,40 @@ add_action('init', function () {
     $a = shortcode_atts([
       'venue_group' => get_option(Settings::OPT_VG, ''),
       'venue_id' => '',
+      'type_id' => '',
+      'allowed_days' => '',
     ], $atts, 'dmn_booking');
+
+
+    $venueGroup = $a['venue_group'];
+    if (isset($_GET['venue_group']) && $_GET['venue_group'] !== '') {
+      $venueGroup = sanitize_text_field(wp_unslash($_GET['venue_group']));
+    }
+
 
     $venueId = $a['venue_id'];
     if (isset($_GET['venue_id']) && $_GET['venue_id'] !== '') {
       $venueId = sanitize_text_field(wp_unslash($_GET['venue_id']));
     }
 
+    $typeId = $a['type_id'];
+    if (isset($_GET['type_id']) && $_GET['type_id'] !== '') {
+      $venueId = sanitize_text_field(wp_unslash($_GET['type_id']));
+    }
+
+    $allowedDays = $a['allowed_days'];
+    if (isset($_GET['allowed_days']) && $_GET['allowed_days'] !== '') {
+      $allowedDays = sanitize_text_field(wp_unslash($_GET['allowed_days']));
+    }
+
+
     ob_start(); ?>
     <div class="dmn-widget-root"
-         data-venue-group="<?php echo esc_attr(sanitize_text_field($a['venue_group'])); ?>"
-         data-venue-id="<?php echo esc_attr($venueId); ?>"></div>
+         data-venue-group="<?php echo esc_attr($venueGroup); ?>"
+         data-venue-id="<?php echo esc_attr($venueId); ?>"
+         data-type-id="<?php echo esc_attr($typeId); ?>"
+         data-allowed-days="<?php echo esc_attr($allowedDays); ?>"
+    ></div>
     <?php
     return ob_get_clean();
   });

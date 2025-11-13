@@ -1,7 +1,6 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Notice } from '../Notice';
-import { Checkbox, FormControlLabel } from '@mui/material';
 import LoadingAnimation from '../LoadingAnimation';
 
 export function Details() {
@@ -16,29 +15,41 @@ export function Details() {
   const emailId = useId();
   const phoneId = useId();
   const msgId = useId();
-  const termsId = useId();
 
   const set = (patch: Partial<typeof customer>) => dispatch({ type: 'SET_CUSTOMER', value: patch });
 
-  const firstNameInvalid = touched.first && (customer.first_name || '').trim().length < 2;
-  const lastNameInvalid = touched.last && (customer.last_name || '').trim().length < 2;
-  const emailInvalid =
-    touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((customer.email || '').trim());
-  const phoneInvalid =
-    touched.phone &&
-    !(
-      (customer.phone || '').trim() === '' ||
-      /^[\d\s()+-]{6,20}$/.test((customer.phone || '').trim())
-    );
-  const msgTooLong = (customer.message || '').length > 500;
+  const firstNameInvalid = useMemo(
+    () => touched.first && (customer.first_name || '').trim().length < 2,
+    [touched.first, customer.first_name],
+  );
+  const lastNameInvalid = useMemo(
+    () => touched.last && (customer.last_name || '').trim().length < 2,
+    [touched.last, customer.last_name],
+  );
+  const emailInvalid = useMemo(
+    () => touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((customer.email || '').trim()),
+    [touched.email, customer.email],
+  );
+  const phoneInvalid = useMemo(
+    () =>
+      touched.phone &&
+      !(
+        (customer.phone || '').trim() === '' ||
+        /^[\d\s()+-]{6,20}$/.test((customer.phone || '').trim())
+      ),
+    [touched.phone, customer.phone],
+  );
+  const msgTooLong = useMemo(() => (customer.message || '').length > 500, [customer.message]);
 
-  // Details requires venue, party size, date, time, and a chosen type
-  const enabled =
-    !!state.venueId &&
-    state.partySize != null &&
-    !!state.date &&
-    !!state.time &&
-    !!state.bookingType;
+  const enabled = useMemo(
+    () =>
+      !!state.venueId &&
+      state.partySize != null &&
+      !!state.date &&
+      !!state.time &&
+      !!state.bookingType,
+    [state],
+  );
 
   const ERR_MSG = {
     firstName: 'Enter your first name.',
@@ -46,9 +57,6 @@ export function Details() {
     email: 'Enter a valid email, e.g. name@example.com.',
     phone: 'Enter a phone number using digits, spaces, +, ( ) or - only.',
     message: 'Special requests must be 500 characters or fewer.',
-    consent: 'Tick this box to allow us to contact you about your booking.',
-    generic: 'Please check this field.',
-    formSummary: 'Let’s fix the highlighted details to continue.',
   } as const;
 
   if (!enabled) {
@@ -145,24 +153,6 @@ export function Details() {
           <div className="details__hint">{(customer.message || '').length}/500</div>
           <Notice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
         </div>
-        {/*<div className="details__field-wrapper">*/}
-        {/*  <FormControlLabel*/}
-        {/*    required*/}
-        {/*    className="details__checkbox"*/}
-        {/*    control={*/}
-        {/*      <Checkbox*/}
-        {/*        id={termsId}*/}
-        {/*        checked={!!customer.gdpr}*/}
-        {/*        sx={{*/}
-        {/*          color: 'var(--c-theme-primary)',*/}
-        {/*          '&.Mui-checked': { color: 'var(--c-theme-primary)' },*/}
-        {/*        }}*/}
-        {/*        onChange={(e) => set({ gdpr: e.target.checked })}*/}
-        {/*      />*/}
-        {/*    }*/}
-        {/*    label="I am happy for NQ64 to send me exclusive information and deals from time to time."*/}
-        {/*  />*/}
-        {/*</div>*/}
       </div>
     </section>
   );

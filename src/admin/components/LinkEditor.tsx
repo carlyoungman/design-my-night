@@ -111,7 +111,7 @@ export default function LinkEditor({ onDirty }: Props) {
 
   return (
     <section className="link-editor">
-      <div className="dmn-admin__header">
+      <div>
         <div className="dmn-admin__header__inner">
           {anyDirty && <p className="dmn-admin__header__dirty">Unsaved changes</p>}
           {!anyDirty && (large.ok || ret.ok) && (

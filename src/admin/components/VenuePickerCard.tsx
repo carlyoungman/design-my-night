@@ -1,11 +1,11 @@
 import React from 'react';
-import { useAdmin } from '../AdminContext';
-import { adminListVenues } from '../api';
+import {useAdmin} from '../AdminContext';
+import {adminListVenues} from '../api';
 
 type AdminVenue = { id: number; title: string; dmn_id?: string };
 
 export default function VenuePickerCard() {
-  const { selectedVenueId, setSelectedVenueId } = useAdmin();
+  const {selectedVenueId, setSelectedVenueId} = useAdmin();
   const [venues, setVenues] = React.useState<AdminVenue[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
@@ -45,12 +45,13 @@ export default function VenuePickerCard() {
       {loading ? (
         <p>Loading venues…</p>
       ) : (
-        <label style={{ display: 'block', marginBottom: 12 }}>
+        <label style={{display: 'block', marginBottom: 12}}>
           <span>Select venue</span>
           <select
+            id="dmn-admin-venue-picker"
             value={selectedVenueId ?? ''}
             onChange={(e) => setSelectedVenueId(e.target.value ? Number(e.target.value) : null)}
-            style={{ display: 'block', marginTop: 7.5 }}
+            style={{display: 'block', marginTop: 7.5}}
           >
             <option value="">— Choose a venue —</option>
             {venues.map((v) => (

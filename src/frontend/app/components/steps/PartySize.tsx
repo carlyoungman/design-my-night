@@ -9,11 +9,9 @@ export function PartySize() {
   const { partySize, venueId } = useWidgetState();
   const dispatch = useWidgetDispatch();
   const id = useId();
+  const hasVenue = Boolean(venueId);
 
-  const enabled = !!venueId;
-
-  // Only fetch large-group link when a venue is set
-  const { data: groupLink } = useBookingLink(venueId, !enabled);
+  const { data: groupLink } = useBookingLink(venueId);
 
   useEffect(() => {
     if (partySize == null) {
@@ -30,13 +28,16 @@ export function PartySize() {
     [dispatch],
   );
 
-  if (!enabled) {
+  if (!hasVenue) {
     return (
       <section className="party-size">
         <LoadingAnimation type="required" text="Venue required" />
       </section>
     );
   }
+
+  const isGroupEligible = groupLink?.enabled && groupLink.url;
+
   return (
     <section className="party-size">
       <NumberField.Root
@@ -59,7 +60,7 @@ export function PartySize() {
         </NumberField.Group>
       </NumberField.Root>
 
-      {groupLink?.enabled && groupLink.url ? (
+      {isGroupEligible && (
         <a
           className="party-size__group-link"
           target="_blank"
@@ -69,7 +70,7 @@ export function PartySize() {
           Large groups of 12 or more,
           <br /> click here
         </a>
-      ) : null}
+      )}
     </section>
   );
 }

@@ -24,6 +24,7 @@ export type State = {
   date?: string | null;
   time?: string | null;
   bookingType?: string | null;
+  allowedDays?: string | null;
   duration?: number | null;
   customer: Customer;
   reviewDeadline?: number;

@@ -57,7 +57,7 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           color: '#fff',
-          '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
+          '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)!important' },
           '&:hover': { backgroundColor: '#FFF', border: '1px solid #fff', color: '#000' },
           '&.Mui-selected': {
             backgroundColor: '#FF00FF',

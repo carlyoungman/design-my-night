@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
 import { fmt, fmtDate, toNum } from '../../utils/helpers';
@@ -18,12 +18,10 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const venueName = useMemo(
-    () =>
-      venues.find((v) => v._id === state.venueId)?.name ??
-      venues.find((v) => v._id === state.venueId)?.title,
-    [venues, state.venueId],
-  );
+  const venueName = useMemo(() => {
+    const selected = venues.find((v) => v._id === state.venueId);
+    return selected?.name ?? selected?.title ?? '';
+  }, [venues, state.venueId]);
 
   const selectedType = useMemo(
     () => types.find((t) => t.id === state.bookingType) || null,
@@ -43,27 +41,29 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
   );
   const grandTotal = useMemo(() => basePrice + addonsTotal, [basePrice, addonsTotal]);
 
-  const disabled =
-    !state.venueId ||
-    !state.partySize ||
-    !state.date ||
-    !state.time ||
-    !state.bookingType ||
-    !state.customer.first_name ||
-    !state.customer.last_name ||
-    !state.customer.email ||
-    !state.customer.phone;
+  const isDisabled = useMemo(() => {
+    return (
+      !state.venueId ||
+      !state.partySize ||
+      !state.date ||
+      !state.time ||
+      !state.bookingType ||
+      !state.customer.first_name ||
+      !state.customer.last_name ||
+      !state.customer.email ||
+      !state.customer.phone
+    );
+  }, [state]);
 
-  const handleContinue = async () => {
-    if (disabled || submitting) return;
+  const handleContinue = useCallback(async () => {
+    if (isDisabled || submitting) return;
     try {
       setSubmitting(true);
       await continueCheckout({ state, returnUrl });
-      // likely redirects; if not, we'll re-enable below
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [isDisabled, submitting, state, returnUrl]);
 
   const show = {
     booking: sections?.booking ?? true,
@@ -80,7 +80,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     const startH = parseInt(hStr, 10);
     const startM = parseInt(mStr, 10);
     const duration = state.duration ?? 0;
-    if (duration <= 0) return state.time; // ← no duration yet, show start only
+    if (duration <= 0) return state.time;
 
     const totalStartMin = startH * 60 + startM;
     const totalEndMin = totalStartMin + duration;
@@ -123,11 +123,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
                 <Rocket />
                 Experience
               </span>
-              <strong>
-                {selectedType?.name && (
-                  <span dangerouslySetInnerHTML={{ __html: selectedType.name }} />
-                )}
-              </strong>
+              <strong dangerouslySetInnerHTML={{ __html: selectedType?.name || '' }} />
             </li>
             <li>
               <span>
@@ -173,11 +169,6 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
       <section className="review__section">
         <h4 className="review__heading">Summary</h4>
         <div className="review__price">
-          {/*<div className="review__row">*/}
-          {/*  <span>Base {state.partySize ? `(x${state.partySize})` : ''}</span>*/}
-          {/*  <strong>{fmt(basePrice)}</strong>*/}
-          {/*</div>*/}
-
           {selectedAddons.length > 0 && (
             <div className="review__addons">
               {selectedAddons.map((a) => (
@@ -205,7 +196,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
           type="button"
           className="review__button"
           onClick={handleContinue}
-          disabled={disabled || submitting}
+          disabled={isDisabled || submitting}
           aria-busy={submitting}
           data-return-url={returnUrl || undefined}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
