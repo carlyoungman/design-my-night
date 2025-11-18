@@ -2,7 +2,7 @@
 /**
  * Plugin Name: DMN Booking Plugin
  * Description: DesignMyNight booking plugin with React + TypeScript (admin + widget).
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Carl Youngman
  */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('DMN_BP_VER', '2.0.0');
+define('DMN_BP_VER', '2.1.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 
@@ -32,29 +32,75 @@ add_action('init', function () {
       'venue_id' => '',
       'type_id' => '',
       'allowed_days' => '',
+      'url_params' => '',
     ], $atts, 'dmn_booking');
 
-
+    // Base values from shortcode
     $venueGroup = $a['venue_group'];
+    $venueId = $a['venue_id'];
+    $typeId = $a['type_id'];
+    $allowedDays = $a['allowed_days'];
+
+    // Allow GET overrides
     if (isset($_GET['venue_group']) && $_GET['venue_group'] !== '') {
       $venueGroup = sanitize_text_field(wp_unslash($_GET['venue_group']));
     }
 
-
-    $venueId = $a['venue_id'];
     if (isset($_GET['venue_id']) && $_GET['venue_id'] !== '') {
       $venueId = sanitize_text_field(wp_unslash($_GET['venue_id']));
     }
 
-    $typeId = $a['type_id'];
     if (isset($_GET['type_id']) && $_GET['type_id'] !== '') {
-      $venueId = sanitize_text_field(wp_unslash($_GET['type_id']));
+      // BUGFIX: this was incorrectly assigning to $venueId before
+      $typeId = sanitize_text_field(wp_unslash($_GET['type_id']));
     }
 
-    $allowedDays = $a['allowed_days'];
     if (isset($_GET['allowed_days']) && $_GET['allowed_days'] !== '') {
       $allowedDays = sanitize_text_field(wp_unslash($_GET['allowed_days']));
     }
+
+    /**
+     * URL params
+     */
+    $globalRows = get_option('dmn_booking_url_params', []);
+    $urlParamsAssoc = [];
+
+    if (is_array($globalRows)) {
+      foreach ($globalRows as $row) {
+        if (!is_array($row)) {
+          continue;
+        }
+        $name = isset($row['name']) ? (string)$row['name'] : '';
+        $value = isset($row['value']) ? (string)$row['value'] : '';
+        if ($name === '') {
+          continue;
+        }
+        $urlParamsAssoc[$name] = $value;
+      }
+    }
+
+    $urlParamsAttr = $a['url_params'];
+    if (isset($_GET['url_params']) && $_GET['url_params'] !== '') {
+      $urlParamsAttr = wp_unslash($_GET['url_params']);
+    } elseif (isset($_GET['url-params']) && $_GET['url-params'] !== '') {
+      $urlParamsAttr = wp_unslash($_GET['url-params']);
+    }
+
+    if (is_string($urlParamsAttr) && $urlParamsAttr !== '') {
+      $inline = [];
+      parse_str($urlParamsAttr, $inline);
+      if (is_array($inline)) {
+        foreach ($inline as $k => $v) {
+          $k = sanitize_key($k);
+          if ($k === '') {
+            continue;
+          }
+          $urlParamsAssoc[$k] = sanitize_text_field((string)$v);
+        }
+      }
+    }
+
+    $dataUrlParams = $urlParamsAssoc ? wp_json_encode($urlParamsAssoc) : '';
 
 
     ob_start(); ?>
@@ -63,11 +109,15 @@ add_action('init', function () {
          data-venue-id="<?php echo esc_attr($venueId); ?>"
          data-type-id="<?php echo esc_attr($typeId); ?>"
          data-allowed-days="<?php echo esc_attr($allowedDays); ?>"
+      <?php if ($dataUrlParams) : ?>
+        data-url-params="<?php echo esc_attr($dataUrlParams); ?>"
+      <?php endif; ?>
     ></div>
     <?php
     return ob_get_clean();
   });
 });
+
 
 // Adds a top-level admin menu page for the DMN Booking plugin in the WordPress dashboard.
 add_action('admin_menu', function () {

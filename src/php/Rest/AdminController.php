@@ -70,6 +70,82 @@ class AdminController
       },
     ]);
 
+
+    /**
+     * URL parameters (global) – used to append values to the DMN booking URL.
+     */
+
+    // GET: list URL params
+    register_rest_route('dmn/v1/admin', '/url-params', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => function () {
+        $stored = get_option('dmn_booking_url_params', []);
+        if (!is_array($stored)) {
+          $stored = [];
+        }
+
+        $items = [];
+        foreach ($stored as $row) {
+          if (!is_array($row)) {
+            continue;
+          }
+          $name = isset($row['name']) ? (string)$row['name'] : '';
+          $value = isset($row['value']) ? (string)$row['value'] : '';
+
+          if ($name === '') {
+            continue;
+          }
+
+          $items[] = [
+            'name' => $name,
+            'value' => $value,
+          ];
+        }
+
+        return new WP_REST_Response(['items' => $items], 200);
+      },
+    ]);
+
+    // POST: save URL params
+    register_rest_route('dmn/v1/admin', '/url-params', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => function (WP_REST_Request $req) {
+        $params = $req->get_json_params();
+        $items = isset($params['items']) && is_array($params['items']) ? $params['items'] : [];
+
+        $clean = [];
+        foreach ($items as $row) {
+          if (!is_array($row)) {
+            continue;
+          }
+
+          $nameRaw = isset($row['name']) ? (string)$row['name'] : '';
+          // Force into a query-friendly key (letters/numbers/_/-)
+          $name = sanitize_key($nameRaw);
+          $value = isset($row['value']) ? sanitize_text_field((string)$row['value']) : '';
+
+          if ($name === '') {
+            continue;
+          }
+
+          $clean[] = [
+            'name' => $name,
+            'value' => $value,
+          ];
+        }
+
+        update_option('dmn_booking_url_params', $clean);
+
+        return new WP_REST_Response([
+          'ok' => true,
+          'items' => $clean,
+        ], 200);
+      },
+    ]);
+
+
     // Venues: list
     register_rest_route('dmn/v1/admin', '/venues', [
       'methods' => WP_REST_Server::READABLE,

@@ -12,6 +12,7 @@ export type RootProps = {
   defaultTypeId?: string;
   allowedDays?: string;
   returnUrl?: string;
+  urlParams?: Record<string, string>;
   children?: React.ReactNode;
 };
 
@@ -47,6 +48,7 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       config.defaultTypeId,
       config.allowedDays,
       config.returnUrl,
+      config.urlParams,
     ],
   );
 

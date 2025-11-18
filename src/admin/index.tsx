@@ -17,6 +17,7 @@ import Fade from '@mui/material/Fade';
 import PreorderMenusCard from './components/PreorderMenusCard';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import UrlParamsCard from './components/UrlParamsCard';
 
 type CustomTabPanelProps = { children?: ReactNode; index: number; value: number };
 
@@ -114,6 +115,7 @@ function App() {
 
           <div className="dmn-admin__side">
             <SettingsCard />
+            <UrlParamsCard />
             <DataSyncCard />
             <InfoCard />
           </div>

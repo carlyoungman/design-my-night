@@ -1,6 +1,6 @@
 export default function InfoCard() {
   return (
-    <section className="dmn-admin__card" style={{ marginTop: 16 }}>
+    <section className="dmn-admin__card">
       <h2>Information</h2>
       <p>To display the booking widget you can use the following shortcode.</p>
       <h6>Options</h6>

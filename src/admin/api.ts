@@ -41,6 +41,24 @@ export function saveSettings(payload: {
   }>('settings', { method: 'POST', body: payload });
 }
 
+/** URL Parameters */
+
+export type UrlParamRow = {
+  name: string;
+  value: string;
+};
+
+export function getUrlParams() {
+  return wpFetch<{ items: UrlParamRow[] }>('url-params');
+}
+
+export function saveUrlParams(items: UrlParamRow[]) {
+  return wpFetch<{ ok: boolean; items: UrlParamRow[] }>('url-params', {
+    method: 'POST',
+    body: { items },
+  });
+}
+
 export function testConnection(debug = false) {
   return wpFetch<{
     ok: boolean;

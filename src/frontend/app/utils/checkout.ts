@@ -75,17 +75,36 @@ const resolveReturnUrl = async (
   return fromButton || perVenue || explicitReturnUrl || window.location.href;
 };
 
-const buildRedirectUrl = (base: string, params: Record<string, unknown>) => {
+// src/frontend/app/helpers/checkout.ts
+
+function buildRedirectUrl(
+  base: string,
+  params: Record<string, unknown>,
+  urlParams?: Record<string, string>,
+): string {
+  // Parse base, including its existing query string
   const url = new URL(base, window.location.origin);
-  const qs = new URLSearchParams(url.search);
-  Object.entries(params).forEach(([k, v]) => {
-    if (v == null) return;
-    if (Array.isArray(v)) v.forEach((item) => qs.append(k, String(item)));
-    else qs.set(k, String(v));
+  const search = new URLSearchParams(url.search);
+
+  // Merge booking params: overwrite any existing values from `base`
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null) return;
+    search.set(key, String(value));
   });
-  url.search = qs.toString();
+
+  // Extra URL params from config.urlParams; do NOT override booking fields
+  if (urlParams) {
+    Object.entries(urlParams).forEach(([key, value]) => {
+      if (value == null) return;
+      if (!search.has(key)) {
+        search.set(key, String(value));
+      }
+    });
+  }
+
+  url.search = search.toString();
   return url.toString();
-};
+}
 
 const ensureRequiredState = (state: WidgetState) => {
   const venue_id = state.venueId ?? null;
@@ -102,12 +121,12 @@ const ensureRequiredState = (state: WidgetState) => {
 
   return { venue_id, type, num_people, date, time } as const;
 };
-
+const normalizeDate = (d: string): string => d.split('T')[0] || d;
 const buildBookingPayload = (
   bd: BookingDetails,
   customer: BookingCustomer,
   return_url: string,
-  durationOverride?: number | null, // ← optional override from state
+  durationOverride?: number | null,
 ) => {
   const resolvedDuration =
     typeof durationOverride === 'number' && durationOverride > 0
@@ -119,10 +138,10 @@ const buildBookingPayload = (
   return {
     venue_id: bd.venue_id,
     type: bd.type,
-    date: bd.date,
+    date: normalizeDate(bd.date), // ← strip the time part
     time: normalizeTime(bd.time),
     num_people: bd.num_people,
-    ...(resolvedDuration != null ? { duration: resolvedDuration } : {}), // ← use state or BD
+    ...(resolvedDuration != null ? { duration: resolvedDuration } : {}),
     ...(bd.offer ? { offer: bd.offer } : {}),
     ...(bd.package ? { package: bd.package } : {}),
     source: 'partner' as const,
@@ -140,12 +159,19 @@ const buildBookingPayload = (
 };
 
 // ——— Main ———
+// ——— Main ———
 export async function continueCheckout(opts: {
   state: WidgetState;
   returnUrl?: string | null;
+  urlParams?: Record<string, string>;
   buttonSelector?: string;
 }): Promise<void> {
-  const { state, returnUrl, buttonSelector = '.review__button' } = opts;
+  const {
+    state,
+    returnUrl,
+    urlParams, // ← include urlParams here
+    buttonSelector = '.review__button',
+  } = opts;
 
   try {
     // 1) Validate inputs up front
@@ -161,7 +187,7 @@ export async function continueCheckout(opts: {
         num_people: required.num_people,
         date: required.date,
         time: required.time,
-        ...(stateDuration ? { duration: stateDuration } : {}), // ← pass duration to check
+        ...(stateDuration ? { duration: stateDuration } : {}),
       },
       'time',
     );
@@ -174,13 +200,16 @@ export async function continueCheckout(opts: {
 
     // 4) Redirect with full booking params in query
     if (!p.bookingDetails) throw new Error('Missing booking details for web submission.');
-    const payload = buildBookingPayload(p.bookingDetails, state.customer, ru, stateDuration); // ← inject state.duration
+    const payload = buildBookingPayload(p.bookingDetails, state.customer, ru, stateDuration);
     const base = p.next?.web;
     if (!base) throw new Error('Redirect URL not available for this slot.');
-    const url = buildRedirectUrl(base, payload);
+
+    // IMPORTANT: pass urlParams into the URL builder
+    const url = buildRedirectUrl(base, payload, urlParams); // ← use urlParams here
     window.location.assign(url);
     return;
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Booking failed. Please try again.';
+    // (log or dispatch msg if needed)
   }
 }

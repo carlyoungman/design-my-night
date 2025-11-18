@@ -14,7 +14,7 @@ type ReviewStepProps = {
 export function Review({ sections, venues, types = [] }: ReviewStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const { returnUrl } = useWidgetConfig();
+  const { returnUrl, urlParams } = useWidgetConfig();
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -59,7 +59,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     if (isDisabled || submitting) return;
     try {
       setSubmitting(true);
-      await continueCheckout({ state, returnUrl });
+      await continueCheckout({ state, returnUrl, urlParams });
     } finally {
       setSubmitting(false);
     }
