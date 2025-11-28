@@ -64,6 +64,12 @@ export function Type({
   const showEmpty = !loading && !error && filteredTypes.length === 0;
   const showError = !loading && !!error;
 
+  const selectedTypeForText = defaultTypeId && filteredTypes.length > 0 ? filteredTypes[0] : null;
+
+  console.log('types', types);
+  console.log('filteredTypes', filteredTypes);
+  console.log('selectedTypeForText', selectedTypeForText);
+
   return (
     <section className="type">
       {!enabled ? (
@@ -155,6 +161,12 @@ export function Type({
                   );
                 })}
               </RadioGroup>
+              {defaultTypeId && selectedTypeForText?.type_text && (
+                <div
+                  className="type__extra-text"
+                  dangerouslySetInnerHTML={{ __html: selectedTypeForText.type_text }}
+                />
+              )}
             </div>
           )}
         </>

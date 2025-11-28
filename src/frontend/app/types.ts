@@ -1,8 +1,3 @@
-import { sixMonthsISO, todayISO } from './utils/helpers';
-import { useWidgetDispatch, useWidgetState } from './WidgetProvider';
-import { useMemo } from 'react';
-import dayjs from 'dayjs';
-
 export type AvailabilityValidationField = {
   suggestedValues?: string[];
   message?: string;

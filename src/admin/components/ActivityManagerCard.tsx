@@ -14,7 +14,8 @@ type AdminActivity = {
   image_url?: string | null;
   menu_post_id?: number | null;
   visible?: boolean;
-  duration_minutes?: number;
+  duration_minutes?: number | null;
+  type_text?: string;
 };
 
 type MenuOption = { id: number; title: string; fixed_price?: boolean };
@@ -23,7 +24,7 @@ declare const wp: any;
 
 type Props = { onDirty?: (d: boolean) => void };
 
-function formatDuration(minutes?: number): string {
+function formatDuration(minutes?: number | null): string {
   if (!minutes || minutes <= 0) return '—';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -55,11 +56,13 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         r.name !== o.name ||
         (r.description || '') !== (o.description || '') ||
         (r.priceText || '') !== (o.priceText || '') ||
-        (r.image_id || null) !== (o.image_id || null) ||
-        (r.menu_post_id || null) !== (o.menu_post_id || null) ||
-        (r.visible ?? true) !== (o.visible ?? true)
-      )
+        (r.image_id ?? null) !== (o.image_id ?? null) ||
+        (r.menu_post_id ?? null) !== (o.menu_post_id ?? null) ||
+        (r.visible ?? true) !== (o.visible ?? true) ||
+        (r.type_text || '') !== (o.type_text || '')
+      ) {
         d.add(r.id);
+      }
     }
     return d;
   }, [rows, orig]);
@@ -158,13 +161,16 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             image_id: r.image_id ?? null,
             menu_post_id: r.menu_post_id ?? null,
             visible: r.visible ?? true,
+            type_text: r.type_text ?? '',
           }),
         ),
       );
       const failed = results.filter((x) => x.status === 'rejected') as PromiseRejectedResult[];
       if (failed.length) {
         setErr(
-          `Saved ${changed.length - failed.length}/${changed.length}. Last error: ${(failed[0] as any)?.reason?.message || 'Unknown error'}`,
+          `Saved ${changed.length - failed.length}/${changed.length}. Last error: ${
+            (failed[0] as any)?.reason?.message || 'Unknown error'
+          }`,
         );
       } else {
         setOk(`Saved ${changed.length} activities.`);
@@ -218,98 +224,141 @@ export default function ActivityManagerCard({ onDirty }: Props) {
 
       {!loading && rows.length > 0 && (
         <div className="table">
-          {rows.map((r) => (
-            <div className="table__row" key={r.id}>
-              <div className="table__left">
-                <div className="table__cell">
-                  <div className="table__label">Name</div>
-                  <input value={r.name} onChange={(e) => onCell(r.id, 'name', e.target.value)} />
-                </div>
-                <div className="table__cell">
-                  <div className="table__label">Description - (Max 200)</div>
-                  <textarea
-                    rows={2}
-                    maxLength={MAX}
-                    value={r.description || ''}
-                    onChange={(e) => onCell(r.id, 'description', e.target.value)}
-                  />
-                </div>
-                <div className="table__cell">
-                  <div className="table__label">Price</div>
-                  <input
-                    value={r.priceText || ''}
-                    onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
-                  />
-                </div>
-                {/*<div className="table__cell">*/}
-                {/*  <div className="table__label">Pre-order Menu</div>*/}
-                {/*  <select*/}
-                {/*    value={r.menu_post_id ?? ''}*/}
-                {/*    onChange={(e) =>*/}
-                {/*      onCell(r.id, 'menu_post_id', e.target.value ? Number(e.target.value) : null)*/}
-                {/*    }*/}
-                {/*    disabled={menusLoading}*/}
-                {/*  >*/}
-                {/*    <option value="">— No menu —</option>*/}
-                {/*    {menus.map((m) => (*/}
-                {/*      <option key={m.id} value={m.id}>*/}
-                {/*        {m.title}*/}
-                {/*        {m.fixed_price ? ' (fixed price)' : ''}*/}
-                {/*      </option>*/}
-                {/*    ))}*/}
-                {/*  </select>*/}
-                {/*</div>*/}
-                <div className="table__cell">
-                  <div className="table__label">Type ID</div>
-                  <input type="text" value={r.dmn_type_id || ''} disabled placeholder="Type" />
-                </div>
-                <div className="table__cell">
-                  <div className="table__label">Duration</div>
-                  <input type="text" value={r.duration_minutes} disabled placeholder="HH:MM" />
-                </div>
-              </div>
-              <div className="table__right">
-                <div className="table__image-picker">
-                  <div className="table__label">Image</div>
-                  {r.image_url ? (
-                    <img src={r.image_url} alt="" className="table__image-picker__image" />
-                  ) : (
-                    <div className="table__image-picker__image-preview"></div>
-                  )}
-                  <div className="table__image-picker__button-wrap">
-                    <button
-                      className="table__image-picker__btn button"
-                      type="button"
-                      onClick={() => openMedia(r.id)}
+          {rows.map((r) => {
+            const descriptionLength = (r.description || '').length;
+            const remaining = MAX - descriptionLength;
+
+            return (
+              <div className="table__row" key={r.id}>
+                <div className="table__left">
+                  <div className="table__cell">
+                    <div className="table__label">Name</div>
+                    <input
+                      value={r.name || ''}
+                      onChange={(e) => onCell(r.id, 'name', e.target.value)}
+                    />
+                  </div>
+                  <div className="table__cell">
+                    <div className="table__label">
+                      Description - (Max {MAX}){' '}
+                      <span className="table__label__hint">
+                        {remaining >= 0 ? `${remaining} characters remaining` : 'Limit reached'}
+                      </span>
+                    </div>
+                    <textarea
+                      rows={2}
+                      maxLength={MAX}
+                      value={r.description || ''}
+                      onChange={(e) => onCell(r.id, 'description', e.target.value)}
+                    />
+                  </div>
+                  <div className="table__cell">
+                    <div className="table__label">Price</div>
+                    <input
+                      value={r.priceText || ''}
+                      onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
+                    />
+                  </div>
+
+                  {/* Uncomment when menu support is needed */}
+                  {/* <div className="table__cell">
+                    <div className="table__label">Pre-order Menu</div>
+                    <select
+                      value={r.menu_post_id ?? ''}
+                      onChange={(e) =>
+                        onCell(
+                          r.id,
+                          'menu_post_id',
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                      disabled={menusLoading}
                     >
-                      Choose image
-                    </button>
-                    {r.image_id ? (
-                      <button
-                        className="table__image-picker__btn  button button--sub"
-                        type="button"
-                        onClick={() => clearImage(r.id)}
-                      >
-                        Clear image
-                      </button>
-                    ) : null}
+                      <option value="">— No menu —</option>
+                      {menus.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.title}
+                          {m.fixed_price ? ' (fixed price)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div> */}
+
+                  <div className="table__cell">
+                    <div className="table__label">Type ID</div>
+                    <input type="text" value={r.dmn_type_id || ''} disabled placeholder="Type" />
+                  </div>
+
+                  <div className="table__cell">
+                    <div className="table__label">Duration</div>
+                    <input
+                      type="text"
+                      value={formatDuration(r.duration_minutes)}
+                      disabled
+                      placeholder="HH:MM"
+                    />
+                  </div>
+
+                  <div className="table__cell">
+                    <div className="table__label">
+                      This text will only display when a type_ID has been included on the shortcode.
+                      You can use HTML tags here.
+                    </div>
+                    <input
+                      type="text"
+                      value={r.type_text || ''}
+                      onChange={(e) => onCell(r.id, 'type_text', e.target.value)}
+                    />
                   </div>
                 </div>
-                <div className="table__cell" style={{ marginTop: '1.5rem' }}>
-                  <div className="table__label">Visibility</div>
-                  <ToggleButtonGroup
-                    value={r.visible ? 'enabled' : 'disabled'}
-                    exclusive
-                    onChange={(_, newValue) => onCell(r.id, 'visible', newValue === 'enabled')}
-                    aria-label="Visibility"
-                  >
-                    <ToggleButton value="enabled">Enabled</ToggleButton>
-                    <ToggleButton value="disabled">Disabled</ToggleButton>
-                  </ToggleButtonGroup>
+
+                <div className="table__right">
+                  <div className="table__image-picker">
+                    <div className="table__label">Image</div>
+                    {r.image_url ? (
+                      <img src={r.image_url} alt="" className="table__image-picker__image" />
+                    ) : (
+                      <div className="table__image-picker__image-preview" />
+                    )}
+                    <div className="table__image-picker__button-wrap">
+                      <button
+                        className="table__image-picker__btn button"
+                        type="button"
+                        onClick={() => openMedia(r.id)}
+                      >
+                        Choose image
+                      </button>
+                      {r.image_id ? (
+                        <button
+                          className="table__image-picker__btn button button--sub"
+                          type="button"
+                          onClick={() => clearImage(r.id)}
+                        >
+                          Clear image
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                    <div className="table__label">Visibility</div>
+                    <ToggleButtonGroup
+                      value={r.visible ? 'enabled' : 'disabled'}
+                      exclusive
+                      onChange={(_, newValue) => {
+                        if (!newValue) return; // prevent toggling off both
+                        onCell(r.id, 'visible', newValue === 'enabled');
+                      }}
+                      aria-label="Visibility"
+                    >
+                      <ToggleButton value="enabled">Enabled</ToggleButton>
+                      <ToggleButton value="disabled">Disabled</ToggleButton>
+                    </ToggleButtonGroup>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>

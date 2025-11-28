@@ -26,6 +26,7 @@ type BookingTypeItem = {
   image_id?: number | null;
   valid: boolean | null;
   message?: string | null;
+  type_text?: string | null;
 };
 
 // Structure returned by this hook
@@ -36,13 +37,7 @@ type Return = {
   reload: () => void;
 };
 
-export function useBookingTypes({
-  venueId,
-  date,
-  partySize,
-  time,
-  enabled = true,
-}: Params): Return {
+export function useBookingTypes({ venueId, date, partySize, enabled = true }: Params): Return {
   const [types, setTypes] = useState<BookingTypeItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +89,7 @@ export function useBookingTypes({
         image_id: t.image_id ?? null,
         valid: typeof t.valid === 'boolean' ? t.valid : null,
         message: t.message ?? null,
+        type_text: t.type_text ?? null,
       }));
 
       setTypes(mapped);

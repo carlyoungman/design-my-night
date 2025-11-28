@@ -53,3 +53,17 @@
     }
   }
 }
+
+.type__extra-text {
+  margin-top: var(--universal-space-2);
+
+  a {
+    color: var(--c-success);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--c-theme-primary);
+      text-decoration: underline;
+    }
+  }
+}

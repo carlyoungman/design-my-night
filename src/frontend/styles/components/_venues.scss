@@ -13,6 +13,7 @@
 
   &__select {
     @include mixin.select;
+    height: auto;
 
     &:disabled {
       cursor: not-allowed;

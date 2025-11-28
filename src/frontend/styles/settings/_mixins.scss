@@ -128,7 +128,7 @@
   padding: var(--universal-space);
   width: 100%;
   transition: var(--transition);
-  //height: 60px;
+  height: 60px;
 
   &:hover, &:focus-visible, &:focus, &:active {
     background: rgba(255, 255, 255, .04);

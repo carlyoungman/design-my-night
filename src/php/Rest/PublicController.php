@@ -401,6 +401,8 @@ class PublicController
         $typeId = (string)get_post_meta($p->ID, 'dmn_type_id', true);
         if (!$typeId) continue;
 
+        $type_text_raw = get_post_meta($p->ID, 'type_text', true);
+
         $imgId = (int)get_post_thumbnail_id($p->ID);
         $duration = (int)get_post_meta($p->ID, '_dmn_duration_minutes', true);
         $configuredById[$typeId] = [
@@ -411,6 +413,7 @@ class PublicController
           'image_id' => $imgId ?: null,
           'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
           'duration' => $duration > 0 ? $duration : null,
+          'type_text' => is_string($type_text_raw) ? $type_text_raw : '',
         ];
       }
     }
@@ -442,6 +445,7 @@ class PublicController
           'valid' => $valid,
           'message' => $msg ?: null,
           'duration' => $conf['duration'] ?? null,
+          'type_text' => $conf['type_text'] ?? '',
         ];
       }
     } else {
@@ -456,6 +460,8 @@ class PublicController
           'image_url' => $conf['image_url'],
           'valid' => null,
           'message' => null,
+          'duration' => $conf['duration'] ?? null,
+          'type_text' => $conf['type_text'] ?? '',
         ];
       }
     }

@@ -98,10 +98,13 @@ export async function adminListActivities(venuePostId: number): Promise<{
     name: string;
     description?: string;
     priceText?: string;
-    duration?: number | null;
+    duration_minutes?: number | null;
     image_id?: number | null;
     image_url?: string | null;
     gallery_ids?: number[];
+    menu_post_id?: number | null;
+    visible?: boolean;
+    type_text?: string;
   }[];
 }> {
   return wpFetch(`venues/${venuePostId}/activities`);
@@ -117,6 +120,7 @@ export async function adminSaveActivity(
     gallery_ids?: number[];
     menu_post_id?: number | null;
     visible?: boolean;
+    type_text?: string;
   },
 ): Promise<{ ok: boolean }> {
   return wpFetch(`activities/${id}`, { method: 'POST', body });
