@@ -4,13 +4,16 @@
 .faqs {
   background-color: var(--c-black);
   color: var(--c-white);
-  padding: var(--universal-space) var(--universal-space-2);
+  padding: var(--universal-space);
   border-radius: var(--border-radius);
   overflow: hidden;
 
   border: 4px solid var(--c-theme-primary);
   box-shadow: 0 0 10px 0 var(--c-theme-primary) inset;
   margin-top: var(--universal-space);
+  @include breakpoint.medium-screen-min {
+    padding: var(--universal-space) var(--universal-space-2);
+  }
   @include breakpoint.large-screen-min {
     margin-top: var(--universal-space-2);
   }

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useId } from 'react';
-import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
 import { scrollToSection } from '../../utils/scroll';

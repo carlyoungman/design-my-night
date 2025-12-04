@@ -11,7 +11,8 @@
 
   &__quick-btn {
     @include button-reset;
-    padding: var(--universal-space);
+    padding: 0 var(--universal-space);
+    height: var(--input-height);
     border: 1px solid var(--c-white);
     flex: 1;
     transition: var(--transition);

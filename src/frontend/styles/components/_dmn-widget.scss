@@ -32,9 +32,10 @@
   }
 
   &__side {
-    padding: var(--universal-space-2);
-
-
+    padding: var(--universal-space-2) var(--universal-space);
+    @include breakpoint.medium-screen-min {
+      padding: var(--universal-space-2);
+    }
   }
 
   &__main {

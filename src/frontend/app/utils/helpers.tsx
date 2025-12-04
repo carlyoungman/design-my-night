@@ -58,10 +58,10 @@ export const darkTheme = createTheme({
         root: {
           color: '#fff',
           '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)!important' },
-          '&:hover': { backgroundColor: '#FFF', border: '1px solid #fff', color: '#000' },
+          '&:hover': { backgroundColor: '#ff00ff', border: '1px solid #ff00ff', color: '#fff' },
           '&.Mui-selected': {
             backgroundColor: '#FF00FF',
-            border: '1px solid #fff',
+            border: '1px solid #FF00FF',
             color: '#fff',
             '&:hover': { backgroundColor: '#ff33ff', border: '1px solid #fff' },
           },
