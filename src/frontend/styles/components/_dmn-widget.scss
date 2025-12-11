@@ -65,9 +65,9 @@
 
   &__section {
     width: 100%;
+    margin-bottom: var(--universal-space);
 
     &:last-of-type {
-      margin-bottom: var(--universal-space);
       @include breakpoint.medium-screen-min {
         margin-bottom: var(--universal-space-2);
       }

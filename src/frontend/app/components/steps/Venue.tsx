@@ -43,7 +43,7 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
         className="venues__select"
         value={state.venueId || ''}
         onChange={handleChange}
-        disabled={isVenueLocked}
+        // disabled={isVenueLocked}
       >
         <option value="" disabled>
           Choose…

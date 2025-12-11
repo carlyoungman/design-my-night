@@ -1,4 +1,9 @@
-:root {
+
+.dmn-widget-root {
+  @import 'css-reset-and-normalize/scss/reset-and-normalize';
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
   --border-radius: 15px;
   --transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
   --universal-space: 15px;
@@ -15,14 +20,6 @@
   --c-light-blue: #0000ff;
   --c-error: #FF0000;
   --c-success: #00FF00;
-}
-
-
-.dmn-widget-root {
-  @import 'css-reset-and-normalize/scss/reset-and-normalize';
-  width: 100%;
-  max-width: 100%;
-  //font-size: 18px;
 
   :where(*, *::before, *::after) {
     font-size: inherit;
