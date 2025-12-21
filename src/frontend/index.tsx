@@ -1,8 +1,8 @@
-// src/frontend/index.tsx
 import * as React from 'react';
 import './styles/index.scss';
 import { createRoot } from 'react-dom/client';
 import WidgetRoot from './app/WidgetRoot';
+import { parseCsvIds } from './app/utils/helpers';
 
 function boot(el: HTMLElement) {
   const rawUrlParams = el.dataset.urlParams;
@@ -21,12 +21,15 @@ function boot(el: HTMLElement) {
     }
   }
 
+  const defaultTypeIds = parseCsvIds(el.dataset.typeId);
+
   const props = {
     venueGroup: el.dataset.venueGroup || undefined,
     defaultVenueId: el.dataset.venueId || undefined,
-    defaultTypeId: el.dataset.typeId || undefined,
+    defaultTypeIds,
+    defaultTypeId: defaultTypeIds?.length === 1 ? defaultTypeIds[0] : undefined,
     allowedDays: el.dataset.allowedDays || undefined,
-    urlParams, // now a proper object
+    urlParams,
   };
 
   createRoot(el).render(<WidgetRoot {...(props as any)} />);

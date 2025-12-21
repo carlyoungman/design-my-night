@@ -6,14 +6,14 @@
 
   &__bar {
     height: var(--universal-space);
-    background: var(--c-off-black);
     overflow: hidden;
+    background: var(--c-off-black);
     border-radius: var(--border-radius);
   }
 
   &__fill {
-    height: 100%;
     width: 0;
+    height: 100%;
     background: var(--c-success);
     transition: var(--transition);
   }
@@ -27,11 +27,11 @@
 
 .dmn-widget > .progress-bar {
   position: sticky;
-  z-index: 2;
   top: 5px;
+  z-index: 2;
   margin-right: var(--universal-space);
-  margin-left: var(--universal-space);
   margin-bottom: var(--universal-space-2);
+  margin-left: var(--universal-space);
   
 
   .progress-bar__text {

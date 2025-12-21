@@ -5,16 +5,17 @@
   &__quick-row {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: var(--universal-space);
     gap: var(--universal-space);
+    margin-bottom: var(--universal-space);
   }
 
   &__quick-btn {
     @include button-reset;
-    padding: 0 var(--universal-space);
-    height: var(--input-height);
-    border: 1px solid var(--c-white);
+
     flex: 1;
+    height: var(--input-height);
+    padding: 0 var(--universal-space);
+    border: 1px solid var(--c-white);
     transition: var(--transition);
 
     &:hover {
@@ -25,8 +26,8 @@
 }
 
 .css-1dedkb6-MuiDateCalendar-root {
-  max-height: unset;
   height: unset;
+  max-height: unset;
 }
 
 .MuiPickersSlideTransition-root {
@@ -58,13 +59,13 @@
 }
 
 .MuiDayCalendar-header {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-around;
+  width: 100%;
+  margin: var(--universal-space) 0;
   border-top: 1px solid var(--c-white);
   border-bottom: 1px solid var(--c-white);
-  margin: var(--universal-space) 0;
 }
 
 .css-9lguqa {

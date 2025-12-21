@@ -158,8 +158,6 @@ const buildBookingPayload = (
   };
 };
 
-// ——— Main ———
-// ——— Main ———
 export async function continueCheckout(opts: {
   state: WidgetState;
   returnUrl?: string | null;

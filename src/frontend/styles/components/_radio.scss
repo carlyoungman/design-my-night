@@ -16,7 +16,7 @@
   transition: var(--transition);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgb(255 255 255 / 4%);
   }
 
   &:active {
@@ -25,10 +25,11 @@
 
   &__radio {
     @include button-reset;
+
     position: relative;
     display: flex;
-    align-items: center;
     gap: var(--universal-space);
+    align-items: center;
     width: 100%;
     cursor: pointer;
     background: transparent;
@@ -36,8 +37,8 @@
 
     &[aria-disabled='true'],
     &[disabled] {
-      opacity: 0.6;
       cursor: not-allowed;
+      opacity: 0.6;
     }
 
     /* Focus ring */

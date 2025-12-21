@@ -3,10 +3,10 @@
 .type-card {
   width: 100%;
   overflow: hidden;
-  text-align: left;
-  border: 5px solid var(--c-black);
-  background: var(--c-white);
   color: var(--c-black);
+  text-align: left;
+  background: var(--c-white);
+  border: 5px solid var(--c-black);
 
   &__image-wrapper {
     @include aspect-ratio-16-9;
@@ -33,19 +33,20 @@
   }
 
   &__article-footer {
-    padding: var(--universal-space-2) 0 var(--universal-space) 0;
-    margin-top: var(--universal-space);
-    border-top: 1px solid var(--c-off-black);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: var(--universal-space-2) 0 var(--universal-space) 0;
+    margin-top: var(--universal-space);
+    border-top: 1px solid var(--c-off-black);
   }
 
   &__button {
     @include button-reset;
+
     padding: var(--universal-space) var(--universal-space-2);
-    background: var(--c-black);
     color: var(--c-white);
+    background: var(--c-black);
     box-shadow: var(--box-shadow-1);
 
     &:hover {

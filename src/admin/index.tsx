@@ -114,10 +114,10 @@ function App() {
           </div>
 
           <div className="dmn-admin__side">
-            <SettingsCard />
-            <UrlParamsCard />
-            <DataSyncCard />
             <InfoCard />
+            <SettingsCard />
+            <DataSyncCard />
+            <UrlParamsCard />
           </div>
         </div>
 

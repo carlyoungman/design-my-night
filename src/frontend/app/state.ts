@@ -1,5 +1,6 @@
-// state.ts
-
+/**
+ * Represents a customer's contact and optional GDPR consent.
+ */
 export type Customer = {
   first_name: string;
   last_name: string;
@@ -9,6 +10,9 @@ export type Customer = {
   gdpr?: boolean;
 };
 
+/**
+ * A single addon line item selected or available for booking.
+ */
 export type AddonLine = {
   id: string;
   dmn_package_id: string;
@@ -17,6 +21,9 @@ export type AddonLine = {
   quantity: number;
 };
 
+/**
+ * Shape of the entire booking state used by the frontend booking flow.
+ */
 export type State = {
   venueId?: string | null;
   venueName?: string | null;
@@ -34,6 +41,9 @@ export type State = {
   addonsResolved: boolean;
 };
 
+/**
+ * Default initial state for a new booking session.
+ */
 export const initialState: State = {
   venueId: null,
   venueName: null,
@@ -49,6 +59,9 @@ export const initialState: State = {
   addonsResolved: false,
 };
 
+/**
+ * All action types that can be dispatched to the booking reducer.
+ */
 export type Action =
   | { type: 'SET_PARTY_SIZE'; size: number }
   | { type: 'SET_VENUE'; id: string | null }
@@ -61,6 +74,9 @@ export type Action =
   | { type: 'SET_ADDONS'; value: AddonLine[] }
   | { type: 'SET_ADDONS_SELECTED'; value: string[] };
 
+/**
+ * Reducer function that applies actions to the booking state and returns the new state.
+ */
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'SET_VENUE': {

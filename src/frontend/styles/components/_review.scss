@@ -16,8 +16,8 @@
 
 
   &__list {
-    margin-bottom: var(--universal-space-3);
     gap: var(--universal-space-2);
+    margin-bottom: var(--universal-space-3);
 
     > li, span {
       display: flex;
@@ -48,9 +48,10 @@
 
   &__button {
     @include mixin.button-settings;
-    margin-top: var(--universal-space-2);
+
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: var(--universal-space-2);
   }
 }

@@ -6,9 +6,11 @@ $breakpoints: (
   x-large: 1200px,
   xx-large: 1440px,
 );
+
 // Generic mixin
 @mixin bp($key) {
   $val: map-get($breakpoints, $key);
+
   @media screen and (min-width: $val) {
     @content;
   }

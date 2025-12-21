@@ -10,6 +10,7 @@ export type RootProps = {
   venueGroup?: string;
   defaultVenueId?: string;
   defaultTypeId?: string;
+  defaultTypeIds?: string[];
   allowedDays?: string;
   returnUrl?: string;
   urlParams?: Record<string, string>;
@@ -27,17 +28,21 @@ type WidgetContextValue = {
 const WidgetCtx = createContext<WidgetContextValue | null>(null);
 
 export function WidgetProvider({ children, ...config }: RootProps) {
-  const [state, dispatch] = useReducer(
-    reducer,
-    config,
-    (cfg: Config): WidgetState => ({
+  const [state, dispatch] = useReducer(reducer, config, (cfg: Config): WidgetState => {
+    const ids = Array.isArray(cfg.defaultTypeIds) ? cfg.defaultTypeIds : [];
+    const singleFromList = ids.length === 1 ? ids[0] : null;
+
+    return {
       ...initialState,
       // lock beats prefill
       venueId: cfg.defaultVenueId ?? null,
-      bookingType: cfg.defaultTypeId ?? null,
+
+      // only prefill if single
+      bookingType: cfg.defaultTypeId ?? singleFromList ?? null,
+
       allowedDays: cfg.allowedDays ?? null,
-    }),
-  );
+    };
+  });
 
   const value = useMemo(
     () => ({ state, dispatch, config }),
@@ -46,6 +51,7 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       config.venueGroup,
       config.defaultVenueId,
       config.defaultTypeId,
+      config.defaultTypeIds,
       config.allowedDays,
       config.returnUrl,
       config.urlParams,

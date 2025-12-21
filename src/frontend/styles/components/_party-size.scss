@@ -4,13 +4,14 @@
 
 .party-size {
   display: flex;
-  width: 100%;
-  align-items: center;
-  gap: var(--universal-space);
   flex-wrap: wrap;
+  gap: var(--universal-space);
+  align-items: center;
+  width: 100%;
+
   @include breakpoint.medium-screen-min {
-    gap: var(--universal-space-2);
     flex-wrap: nowrap;
+    gap: var(--universal-space-2);
   }
 
   &__group-link {
@@ -26,8 +27,9 @@
 
   &__group {
     display: flex;
-    align-items: center;
     gap: var(--universal-space);
+    align-items: center;
+
     @include breakpoint.medium-screen-min {
       justify-content: flex-end;
     }
@@ -38,25 +40,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--c-white);
-    background: var(--c-theme-primary);
+    width: 50px;
+    height: 50px;
     color: var(--c-white);
     cursor: pointer;
     user-select: none;
+    background: var(--c-theme-primary);
+    border: 1px solid var(--c-white);
     transition: var(--transition);
-    height: 50px;
-    width: 50px;
 
     &:hover {
-      background: var(--c-white);
       color: var(--c-black);
+      background: var(--c-white);
     }
   }
 
   &__input {
     @include mixin.input;
-    max-width: 5rem;
+
     flex: 1;
+    max-width: 5rem;
     text-align: center;
   }
 }

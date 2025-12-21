@@ -96,7 +96,7 @@ export default function SettingsCard() {
   if (loading) return <p>Loading…</p>;
 
   return (
-    <section className="dmn-admin__card" style={{ marginBottom: '1.5rem' }}>
+    <section className="dmn-admin__card">
       <h2>API Credentials</h2>
       <form onSubmit={onSave} className="grid">
         <label>

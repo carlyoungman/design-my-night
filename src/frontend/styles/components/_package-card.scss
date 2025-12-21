@@ -8,16 +8,16 @@
 
 
 .package-card {
-  max-width: 100%;
-  overflow: hidden;
-  text-align: left;
-  border: 5px solid var(--c-black);
   display: grid;
   grid-template-columns: 35% 1fr;
-  background: var(--c-white);
-  color: var(--c-black);
-  margin-left: -5px;
+  max-width: 100%;
   margin-right: -5px;
+  margin-left: -5px;
+  overflow: hidden;
+  color: var(--c-black);
+  text-align: left;
+  background: var(--c-white);
+  border: 5px solid var(--c-black);
 
 
   &__image-wrapper {
@@ -25,7 +25,6 @@
   }
 
   &__article {
-
     padding: var(--universal-space);
   }
 
@@ -50,25 +49,26 @@
 
 
   &__article-footer {
-    padding-top: var(--universal-space);
-    margin-top: var(--universal-space);
-    border-top: 1px solid var(--c-off-black);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-top: var(--universal-space);
+    margin-top: var(--universal-space);
+    border-top: 1px solid var(--c-off-black);
   }
 
   &__button {
     @include button-reset;
-    padding: var(--universal-space) var(--universal-space-2);
+
     min-width: 120px;
-    background: var(--c-black);
+    padding: var(--universal-space) var(--universal-space-2);
     color: var(--c-white);
+    background: var(--c-black);
     box-shadow: var(--box-shadow-1);
 
     &:hover {
-      background: var(--c-theme-primary);
       cursor: pointer;
+      background: var(--c-theme-primary);
     }
   }
 

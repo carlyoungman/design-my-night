@@ -9,11 +9,12 @@
 
 .button {
   @include button-reset;
+
   padding: var(--universal-space) var(--universal-space-2);
-  background: var(--c-blue);
   color: var(--c-white);
-  box-shadow: var(--box-shadow-1);
   text-transform: capitalize;
+  background: var(--c-blue);
+  box-shadow: var(--box-shadow-1);
 
   &--sub {
     background: var(--c-off-black);
@@ -28,8 +29,8 @@
   }
 
   &:hover {
-    background: var(--c-black);
     color: var(--c-white);
+    background: var(--c-black);
   }
 
   &[disabled] {

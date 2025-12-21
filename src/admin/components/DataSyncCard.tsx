@@ -39,7 +39,7 @@ export default function DataSyncCard() {
   };
 
   return (
-    <section className="dmn-admin__card" style={{ marginBottom: '1.5rem' }}>
+    <section className="dmn-admin__card">
       <h2>Data Sync</h2>
       <p>Import data from DesignMyNight.</p>
       <div className="actions">

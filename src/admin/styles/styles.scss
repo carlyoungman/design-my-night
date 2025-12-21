@@ -1,28 +1,29 @@
 :root {
-  --box-shadow-1: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px; /* Original */
-  --box-shadow-2: rgba(50, 50, 93, 0.3) 0px 4px 8px -2px, rgba(0, 0, 0, 0.35) 0px 2px 4px -2px;
-  --box-shadow-3: rgba(50, 50, 93, 0.35) 0px 8px 16px -3px, rgba(0, 0, 0, 0.4) 0px 4px 6px -3px;
+  --box-shadow-1: rgb(50 50 93 / 25%) 0px 2px 5px -1px, rgb(0 0 0 / 30%) 0px 1px 3px -1px; /* Original */
+  --box-shadow-2: rgb(50 50 93 / 30%) 0px 4px 8px -2px, rgb(0 0 0 / 35%) 0px 2px 4px -2px;
+  --box-shadow-3: rgb(50 50 93 / 35%) 0px 8px 16px -3px, rgb(0 0 0 / 40%) 0px 4px 6px -3px;
   --border-radius: 15px;
   --font-base-size: 18px;
   --font-base-line-height: 1.6;
   --font-base-font-weight: 400;
-  --font--family: 'Michroma';
+  --font-family: 'Michroma';
   --transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
   --universal-space: 15px;
   --universal-space-2: calc(var(--universal-space) * 2);
   --universal-space-3: calc(var(--universal-space) * 3);
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
-  --c-white: #ffffff;
+  --c-white: #fff;
   --c-off-black: #25251e;
-  --c-black: #000000;
+  --c-black: #000;
   --c-blue: #3a5683;
   --c-green: #379f70;
   --c-off-white: #d9d9d9;
   --c-red: #bb3d3d;
 }
 
-#wpcontent, #wpfooter {
+#wpcontent,
+#wpfooter {
   margin-left: 160px;
   background: #ececec;
 }
@@ -36,9 +37,11 @@
     padding: var(--universal-space) 0;
   }
 
+  /* stylelint-disable no-invalid-position-at-import-rule */
   @import './components/buttons';
   @import './components/dmn-admin';
   @import './components/forms';
   @import './components/table';
   @import './components/toggles';
+  /* stylelint-enable no-invalid-position-at-import-rule */
 }

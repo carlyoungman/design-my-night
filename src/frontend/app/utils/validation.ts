@@ -1,4 +1,3 @@
-// src/widget/utils/validation.ts
 export type UiType = {
   id: string;
   name: string;

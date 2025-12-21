@@ -2,20 +2,23 @@
 
 .dmn-admin {
   &__help {
-    opacity: 0.7;
     font-size: 13px;
+    opacity: 0.7;
   }
 
   &__grid {
     display: grid;
-    gap: var(--universal-space-2);
     grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: var(--universal-space-2);
+
     @include large-screen-min {
       grid-template-columns: 1fr 30%;
     }
+
     @include x-large-screen-min {
       gap: var(--universal-space-3);
     }
+
     @include xx-large-screen-min {
       gap: var(--universal-space-4);
     }
@@ -27,41 +30,47 @@
     }
   }
 
+
   &__card {
     width: 100%;
+    max-width: unset;
+    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2) var(--universal-space-2);
+    margin-bottom: var(--universal-space);
     background: var(--c-white);
     border: 1px solid var(--c-off-white);
     border-radius: var(--border-radius);
-    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2) var(--universal-space-2);
-    max-width: unset;
+
+    @include large-screen-min {
+      margin-bottom: var(--universal-space-2);
+    }
   }
 
   &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--universal-space-2);
-    padding: var(--universal-space) 0;
-    background: var(--c-white);
     position: sticky;
     top: var(--universal-space-2);
     z-index: 10;
+    display: flex;
+    gap: var(--universal-space-2);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--universal-space) 0;
+    background: var(--c-white);
 
     &__inner {
       display: flex;
+      gap: var(--universal-space-2);
       align-items: center;
       justify-content: flex-end;
-      gap: var(--universal-space-2);
     }
 
     &__dirty {
-      color: var(--c-red);
       margin: 0;
+      color: var(--c-red);
     }
 
     &__ok {
-      color: var(--c-green);
       margin: 0;
+      color: var(--c-green);
     }
 
     &__headline {
@@ -72,9 +81,9 @@
   &__button-wrapper {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
     gap: var(--universal-space);
+    align-items: center;
+    justify-content: flex-end;
     margin-top: var(--universal-space-2);
   }
 }

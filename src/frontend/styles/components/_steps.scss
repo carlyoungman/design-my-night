@@ -3,10 +3,10 @@
 .step {
   &__error {
     display: inline-block;
+    padding: var(--universal-space);
     color: var(--c-error);
     background: color-mix(in oklab, var(--c-error) 12%, transparent);
     border: 1px solid color-mix(in oklab, var(--c-error) 40%, transparent);
-    padding: var(--universal-space);
   }
 
   &__label {

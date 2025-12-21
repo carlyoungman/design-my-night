@@ -1,4 +1,4 @@
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useId, useMemo } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
@@ -10,7 +10,12 @@ type Props = {
   loading?: boolean;
   error?: string | null;
   enabled: boolean;
+
+  // existing single
   defaultTypeId?: string | null;
+
+  // NEW: multiple defaults (from comma-separated shortcode)
+  defaultTypeIds?: string[] | null;
 };
 
 export function Type({
@@ -19,10 +24,29 @@ export function Type({
   error = null,
   enabled,
   defaultTypeId = '',
+  defaultTypeIds = null,
 }: Props) {
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
   const captionId = useId();
+
+  const allowedIds = useMemo(() => {
+    const list: string[] = [];
+
+    if (Array.isArray(defaultTypeIds)) list.push(...defaultTypeIds);
+    if (defaultTypeId) list.push(defaultTypeId);
+
+    const cleaned = list.map((s) => String(s).trim()).filter(Boolean);
+
+    return Array.from(new Set(cleaned));
+  }, [defaultTypeIds, defaultTypeId]);
+
+  const filteredTypes = useMemo(() => {
+    if (!allowedIds.length) return types;
+    return types.filter((t) => allowedIds.includes(String(t.id)));
+  }, [types, allowedIds]);
+
+  const shortcodeHasType = allowedIds.length > 0;
 
   // Clear selection if prerequisites are not met
   useEffect(() => {
@@ -32,39 +56,66 @@ export function Type({
     }
   }, [enabled, state.bookingType, dispatch]);
 
-  // Preselect when defaultTypeId is provided
+  // If we have a single allowed ID, auto-select it (same as previous single behaviour)
   useEffect(() => {
     if (!enabled || loading) return;
-    if (!defaultTypeId) return;
+    if (allowedIds.length !== 1) return;
 
-    const match = types.find((t) => t.id === defaultTypeId && t.valid !== false);
+    const onlyId = allowedIds[0];
+    const match = types.find((t) => String(t.id) === onlyId && t.valid !== false);
     if (!match) return;
 
     if (state.bookingType !== match.id) {
       dispatch({ type: 'SET_TYPE', value: match.id });
       dispatch({ type: 'SET_DURATION', value: match.duration ?? null });
     }
-  }, [enabled, loading, defaultTypeId, types, state.bookingType, dispatch]);
+  }, [enabled, loading, allowedIds, types, state.bookingType, dispatch]);
 
-  // Auto-select when exactly one valid option and ready (only if no defaultTypeId)
+  // If multiple allowed IDs are provided, ensure any existing selection stays within them
   useEffect(() => {
-    if (enabled && !loading && !defaultTypeId && types.length === 1 && types[0]?.valid !== false) {
+    if (!enabled || loading) return;
+    if (allowedIds.length <= 1) return;
+    if (!state.bookingType) return;
+
+    const stillAllowed = filteredTypes.some((t) => String(t.id) === String(state.bookingType));
+    if (!stillAllowed) {
+      dispatch({ type: 'SET_TYPE', value: null });
+      dispatch({ type: 'SET_DURATION', value: null });
+    }
+  }, [enabled, loading, allowedIds, filteredTypes, state.bookingType, dispatch]);
+
+  // Auto-select when exactly one valid option and ready (only if no shortcode restriction)
+  useEffect(() => {
+    if (
+      enabled &&
+      !loading &&
+      !allowedIds.length &&
+      types.length === 1 &&
+      types[0]?.valid !== false
+    ) {
       const only = types[0]!;
       if (only.id !== state.bookingType) {
         dispatch({ type: 'SET_TYPE', value: only.id });
         dispatch({ type: 'SET_DURATION', value: only.duration ?? null });
       }
     }
-  }, [enabled, loading, defaultTypeId, types, state.bookingType, dispatch]);
-
-  // When defaultTypeId is set, only show that type
-  const filteredTypes = defaultTypeId ? types.filter((t) => t.id === defaultTypeId) : types;
+  }, [enabled, loading, allowedIds.length, types, state.bookingType, dispatch]);
 
   const showList = !loading && !error && filteredTypes.length > 0;
   const showEmpty = !loading && !error && filteredTypes.length === 0;
   const showError = !loading && !!error;
 
-  const selectedTypeForText = defaultTypeId && filteredTypes.length > 0 ? filteredTypes[0] : null;
+  const selectedForExtraText = useMemo(() => {
+    if (!shortcodeHasType) return null;
+
+    const current = filteredTypes.find((t) => String(t.id) === String(state.bookingType));
+    if (current) return current;
+
+    // If nothing selected yet and there's only one in filteredTypes, use it for text
+    if (filteredTypes.length === 1) return filteredTypes[0];
+
+    return null;
+  }, [shortcodeHasType, filteredTypes, state.bookingType]);
 
   return (
     <section className="type">
@@ -91,7 +142,7 @@ export function Type({
                   const next = String(value);
                   if (next !== (state.bookingType ?? '')) {
                     dispatch({ type: 'SET_TYPE', value: next });
-                    const selected = types.find((t) => t.id === next);
+                    const selected = filteredTypes.find((t) => String(t.id) === next);
 
                     dispatch({ type: 'SET_DURATION', value: selected?.duration ?? null });
                     scrollToSection('section.time', {
@@ -157,10 +208,12 @@ export function Type({
                   );
                 })}
               </RadioGroup>
-              {defaultTypeId && selectedTypeForText?.type_text && (
+
+              {/* Only show when shortcode type_id is provided (single or multiple) */}
+              {shortcodeHasType && selectedForExtraText?.type_text && (
                 <div
                   className="type__extra-text"
-                  dangerouslySetInnerHTML={{ __html: selectedTypeForText.type_text }}
+                  dangerouslySetInnerHTML={{ __html: selectedForExtraText.type_text }}
                 />
               )}
             </div>

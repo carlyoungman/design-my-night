@@ -7,17 +7,17 @@
 }
 
 @mixin headline-settings {
+  font-family: var(--font-family), serif;
   font-weight: var(--font-headline-weight);
   line-height: var(--font--headline-line-height);
-  font-family: var(--font--family), serif;
   text-wrap: balance;
 }
 
 @mixin base-settings {
-  //font-size: 18px;
+  font-family: var(--font-family), serif;
+  // font-size: 18px;
   font-weight: var(--font-base-font-weight);
   line-height: var(--font--base-line-height);
-  font-family: var(--font--family), serif;
 }
 
 @mixin super-size {
@@ -66,19 +66,19 @@
 
 @mixin button-reset {
   all: unset;
-  display: inline-block;
   box-sizing: border-box;
-  cursor: pointer;
-  outline: none !important;
-  text-align: center;
-  line-height: 1;
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
+  display: inline-block;
   padding: 0;
   margin: 0;
+  font: inherit;
+  line-height: 1;
+  color: inherit;
+  text-align: center;
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  appearance: none;
+  appearance: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none !important;
 }

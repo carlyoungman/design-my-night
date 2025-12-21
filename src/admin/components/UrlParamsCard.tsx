@@ -70,7 +70,7 @@ export default function UrlParamsCard() {
   }
 
   return (
-    <section className="dmn-admin__card" style={{ marginBottom: '1.5rem' }}>
+    <section className="dmn-admin__card">
       <h2>URL Parameters</h2>
       <p className="dmn-admin__help">
         These key/value pairs will be appended to the DesignMyNight booking URL as query parameters
@@ -80,7 +80,7 @@ export default function UrlParamsCard() {
         {rows.length === 0 && <p>No parameters configured.</p>}
 
         {rows.map((row, i) => (
-          <div style={{ marginBottom: '1.5rem' }} key={i} className="dmn-admin-urlparams__row">
+          <div key={i} className="dmn-admin-urlparams__row">
             <label style={{ marginBottom: '0.75rem' }}>
               <span>Parameter name</span>
               <input

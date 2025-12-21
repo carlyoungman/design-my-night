@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { WidgetProvider, useWidgetConfig, useWidgetState } from './WidgetProvider';
 import type { RootProps } from './WidgetProvider';
-import { Building, Calendar, PenLine, Rocket, MicVocal, Clock4, User } from 'lucide-react';
+import { Building, Calendar, PenLine, Rocket, Clock4, User } from 'lucide-react';
 import { Venue } from './components/steps/Venue';
 import { PartySize } from './components/steps/PartySize';
 import { Date } from './components/steps/Date';
@@ -10,13 +10,12 @@ import { Type } from './components/steps/Type';
 import { useVenues } from './hooks/useVenues';
 import { Details } from './components/steps/Details';
 import { Review } from './components/steps/Review';
-import Addons from './components/steps/Addons';
 import ProgressBar from './components/ProgressBar';
 import { Faqs } from './components/steps/Faqs';
 import { useBookingTypes } from './hooks/useBookingTypes';
 import { hhmmFromState } from './utils/helpers';
 import AddonsNew from './components/steps/AddonsNew';
-import { parseAllowedDays } from './utils/parseAllowedDays';
+import { parseAllowedDays } from './utils/helpers';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
@@ -29,7 +28,8 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
 }
 
 function WidgetInner() {
-  const { venueGroup, defaultVenueId, defaultTypeId, allowedDays } = useWidgetConfig();
+  const { venueGroup, defaultVenueId, defaultTypeId, defaultTypeIds, allowedDays } =
+    useWidgetConfig();
   const state = useWidgetState();
   const { venues, loading, error } = useVenues(venueGroup);
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
@@ -68,6 +68,7 @@ function WidgetInner() {
               />
             </div>
           </section>
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <User className="dmn-widget__icon" />
@@ -77,6 +78,7 @@ function WidgetInner() {
               <PartySize />
             </div>
           </section>
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <Calendar className="dmn-widget__icon" />
@@ -86,6 +88,7 @@ function WidgetInner() {
               <Date allowedDays={formattedAllowedDays} />
             </div>
           </section>
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <Rocket className="dmn-widget__icon" />
@@ -98,9 +101,11 @@ function WidgetInner() {
                 error={typesError}
                 enabled={enabled}
                 defaultTypeId={defaultTypeId}
+                defaultTypeIds={defaultTypeIds}
               />
             </div>
           </section>
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <Clock4 className="dmn-widget__icon" />
@@ -110,15 +115,7 @@ function WidgetInner() {
               <Time />
             </div>
           </section>
-          {/*<section className="dmn-widget__section">*/}
-          {/*  <p className="dmn-widget__header">*/}
-          {/*    <MicVocal className="dmn-widget__icon" />*/}
-          {/*    6. Choose your add-ons*/}
-          {/*  </p>*/}
-          {/*  <div className="dmn-widget__body">*/}
-          {/*    <Addons />*/}
-          {/*  </div>*/}
-          {/*</section>*/}
+
           <section className="dmn-widget__section">
             <p className="dmn-widget__header">
               <PenLine className="dmn-widget__icon" />
@@ -129,11 +126,13 @@ function WidgetInner() {
             </div>
           </section>
         </div>
+
         <div className="dmn-widget__side">
           <ProgressBar></ProgressBar>
           <Review sections={{ details: false }} venues={venues} types={types} />
         </div>
       </div>
+
       <Faqs venues={venues} />
       <AddonsNew />
     </>
