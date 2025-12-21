@@ -33,12 +33,24 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     [state.addons, state.addonsSelected],
   );
 
-  const perPerson = useMemo(() => toNum(selectedType?.priceText), [selectedType]);
-  const basePrice = useMemo(() => perPerson * (state.partySize ?? 0), [perPerson, state.partySize]);
+  // Base pricing:
+  // - per_person: unit * partySize
+  // - per_room: unit (no multiplication)
+  const unitPrice = useMemo(() => toNum(selectedType?.priceText), [selectedType]);
+
+  const basePrice = useMemo(() => {
+    const mode = selectedType?.price_mode === 'per_room' ? 'per_room' : 'per_person';
+    if (!unitPrice) return 0;
+
+    const size = state.partySize ?? 0;
+    return mode === 'per_room' ? unitPrice : unitPrice * size;
+  }, [unitPrice, selectedType?.price_mode, state.partySize]);
+
   const addonsTotal = useMemo(
     () => selectedAddons.reduce((s, p) => s + toNum(p.priceText), 0),
     [selectedAddons],
   );
+
   const grandTotal = useMemo(() => basePrice + addonsTotal, [basePrice, addonsTotal]);
 
   const isDisabled = useMemo(() => {
@@ -63,7 +75,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [isDisabled, submitting, state, returnUrl]);
+  }, [isDisabled, submitting, state, returnUrl, urlParams]);
 
   const show = {
     booking: sections?.booking ?? true,

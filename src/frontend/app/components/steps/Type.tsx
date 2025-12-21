@@ -66,10 +66,6 @@ export function Type({
 
   const selectedTypeForText = defaultTypeId && filteredTypes.length > 0 ? filteredTypes[0] : null;
 
-  console.log('types', types);
-  console.log('filteredTypes', filteredTypes);
-  console.log('selectedTypeForText', selectedTypeForText);
-
   return (
     <section className="type">
       {!enabled ? (

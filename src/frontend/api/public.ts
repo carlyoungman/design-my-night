@@ -77,6 +77,7 @@ export function getBookingTypes(params: BookingTypeQuery) {
       valid?: boolean | null;
       message?: string | null;
       duration?: number | null;
+      price_mode?: 'per_person' | 'per_room' | null;
     }>;
   }>('booking-types?' + qs.toString());
 }

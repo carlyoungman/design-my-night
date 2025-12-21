@@ -16,6 +16,7 @@ type AdminActivity = {
   visible?: boolean;
   duration_minutes?: number | null;
   type_text?: string;
+  price_mode?: 'per_person' | 'per_room';
 };
 
 type MenuOption = { id: number; title: string; fixed_price?: boolean };
@@ -59,7 +60,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         (r.image_id ?? null) !== (o.image_id ?? null) ||
         (r.menu_post_id ?? null) !== (o.menu_post_id ?? null) ||
         (r.visible ?? true) !== (o.visible ?? true) ||
-        (r.type_text || '') !== (o.type_text || '')
+        (r.type_text || '') !== (o.type_text || '') ||
+        (r.price_mode || 'per_person') !== (o.price_mode || 'per_person')
       ) {
         d.add(r.id);
       }
@@ -104,6 +106,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         const rowsWithDefaults = r.activities.map((a: AdminActivity) => ({
           ...a,
           visible: a.visible ?? true,
+          price_mode: a.price_mode ?? 'per_person',
         }));
         setRows(rowsWithDefaults);
         setOrig(rowsWithDefaults);
@@ -162,6 +165,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             menu_post_id: r.menu_post_id ?? null,
             visible: r.visible ?? true,
             type_text: r.type_text ?? '',
+            price_mode: r.price_mode ?? 'per_person',
           }),
         ),
       );
@@ -179,6 +183,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
           const updatedRows = r.activities.map((a: AdminActivity) => ({
             ...a,
             visible: a.visible ?? true,
+            price_mode: a.price_mode ?? 'per_person',
           }));
           setRows(updatedRows);
           setOrig(updatedRows);
@@ -353,6 +358,29 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                     >
                       <ToggleButton value="enabled">Enabled</ToggleButton>
                       <ToggleButton value="disabled">Disabled</ToggleButton>
+                    </ToggleButtonGroup>
+                  </div>
+
+                  {/* NEW: Pricing toggle (under Visibility) */}
+                  <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                    <div className="table__label">Pricing</div>
+                    <ToggleButtonGroup
+                      value={r.price_mode === 'per_room' ? 'per_room' : 'per_person'}
+                      exclusive
+                      onChange={(_, newValue) => {
+                        if (!newValue) return; // prevent toggling off both
+                        onCell(
+                          r.id,
+                          'price_mode',
+                          (newValue === 'per_room' ? 'per_room' : 'per_person') as
+                            | 'per_person'
+                            | 'per_room',
+                        );
+                      }}
+                      aria-label="Pricing"
+                    >
+                      <ToggleButton value="per_person">Per person</ToggleButton>
+                      <ToggleButton value="per_room">Per room</ToggleButton>
                     </ToggleButtonGroup>
                   </div>
                 </div>

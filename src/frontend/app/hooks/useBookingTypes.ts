@@ -27,6 +27,7 @@ type BookingTypeItem = {
   valid: boolean | null;
   message?: string | null;
   type_text?: string | null;
+  price_mode?: 'per_person' | 'per_room' | null;
 };
 
 // Structure returned by this hook
@@ -90,6 +91,7 @@ export function useBookingTypes({ venueId, date, partySize, enabled = true }: Pa
         valid: typeof t.valid === 'boolean' ? t.valid : null,
         message: t.message ?? null,
         type_text: t.type_text ?? null,
+        price_mode: t.price_mode ?? 'per_person',
       }));
 
       setTypes(mapped);

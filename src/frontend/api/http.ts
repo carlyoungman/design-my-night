@@ -31,11 +31,6 @@ export async function j<T>(path: string, init?: RequestInit): Promise<T> {
       'color:inherit',
       `color:${res.ok ? '#16a34a' : '#dc2626'}`,
     );
-    console.log('Request:', { url, init });
-    console.log('Response headers:', getHeadersAsRecord(res.headers));
-    console.log('Response body:', data);
-    console.log('Duration:', Math.round(performance.now() - started) + 'ms');
-    console.groupEnd();
   }
 
   if (!res.ok) {

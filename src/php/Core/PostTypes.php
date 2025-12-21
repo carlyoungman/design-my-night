@@ -100,6 +100,7 @@ class PostTypes
     self::meta('dmn_activity', 'venue_id', 'integer');
     self::meta('dmn_activity', 'slug', 'string');
     self::meta('dmn_activity', 'preorder_menu_id', 'integer');
+    self::meta('dmn_activity', 'dmn_price_mode', 'string');
 
     // Menus
     self::meta('dmn_menu', 'venue_id', 'integer');

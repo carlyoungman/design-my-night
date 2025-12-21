@@ -410,6 +410,8 @@ class AdminController
         'visible' => get_post_meta($p->ID, 'visible', true) !== '0',
         'duration_minutes' => (int)get_post_meta($p->ID, '_dmn_duration_minutes', true),
         'type_text' => (string)get_post_meta($p->ID, 'type_text', true),
+        'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true))
+        && in_array($m, ['per_person', 'per_room'], true) ? $m : 'per_person',
       ];
 
     }, $posts);
@@ -468,6 +470,12 @@ class AdminController
         'type_text',
         wp_kses_post($b['type_text'] ?? '')
       );
+    }
+
+    if (array_key_exists('price_mode', $b)) {
+      $mode = sanitize_text_field((string)($b['price_mode'] ?? ''));
+      if ($mode !== 'per_room') $mode = 'per_person';
+      update_post_meta($id, 'dmn_price_mode', $mode);
     }
 
 
@@ -582,10 +590,14 @@ class AdminController
 
     foreach ($venues as $venuePostId) {
       $venuePostId = (int)$venuePostId;
-      $ext_id = (string)get_post_meta($venuePostId, 'dmn_venue_id', true);
-      if (!$ext_id) continue;
 
-      $payload = [
+      $ext_id = (string)get_post_meta($venuePostId, 'dmn_venue_id', true);
+      if ($ext_id === '') {
+        continue;
+      }
+
+      // Minimal payload to get suggested booking types.
+      $availabilityPayload = [
         'num_people' => 2,
         'date' => gmdate('Y-m-d'),
       ];
@@ -594,20 +606,31 @@ class AdminController
         'POST',
         "/venues/$ext_id/booking-availability",
         ['fields' => 'type'],
-        $payload
+        $availabilityPayload
       );
-      if (!$resp['ok']) continue;
+
+      if (empty($resp['ok'])) {
+        continue;
+      }
 
       $data = $resp['data'] ?? [];
       $validation = $data['payload']['validation'] ?? null;
       $suggested = $validation['type']['suggestedValues'] ?? [];
-      if (!is_array($suggested)) $suggested = [];
+      if (!is_array($suggested)) {
+        $suggested = [];
+      }
 
       foreach ($suggested as $item) {
-        $v = (is_array($item) && isset($item['value'])) ? $item['value'] : $item;
+        $v = (is_array($item) && array_key_exists('value', $item)) ? $item['value'] : $item;
+
         $typeId = is_array($v) ? (string)($v['id'] ?? '') : (string)$v;
         $typeName = is_array($v) ? (string)($v['name'] ?? $typeId) : $typeId;
-        if (!$typeId) continue;
+
+        if ($typeId === '') {
+          continue;
+        }
+
+        $pid = 0;
 
         $existing = get_posts([
           'post_type' => 'dmn_activity',
@@ -618,52 +641,76 @@ class AdminController
           'fields' => 'ids',
         ]);
 
-        if ($existing) {
+        if (!empty($existing)) {
           $pid = (int)$existing[0];
-          wp_update_post(['ID' => $pid, 'post_title' => $typeName]);
+
+          wp_update_post([
+            'ID' => $pid,
+            'post_title' => $typeName,
+          ]);
         } else {
-          $pid = wp_insert_post([
+          $inserted = wp_insert_post([
             'post_type' => 'dmn_activity',
             'post_status' => 'publish',
             'post_title' => $typeName,
             'post_parent' => $venuePostId,
           ]);
-          if ($pid && !is_wp_error($pid)) {
+
+          if ($inserted && !is_wp_error($inserted)) {
+            $pid = (int)$inserted;
             add_post_meta($pid, 'dmn_type_id', $typeId, true);
           }
         }
 
-        if (!empty($pid) && !is_wp_error($pid)) {
-          try {
-            $rules = $client->request('POST', "/venues/$ext_id/booking-rules", [
-              'type' => $typeId,
-              'date' => gmdate('Y-m-d'),
-              'num_people' => 2,
-            ]);
-            if (!empty($rules['ok'])) {
-              $payload = $rules['data']['payload'] ?? [];
-              $minutes = null;
+        if (empty($pid) || is_wp_error($pid)) {
+          continue;
+        }
 
-              if (isset($payload['max_duration'])) {
-                $minutes = (int)$payload['max_duration'];
-              } elseif (!empty($payload['max_booking_duration'])) {
-                try {
-                  $d = new DateInterval($payload['max_booking_duration']);
-                  $minutes = ($d->h * 60) + $d->i;
-                } catch (Exception) {
-                }
-              }
 
-              if ($minutes !== null) {
-                update_post_meta($pid, '_dmn_duration_minutes', $minutes);
+        if ((string)get_post_meta($pid, 'dmn_type_id', true) !== $typeId) {
+          update_post_meta($pid, 'dmn_type_id', $typeId);
+        }
+
+        $priceMode = (string)get_post_meta($pid, 'dmn_price_mode', true);
+        if (!in_array($priceMode, ['per_person', 'per_room'], true)) {
+          update_post_meta($pid, 'dmn_price_mode', 'per_person');
+        }
+
+      
+        try {
+          $rulesPayload = [
+            'type' => $typeId,
+            'date' => gmdate('Y-m-d'),
+            'num_people' => 2,
+          ];
+
+          // NOTE: booking-rules expects payload as the POST body.
+          $rules = $client->request('POST', "/venues/$ext_id/booking-rules", [], $rulesPayload);
+
+          if (!empty($rules['ok'])) {
+            $payload = $rules['data']['payload'] ?? [];
+            $minutes = null;
+
+            if (isset($payload['max_duration'])) {
+              $minutes = (int)$payload['max_duration'];
+            } elseif (!empty($payload['max_booking_duration'])) {
+              try {
+                $d = new DateInterval((string)$payload['max_booking_duration']);
+                $minutes = ($d->h * 60) + $d->i;
+              } catch (Exception $e) {
+                // ignore
               }
             }
-          } catch (Throwable $e) {
-            error_log("[DMN] Duration fetch failed for type $typeId: " . $e->getMessage());
-          }
 
-          $total++;
+            if ($minutes !== null) {
+              update_post_meta($pid, '_dmn_duration_minutes', $minutes);
+            }
+          }
+        } catch (Throwable $e) {
+          error_log("[DMN] Duration fetch failed for type $typeId: " . $e->getMessage());
         }
+
+        $total++;
       }
     }
 

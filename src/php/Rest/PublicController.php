@@ -414,6 +414,8 @@ class PublicController
           'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
           'duration' => $duration > 0 ? $duration : null,
           'type_text' => is_string($type_text_raw) ? $type_text_raw : '',
+          'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true))
+          && in_array($m, ['per_person', 'per_room'], true) ? $m : 'per_person',
         ];
       }
     }
@@ -446,6 +448,7 @@ class PublicController
           'message' => $msg ?: null,
           'duration' => $conf['duration'] ?? null,
           'type_text' => $conf['type_text'] ?? '',
+          'price_mode' => $conf['price_mode'] ?? 'per_person',
         ];
       }
     } else {
@@ -462,6 +465,7 @@ class PublicController
           'message' => null,
           'duration' => $conf['duration'] ?? null,
           'type_text' => $conf['type_text'] ?? '',
+          'price_mode' => $conf['price_mode'] ?? 'per_person',
         ];
       }
     }
