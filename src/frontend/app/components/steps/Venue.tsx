@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useId } from 'react';
+import React, { useCallback, useMemo, useId, useEffect } from 'react';
 import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import type { VenueStepProps } from '../../types';
 import LoadingAnimation from '../LoadingAnimation';
@@ -8,11 +8,27 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const VenueId = useId();
-  const isVenueLocked = Boolean(defaultVenueId);
+
+  const defaultExists = useMemo(() => {
+    if (!defaultVenueId) return false;
+    return venues.some((v) => String(v._id) === String(defaultVenueId));
+  }, [venues, defaultVenueId]);
+
+  // Preselect once (but DO NOT lock the select).
+  useEffect(() => {
+    if (!defaultVenueId) return;
+    if (!defaultExists) return;
+    if (state.venueId) return;
+
+    const selected = venues.find((v) => String(v._id) === String(defaultVenueId));
+    if (!selected) return;
+
+    dispatch({ type: 'SET_VENUE', id: String(selected._id) });
+    dispatch({ type: 'SET_VENUE_NAME', name: selected.name || selected.title || '' });
+  }, [defaultVenueId, defaultExists, state.venueId, venues, dispatch]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (isVenueLocked) return;
       const selectedId = e.target.value || null;
       const selectedName = e.target.selectedOptions[0]?.text || '';
 
@@ -23,7 +39,7 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
       dispatch({ type: 'SET_TYPE', value: null });
       scrollToSection('section.date', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
     },
-    [isVenueLocked, dispatch],
+    [dispatch],
   );
 
   const venueOptions = useMemo(
@@ -43,7 +59,6 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
         className="venues__select"
         value={state.venueId || ''}
         onChange={handleChange}
-        // disabled={isVenueLocked}
       >
         <option value="" disabled>
           Choose…
