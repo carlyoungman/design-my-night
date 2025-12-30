@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 import LoadingAnimation from '../LoadingAnimation';
@@ -11,10 +11,9 @@ type Props = {
   error?: string | null;
   enabled: boolean;
 
-  // existing single
+  // single
   defaultTypeId?: string | null;
-
-  // NEW: multiple defaults (from comma-separated shortcode)
+  // multiple defaults (from comma-separated shortcode)
   defaultTypeIds?: string[] | null;
 };
 
@@ -28,6 +27,7 @@ export function Type({
 }: Props) {
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
+  const { allowDisabled } = useWidgetConfig();
   const captionId = useId();
 
   const allowedIds = useMemo(() => {
@@ -56,20 +56,31 @@ export function Type({
     }
   }, [enabled, state.bookingType, dispatch]);
 
-  // If we have a single allowed ID, auto-select it (same as previous single behaviour)
+  // If we have a single allowed ID, auto-select it (same as previous single behavior)
   useEffect(() => {
     if (!enabled || loading) return;
     if (allowedIds.length !== 1) return;
 
     const onlyId = allowedIds[0];
-    const match = types.find((t) => String(t.id) === onlyId && t.valid !== false);
+
+    const match = types.find((t) => {
+      if (String(t.id) !== onlyId) return false;
+      if (t.valid === false) return false;
+
+      // If the type is dashboard-disabled, only allow auto-select when allowDisabled is enabled
+      const isVisible = t.visible !== false;
+      if (!allowDisabled && !isVisible) return false;
+
+      return true;
+    });
+
     if (!match) return;
 
     if (state.bookingType !== match.id) {
       dispatch({ type: 'SET_TYPE', value: match.id });
       dispatch({ type: 'SET_DURATION', value: match.duration ?? null });
     }
-  }, [enabled, loading, allowedIds, types, state.bookingType, dispatch]);
+  }, [enabled, loading, allowedIds, types, state.bookingType, dispatch, allowDisabled]);
 
   // If multiple allowed IDs are provided, ensure any existing selection stays within them
   useEffect(() => {
@@ -86,20 +97,21 @@ export function Type({
 
   // Auto-select when exactly one valid option and ready (only if no shortcode restriction)
   useEffect(() => {
-    if (
-      enabled &&
-      !loading &&
-      !allowedIds.length &&
-      types.length === 1 &&
-      types[0]?.valid !== false
-    ) {
-      const only = types[0]!;
-      if (only.id !== state.bookingType) {
-        dispatch({ type: 'SET_TYPE', value: only.id });
-        dispatch({ type: 'SET_DURATION', value: only.duration ?? null });
-      }
+    if (!enabled || loading || allowedIds.length) return;
+    if (types.length !== 1) return;
+
+    const only = types[0]!;
+    if (only?.valid === false) return;
+
+    // If dashboard-disabled, only auto-select when allowDisabled
+    const isVisible = only.visible !== false;
+    if (!allowDisabled && !isVisible) return;
+
+    if (only.id !== state.bookingType) {
+      dispatch({ type: 'SET_TYPE', value: only.id });
+      dispatch({ type: 'SET_DURATION', value: only.duration ?? null });
     }
-  }, [enabled, loading, allowedIds.length, types, state.bookingType, dispatch]);
+  }, [enabled, loading, allowedIds.length, types, state.bookingType, dispatch, allowDisabled]);
 
   const showList = !loading && !error && filteredTypes.length > 0;
   const showEmpty = !loading && !error && filteredTypes.length === 0;
@@ -154,7 +166,11 @@ export function Type({
                 className="radio-group"
               >
                 {filteredTypes.map((t: any) => {
-                  const isDisabled = loading || t.valid === false;
+                  const isVisible = t.visible !== false;
+
+                  // Disable only when DMN says invalid/unavailable, OR dashboard-disabled AND allowDisabled is NOT enabled.
+                  const isDisabled = loading || t.valid === false || (!allowDisabled && !isVisible);
+
                   const isSelected = state.bookingType === t.id;
 
                   return (

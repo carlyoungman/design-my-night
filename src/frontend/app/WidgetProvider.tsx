@@ -15,6 +15,7 @@ export type RootProps = {
   returnUrl?: string;
   urlParams?: Record<string, string>;
   children?: React.ReactNode;
+  allowDisabled?: boolean;
 };
 
 type Config = Omit<RootProps, 'children'>;
@@ -55,6 +56,7 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       config.allowedDays,
       config.returnUrl,
       config.urlParams,
+      config.allowDisabled,
     ],
   );
 

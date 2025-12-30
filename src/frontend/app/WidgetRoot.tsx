@@ -28,7 +28,7 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
 }
 
 function WidgetInner() {
-  const { venueGroup, defaultVenueId, defaultTypeId, defaultTypeIds, allowedDays } =
+  const { venueGroup, defaultVenueId, defaultTypeId, defaultTypeIds, allowedDays, allowDisabled } =
     useWidgetConfig();
   const state = useWidgetState();
   const { venues, loading, error } = useVenues(venueGroup);
@@ -47,6 +47,7 @@ function WidgetInner() {
     date: state.date ?? null,
     time: timeHHmm,
     enabled,
+    allowDisabled,
   });
 
   return (

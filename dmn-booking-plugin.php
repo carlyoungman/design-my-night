@@ -2,7 +2,7 @@
 /**
  * Plugin Name: DMN Booking Plugin
  * Description: DesignMyNight booking plugin with React + TypeScript (admin + widget).
- * Version: 2.6.1
+ * Version: 2.7.0
  * Author: Carl Youngman
  * Email: me@carlyoungman
  */
@@ -11,19 +11,17 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('DMN_BP_VER', '2.6.1');
+define('DMN_BP_VER', '2.7.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 
 require_once DMN_BP_DIR . 'src/php/Core/PostTypes.php';
 require_once DMN_BP_DIR . 'src/php/Autoloader.php';
 
-
 DMN\Booking\Autoloader::register();
 
 use DMN\Booking\Config\Settings;
 use DMN\Booking\PostTypes;
-
 
 function dmn_bp_enqueue_widget_assets(): void
 {
@@ -61,18 +59,19 @@ function dmn_bp_enqueue_widget_assets(): void
   ]);
 }
 
-
 // Registers the 'dmn_booking' shortcode to render the DMN booking widget with venue data.
 add_action('init', function () {
 
   add_shortcode('dmn_booking', function ($atts = []) {
     dmn_bp_enqueue_widget_assets();
+
     $a = shortcode_atts([
       'venue_group' => get_option(Settings::OPT_VG, ''),
       'venue_id' => '',
       'type_id' => '',
       'allowed_days' => '',
       'url_params' => '',
+      'allow_disabled' => '',
     ], $atts, 'dmn_booking');
 
     // Base values from shortcode
@@ -80,6 +79,12 @@ add_action('init', function () {
     $venueId = $a['venue_id'];
     $typeId = $a['type_id'];
     $allowedDays = $a['allowed_days'];
+
+    $isFlagPresent = array_key_exists('allow_disabled', (array)$atts)
+      || in_array('allow_disabled', (array)$atts, true);
+
+    $allowDisabled = $isFlagPresent
+      && (string)($atts['allow_disabled'] ?? '') !== '0';
 
     // Allow GET overrides
     if (isset($_GET['venue_group']) && $_GET['venue_group'] !== '') {
@@ -142,13 +147,13 @@ add_action('init', function () {
 
     $dataUrlParams = $urlParamsAssoc ? wp_json_encode($urlParamsAssoc) : '';
 
-
     ob_start(); ?>
     <div class="dmn-widget-root"
          data-venue-group="<?php echo esc_attr($venueGroup); ?>"
          data-venue-id="<?php echo esc_attr($venueId); ?>"
          data-type-id="<?php echo esc_attr($typeId); ?>"
          data-allowed-days="<?php echo esc_attr($allowedDays); ?>"
+         data-allow-disabled="<?php echo esc_attr($allowDisabled ? '1' : '0'); ?>"
       <?php if ($dataUrlParams) : ?>
         data-url-params="<?php echo esc_attr($dataUrlParams); ?>"
       <?php endif; ?>
@@ -157,7 +162,6 @@ add_action('init', function () {
     return ob_get_clean();
   });
 });
-
 
 // Adds a top-level admin menu page for the DMN Booking plugin in the WordPress dashboard.
 add_action('admin_menu', function () {
@@ -172,6 +176,7 @@ add_action('admin_menu', function () {
     'dashicons-tickets', 58
   );
 });
+
 // Enqueues admin scripts and styles for the DMN Booking plugin only on the plugin's admin page, and localizes REST API data for JavaScript.
 add_action('admin_enqueue_scripts', function ($hook) {
   if ($hook !== 'toplevel_page_dmn-booking-admin') {
@@ -209,6 +214,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
   wp_enqueue_media();
 });
+
 // Enqueues frontend scripts and styles for the DMN Booking widget only on singular posts containing the 'dmn_booking' shortcode, and localizes REST API data for JavaScript.
 add_action('wp_enqueue_scripts', function () {
   if (!is_singular()) {
@@ -249,9 +255,9 @@ add_action('wp_enqueue_scripts', function () {
 
 // Registers the custom post type for the DMN Booking plugin during the WordPress 'init' action.
 add_action('init', [PostTypes::class, 'register']);
+
 // Registers REST API routes for the DMN Booking plugin by initializing the admin and public controllers during the 'rest_api_init' action.
 add_action('rest_api_init', function () {
   (new DMN\Booking\Rest\AdminController())->register_routes();
   (new DMN\Booking\Rest\PublicController())->register_routes();
 });
-

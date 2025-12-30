@@ -30,15 +30,17 @@ class PublicController
   }
 
   /**
-   * GET /dmn/v1/addons?venue_id=.&activity_id=..
+   * GET /dmn/v1/addons?venue_id=.&activity_id=.&allow_disabled=1
    * Returns add-ons mapped to the front-end shape used in Addons.tsx.
    *
-   * Now filters out:
+   * Filters out (unless allow_disabled=1):
    * - Activities with meta `visible` set to `'0'` (disabled).
    * - Menu items (add-ons) with meta `_dmn_visible` set to `'0'` (disabled).
    */
   public static function get_addons(WP_REST_Request $r): WP_REST_Response
   {
+    $allow_disabled = filter_var($r->get_param('allow_disabled'), FILTER_VALIDATE_BOOLEAN);
+
     // Inputs (DMN external IDs as strings)
     $venue_ext_id = (string)($r->get_param('venue_id') ?? '');
     $activity_id = (string)($r->get_param('activity_id') ?? '');
@@ -58,15 +60,18 @@ class PublicController
       ]],
       'no_found_rows' => true,
     ]);
+
     if (empty($venue_posts)) {
       return new WP_REST_Response(['data' => []], 200);
     }
+
     $venue_post_id = (int)$venue_posts[0];
 
     // 2) Find activities under this venue that have a menu assigned (optionally filter by type)
     $activity_meta = [
       ['key' => 'dmn_menu_post_id', 'compare' => 'EXISTS'],
     ];
+
     if ($activity_id !== '') {
       $activity_meta[] = [
         'relation' => 'OR',
@@ -91,24 +96,28 @@ class PublicController
       return new WP_REST_Response(['data' => []], 200);
     }
 
-    // 2b) Filter out activities that are disabled (visible === '0')
+    // 2b) Filter out activities that are disabled (visible === '0'), unless allow_disabled
     $visible_activity_ids = [];
     foreach ($activities as $aid) {
       $is_visible = get_post_meta((int)$aid, 'visible', true) !== '0';
-      if ($is_visible) {
+      if ($allow_disabled || $is_visible) {
         $visible_activity_ids[] = (int)$aid;
       }
     }
+
     if (empty($visible_activity_ids)) {
       return new WP_REST_Response(['data' => []], 200);
     }
 
-    // 3) Collect menu IDs from only *visible* activities
+    // 3) Collect menu IDs from activities
     $menu_ids = [];
     foreach ($visible_activity_ids as $aid) {
       $mid = (int)get_post_meta((int)$aid, 'dmn_menu_post_id', true);
-      if ($mid > 0) $menu_ids[$mid] = $mid;
+      if ($mid > 0) {
+        $menu_ids[$mid] = $mid;
+      }
     }
+
     if (empty($menu_ids)) {
       return new WP_REST_Response(['data' => []], 200);
     }
@@ -125,34 +134,43 @@ class PublicController
       'no_found_rows' => true,
     ]);
 
-    // 5) Map to frontend AddOnPackage shape (flat list), skipping disabled items
+    // 5) Map to frontend shape (flat list), skipping disabled items unless allow_disabled
     $out = [];
     foreach ($items as $it) {
-      // Skip if the add-on itself is disabled
+      /** @var WP_Post $it */
+
       $item_visible = get_post_meta($it->ID, '_dmn_visible', true) !== '0';
-      if (!$item_visible) {
+      if (!$allow_disabled && !$item_visible) {
         continue;
       }
 
       $img_id = (int)get_post_thumbnail_id($it->ID);
       $image_url = $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null;
+
       $price_ro = get_post_meta($it->ID, '_dmn_item_price_ro', true);
       $price_num = is_numeric($price_ro) ? (float)$price_ro : null;
 
+      // NOTE:
+      // If you store a dedicated DMN package id meta (e.g. _dmn_package_id), prefer that.
+      // Otherwise, return null rather than incorrectly using the DMN item id.
+      $package_id = (string)get_post_meta($it->ID, '_dmn_package_id', true);
+      if ($package_id === '') {
+        $package_id = null;
+      }
+
       $out[] = [
         'id' => (string)$it->ID,
-        'name' => (string)$it->post_title,
+        'name' => $it->post_title,
         'description' => (string)apply_filters('the_content', $it->post_content),
         'priceText' => $price_num !== null ? '£' . number_format($price_num, 2) : '',
         'image_url' => $image_url,
-        'visible' => true, // we only include visible ones
-        'dmn_package_id' => (string)(get_post_meta($it->ID, '_dmn_item_id', true) ?: $it->ID),
+        'visible' => $item_visible,
+        'dmn_package_id' => $package_id,
       ];
     }
 
     return new WP_REST_Response(['data' => array_values($out)], 200);
   }
-
 
   /**
    * Registers all public REST API routes for the DMN Booking plugin.
@@ -165,18 +183,21 @@ class PublicController
       'permission_callback' => '__return_true',
       'callback' => [$this, 'venues'],
     ]);
+
     // POST /dmn/v1/booking-availability
     register_rest_route('dmn/v1', '/booking-availability', [
       'methods' => 'POST',
       'permission_callback' => '__return_true',
       'callback' => [$this, 'availability'],
     ]);
+
     // POST /dmn/v1/create-booking
     register_rest_route('dmn/v1', '/create-booking', [
       'methods' => 'POST',
       'callback' => [self::class, 'create_booking'],
       'permission_callback' => '__return_true',
     ]);
+
     // GET /dmn/v1/booking-types
     register_rest_route('dmn/v1', '/booking-types', [
       'methods' => 'GET',
@@ -187,8 +208,10 @@ class PublicController
         'date' => ['type' => 'string', 'required' => false],
         'num_people' => ['type' => 'integer', 'required' => false],
         'party_size' => ['type' => 'integer', 'required' => false],
+        'allow_disabled' => ['type' => 'boolean', 'required' => false],
       ],
     ]);
+
     // GET /dmn/v1/addons
     register_rest_route('dmn/v1', '/addons', [
       'methods' => 'GET',
@@ -197,6 +220,7 @@ class PublicController
       'args' => [
         'venue_id' => ['type' => 'string', 'required' => true],
         'activity_id' => ['type' => 'string', 'required' => false],
+        'allow_disabled' => ['type' => 'boolean', 'required' => false],
       ],
     ]);
 
@@ -211,6 +235,7 @@ class PublicController
         ],
       ],
     ]);
+
     // Large group link
     register_rest_route('dmn/v1', '/public/large-group-link', [
       [
@@ -222,6 +247,7 @@ class PublicController
         ],
       ],
     ]);
+
     // Return URL (for redirect after booking)
     register_rest_route('dmn/v1', '/public/return-url', [[
       'methods' => WP_REST_Server::READABLE,
@@ -229,7 +255,9 @@ class PublicController
       'callback' => function (WP_REST_Request $req): WP_REST_Response {
         $venue_param = $req->get_param('venue_id');
         $post_id = $this->resolve_venue_post_id($venue_param);
-        if ($post_id <= 0) return new WP_REST_Response(['url' => ''], 404);
+        if ($post_id <= 0) {
+          return new WP_REST_Response(['url' => ''], 404);
+        }
         $url = (string)get_post_meta($post_id, 'dmn_return_url', true);
         return new WP_REST_Response(['url' => mb_substr($url, 0, 300)], 200);
       },
@@ -245,6 +273,7 @@ class PublicController
       $pid = (int)$venue_id_param;
       return max($pid, 0);
     }
+
     // DMN venue id stored in post meta 'dmn_venue_id'
     $dmn_id = (string)$venue_id_param;
     $ids = get_posts([
@@ -261,16 +290,19 @@ class PublicController
   /**
    * GET /dmn/v1/venues
    */
-  public function venues(WP_REST_Request $req): WP_REST_RESPONSE
+  public function venues(WP_REST_Request $req): WP_REST_Response
   {
     $query = [];
     if ($vg = $req->get_param('venue_group')) {
       $query['venue_group'] = sanitize_text_field($vg);
     }
-    $query['fields'] = $req->get_param('fields') ? sanitize_text_field((string)$req->get_param('fields')) : 'path,name,title';
+
+    $query['fields'] = $req->get_param('fields')
+      ? sanitize_text_field((string)$req->get_param('fields'))
+      : 'path,name,title';
 
     $dmn = new DmnClient();
-    $res = $dmn->request('GET', '/venues', $query, null);
+    $res = $dmn->request('GET', '/venues', $query);
 
     return new WP_REST_Response([
       'data' => $res['data'] ?? null,
@@ -285,7 +317,7 @@ class PublicController
    */
   public function availability(WP_REST_Request $req): WP_REST_Response
   {
-    $p = (array)($req->get_json_params() ?? []);
+    $p = $req->get_json_params() ?? [];
     $venueId = isset($p['venue_id']) ? sanitize_text_field((string)$p['venue_id']) : '';
     if ($venueId === '') {
       return new WP_REST_Response(['error' => 'venue_id required'], 400);
@@ -307,9 +339,8 @@ class PublicController
       'getOffers' => true,
     ], fn($v) => $v !== null);
 
-
     $dmn = new DmnClient();
-    $res = $dmn->request('POST', "/venues/{$venueId}/booking-availability", $q, $payload);
+    $res = $dmn->request('POST', "/venues/$venueId/booking-availability", $q, $payload);
 
     $validation = $res['validation'] ?? ($res['data']['payload']['validation'] ?? null);
 
@@ -325,10 +356,12 @@ class PublicController
   /**
    * GET /dmn/v1/booking-types
    * Merge DMN suggested types with WP-configured activities,
-   * filtering out activities where meta `visible` is `'0'`.
+   * filtering out activities where meta `visible` is `'0'` unless allow_disabled=1.
    */
   public function get_booking_types(WP_REST_Request $r): WP_REST_Response
   {
+    $allow_disabled = filter_var($r->get_param('allow_disabled'), FILTER_VALIDATE_BOOLEAN);
+
     $venueExtId = sanitize_text_field((string)$r->get_param('venue_id'));
     if (!$venueExtId) {
       return new WP_REST_Response(['data' => [], 'reason' => 'missing_venue_id'], 200);
@@ -343,7 +376,7 @@ class PublicController
 
     $dmnResp = $client->request(
       'POST',
-      "/venues/{$venueExtId}/booking-availability",
+      "/venues/$venueExtId/booking-availability",
       ['fields' => 'type'],
       $payload
     );
@@ -353,11 +386,13 @@ class PublicController
       $data = $dmnResp['data'] ?? [];
       $validation = $data['payload']['validation'] ?? null;
       $sv = $validation['type']['suggestedValues'] ?? [];
+
       if (is_array($sv)) {
         foreach ($sv as $item) {
           $v = (is_array($item) && isset($item['value'])) ? $item['value'] : $item;
           $id = is_array($v) ? (string)($v['id'] ?? '') : (string)$v;
           if (!$id) continue;
+
           $name = is_array($v) ? (string)($v['name'] ?? $id) : $id;
           $valid = is_array($item) && array_key_exists('valid', $item) ? (bool)$item['valid'] : null;
           $message = is_array($item) && array_key_exists('message', $item) ? (string)($item['message'] ?? '') : null;
@@ -372,7 +407,7 @@ class PublicController
       }
     }
 
-    // 2) WP-configured activities under the matching venue post (only visible ones)
+    // 2) WP-configured activities under the matching venue post (filter disabled unless allow_disabled)
     $venuePosts = get_posts([
       'post_type' => 'dmn_venue',
       'numberposts' => 1,
@@ -380,24 +415,26 @@ class PublicController
       'meta_key' => 'dmn_venue_id',
       'meta_value' => $venueExtId,
     ]);
+
     $configuredById = [];
 
     if ($venuePosts) {
       $venuePostId = (int)$venuePosts[0];
+
       $acts = get_posts([
         'post_type' => 'dmn_activity',
         'post_parent' => $venuePostId,
         'numberposts' => 1000,
       ]);
 
-
       foreach ($acts as $p) {
         /** @var WP_Post $p */
-        // Skip if disabled
+
         $is_visible = get_post_meta($p->ID, 'visible', true) !== '0';
-        if (!$is_visible) {
+        if (!$allow_disabled && !$is_visible) {
           continue;
         }
+
         $typeId = (string)get_post_meta($p->ID, 'dmn_type_id', true);
         if (!$typeId) continue;
 
@@ -405,6 +442,7 @@ class PublicController
 
         $imgId = (int)get_post_thumbnail_id($p->ID);
         $duration = (int)get_post_meta($p->ID, '_dmn_duration_minutes', true);
+
         $configuredById[$typeId] = [
           'id' => $typeId,
           'name' => get_the_title($p->ID),
@@ -414,27 +452,28 @@ class PublicController
           'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
           'duration' => $duration > 0 ? $duration : null,
           'type_text' => is_string($type_text_raw) ? $type_text_raw : '',
-          'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true))
-          && in_array($m, ['per_person', 'per_room'], true) ? $m : 'per_person',
+          'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true)) && in_array($m, ['per_person', 'per_room'], true)
+            ? $m
+            : 'per_person',
+          'visible' => $is_visible,
         ];
       }
     }
 
     // 3) Merge DMN + WP
+    // FIX: don’t drop WP-configured types that aren’t in DMN suggestedValues.
     $out = [];
+    $seen = [];
+
+    // A) suggested first (only if configured in WP)
     if (!empty($suggested)) {
       foreach ($suggested as $id => $base) {
         $conf = $configuredById[$id] ?? null;
-
-        // If no visible WP-configured activity for this type, skip entirely
-        if ($conf === null) {
-          continue;
-        }
+        if ($conf === null) continue;
 
         $valid = array_key_exists('valid', $base) ? $base['valid'] : null;
         $msg = array_key_exists('message', $base) ? ($base['message'] ?? '') : '';
 
-        // If invalid and DMN provided a message → show that message in place of WP description
         $description = ($valid === false && $msg) ? $msg : ($conf['description'] ?? '');
 
         $out[] = [
@@ -449,37 +488,42 @@ class PublicController
           'duration' => $conf['duration'] ?? null,
           'type_text' => $conf['type_text'] ?? '',
           'price_mode' => $conf['price_mode'] ?? 'per_person',
+          'visible' => $conf['visible'] ?? true,
         ];
-      }
-    } else {
-      // fallback: configured only
-      foreach ($configuredById as $conf) {
-        $out[] = [
-          'id' => $conf['id'],
-          'name' => $conf['name'],
-          'description' => $conf['description'],
-          'priceText' => $conf['priceText'],
-          'image_id' => $conf['image_id'],
-          'image_url' => $conf['image_url'],
-          'valid' => null,
-          'message' => null,
-          'duration' => $conf['duration'] ?? null,
-          'type_text' => $conf['type_text'] ?? '',
-          'price_mode' => $conf['price_mode'] ?? 'per_person',
-        ];
+
+        $seen[$id] = true;
       }
     }
 
+    // B) append any configured types not in suggestions
+    foreach ($configuredById as $id => $conf) {
+      if (isset($seen[$id])) continue;
+
+      $out[] = [
+        'id' => $conf['id'],
+        'name' => $conf['name'],
+        'description' => $conf['description'],
+        'priceText' => $conf['priceText'],
+        'image_id' => $conf['image_id'],
+        'image_url' => $conf['image_url'],
+        'valid' => null,
+        'message' => null,
+        'duration' => $conf['duration'] ?? null,
+        'type_text' => $conf['type_text'] ?? '',
+        'price_mode' => $conf['price_mode'] ?? 'per_person',
+        'visible' => $conf['visible'] ?? true,
+      ];
+    }
 
     // Stable partition: preserve original order, push invalid to end.
-    $valid = [];
-    $invalid = [];
+    $valid_rows = [];
+    $invalid_rows = [];
 
     foreach ($out as $row) {
-      ($row['valid'] ?? null) === false ? $invalid[] = $row : $valid[] = $row;
+      ($row['valid'] ?? null) === false ? $invalid_rows[] = $row : $valid_rows[] = $row;
     }
 
-    $out = array_merge($valid, $invalid);
+    $out = array_merge($valid_rows, $invalid_rows);
 
     return new WP_REST_Response(['data' => $out], 200);
   }
@@ -489,11 +533,14 @@ class PublicController
   {
     $venue_param = $req->get_param('venue_id');
     $post_id = $this->resolve_venue_post_id($venue_param);
+
     if ($post_id <= 0) {
       return new WP_REST_Response(['faqs' => [], 'error' => 'venue not found'], 404);
     }
+
     $faqs = get_post_meta($post_id, 'dmn_faqs', true);
     if (!is_array($faqs)) $faqs = [];
+
     // normalise
     $faqs = array_values(array_map(function ($f) {
       return [
@@ -501,6 +548,7 @@ class PublicController
         'answer' => isset($f['answer']) ? (string)$f['answer'] : '',
       ];
     }, $faqs));
+
     return new WP_REST_Response(['faqs' => $faqs], 200);
   }
 
@@ -509,9 +557,13 @@ class PublicController
   {
     $venue_param = $req->get_param('venue_id');
     $post_id = $this->resolve_venue_post_id($venue_param);
+
     if ($post_id <= 0) {
       return new WP_REST_Response([
-        'enabled' => false, 'minSize' => 12, 'label' => 'Groups of 12+ — Enquire here', 'url' => '',
+        'enabled' => false,
+        'minSize' => 12,
+        'label' => 'Groups of 12+ — Enquire here',
+        'url' => '',
         'error' => 'venue not found',
       ], 404);
     }
@@ -530,5 +582,4 @@ class PublicController
       'url' => $url,
     ], 200);
   }
-
 }

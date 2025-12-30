@@ -16,8 +16,16 @@ type Params = {
   venueId?: string | null;
   /** DMN "type" id / activity id (string) */
   activityId?: string | null;
+
+  /**
+   * When true, include add-ons that are marked invisible/disabled in WP/DMN sync.
+   * This is driven by the shortcode flag `allow_disabled`.
+   */
+  allowDisabled?: boolean;
+
   /** Gate the hook (no requests when false) */
   enabled?: boolean;
+
   /**
    * Optional: called after successful load.
    * Useful if you want to sync results into global state (e.g. dispatch SET_PACKAGES).
@@ -35,7 +43,13 @@ type Return = {
   hasAny: boolean;
 };
 
-export function useAddons({ venueId, activityId, enabled = true, onLoad }: Params): Return {
+export function useAddons({
+  venueId,
+  activityId,
+  allowDisabled = false,
+  enabled = true,
+  onLoad,
+}: Params): Return {
   const [addons, setAddons] = useState<AddonItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +67,11 @@ export function useAddons({ venueId, activityId, enabled = true, onLoad }: Param
       JSON.stringify({
         venueId: venueId ?? '',
         activityId: activityId ?? '',
+        allowDisabled: !!allowDisabled,
         enabled: !!enabled,
         reloadTick,
       }),
-    [venueId, activityId, enabled, reloadTick],
+    [venueId, activityId, allowDisabled, enabled, reloadTick],
   );
 
   const fetchAddons = useCallback(async () => {
@@ -87,7 +102,9 @@ export function useAddons({ venueId, activityId, enabled = true, onLoad }: Param
     setError(null);
 
     try {
-      const res = await getAddons(String(venueId), String(activityId));
+      // NOTE: pass allowDisabled through
+      const res = await getAddons(String(venueId), String(activityId), allowDisabled);
+
       if (ctrl.signal.aborted) return; // aborted mid-flight
       if (myReqId !== reqIdRef.current) return; // stale response
 
@@ -107,7 +124,7 @@ export function useAddons({ venueId, activityId, enabled = true, onLoad }: Param
       setAddons([]);
       setLoading(false);
     }
-  }, [enabled, venueId, activityId, onLoad]);
+  }, [enabled, venueId, activityId, allowDisabled, onLoad]);
 
   useEffect(() => {
     fetchAddons();

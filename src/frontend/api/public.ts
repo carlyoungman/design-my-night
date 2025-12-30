@@ -53,11 +53,14 @@ export function checkAvailability(p: AvailabilityReq, fields?: CheckFields) {
   });
 }
 
+/* ---------- Booking Types ---------- */
+
 export type BookingTypeQuery = {
   venueId: string;
   numPeople?: number;
   time?: string;
   date?: string;
+  allowDisabled?: boolean;
 };
 
 export function getBookingTypes(params: BookingTypeQuery) {
@@ -66,6 +69,8 @@ export function getBookingTypes(params: BookingTypeQuery) {
   if (params.numPeople) qs.set('num_people', String(params.numPeople));
   if (params.date) qs.set('date', params.date);
   if (params.time) qs.set('time', String(params.time));
+  if (params.allowDisabled) qs.set('allow_disabled', '1');
+
   return j<{
     data: Array<{
       id: string;
@@ -78,13 +83,15 @@ export function getBookingTypes(params: BookingTypeQuery) {
       message?: string | null;
       duration?: number | null;
       price_mode?: 'per_person' | 'per_room' | null;
+      /** Optional: reflects WP activity visibility when allow_disabled is used */
+      visible?: boolean;
     }>;
   }>('booking-types?' + qs.toString());
 }
 
 /* ---------- Addons ---------- */
 
-export async function getAddons(venueId: string, activityId?: string) {
+export async function getAddons(venueId: string, activityId?: string, allowDisabled?: boolean) {
   const base = (window as any).__DMN_API_BASE__ || '/wp-json/dmn/v1';
   if (!venueId) {
     throw new Error('Missing venue id');
@@ -94,18 +101,20 @@ export async function getAddons(venueId: string, activityId?: string) {
   // IMPORTANT: send the external DMN venue id (string), not a number
   url.searchParams.set('venue_id', String(venueId));
   if (activityId) url.searchParams.set('activity_id', String(activityId));
+  if (allowDisabled) url.searchParams.set('allow_disabled', '1');
 
   const r = await fetch(url.toString(), { credentials: 'same-origin' });
   if (!r.ok) {
     let msg = 'Failed to load add-ons';
     try {
-      const j = await r.json();
-      msg = j?.message || msg;
+      const jj = await r.json();
+      msg = jj?.message || msg;
     } catch {}
     throw new Error(msg);
   }
-  const j = await r.json();
-  return { data: j?.data ?? [] };
+
+  const jj = await r.json();
+  return { data: jj?.data ?? [] };
 }
 
 // public.ts
@@ -122,10 +131,12 @@ async function wpPublicFetch<T = any>(slug: string, init: RequestInit = {}): Pro
     },
     body: init.body,
   });
+
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(text || `HTTP ${res.status}`);
   }
+
   return (await res.json()) as T;
 }
 
