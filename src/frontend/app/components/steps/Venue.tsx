@@ -37,7 +37,7 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
       dispatch({ type: 'SET_DATE', date: null });
       dispatch({ type: 'SET_TIME', value: null });
       dispatch({ type: 'SET_TYPE', value: null });
-      scrollToSection('section.date', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
+      scrollToSection('section.date', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
     },
     [dispatch],
   );

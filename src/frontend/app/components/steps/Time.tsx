@@ -86,7 +86,7 @@ export function Time() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_TIME', value: e.target.value });
-    scrollToSection('section.details', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
+    scrollToSection('section.details', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
   };
 
   return (

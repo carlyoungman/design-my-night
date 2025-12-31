@@ -34,7 +34,7 @@ function WidgetInner() {
   const { venues, loading, error } = useVenues(venueGroup);
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
 
-  const timeHHmm = useMemo(() => hhmmFromState(state.time), [state.time]);
+  // const timeHHmm = useMemo(() => hhmmFromState(state.time), [state.time]);
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
   const {
@@ -45,7 +45,7 @@ function WidgetInner() {
     venueId: state.venueId ?? null,
     partySize: state.partySize ?? null,
     date: state.date ?? null,
-    time: timeHHmm,
+    // time: timeHHmm,
     enabled,
     allowDisabled,
   });

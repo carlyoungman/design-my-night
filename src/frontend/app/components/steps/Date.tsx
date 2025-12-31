@@ -113,7 +113,7 @@ export function Date({ allowedDays }: DateProps) {
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
       dispatch({ type: 'SET_TIME', value: '' as any });
       dispatch({ type: 'SET_TYPE', value: '' as any });
-      scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 400 });
+      scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
     },
     [dispatch, isSelectable],
   );
