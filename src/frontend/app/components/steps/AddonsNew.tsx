@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import LoadingAnimation from '../LoadingAnimation';
-import { useAddons } from '../../hooks/useAddons';
-import { AddonLine } from '../../state';
-import { Notice } from '../Notice';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { useAddons } from '@app/hooks/useAddons';
+import { AddonLine } from '@app/state';
+import { Notice } from '@app/components/Notice';
 
 export default function AddonsNew() {
   const dispatch = useWidgetDispatch();

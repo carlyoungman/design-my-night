@@ -4,7 +4,7 @@ import {
   reducer,
   type State as WidgetState,
   type Action as WidgetAction,
-} from './state';
+} from '@app/state';
 
 export type RootProps = {
   venueGroup?: string;

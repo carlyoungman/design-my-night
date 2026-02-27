@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
-import { useBookingLink } from '../../hooks/useBookingLink';
-import LoadingAnimation from '../LoadingAnimation';
+import { useBookingLink } from '@app/hooks/useBookingLink';
+import LoadingAnimation from '@app/components/LoadingAnimation';
 
 export function PartySize() {
   const { partySize, venueId } = useWidgetState();

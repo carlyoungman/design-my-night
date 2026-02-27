@@ -4,18 +4,18 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { ThemeProvider } from '@mui/material/styles';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DateProps, DayName } from '../../types';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { DateProps, DayName } from '@app/types';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import {
   darkTheme,
   extractValidationDateBlock,
   parseSuggested,
   sixMonthsISO,
   todayISO,
-} from '../../utils/helpers';
-import { checkAvailability } from '../../../api/public';
-import LoadingAnimation from '../LoadingAnimation';
-import { scrollToSection } from '../../utils/scroll';
+} from '@app/utils/helpers';
+import { checkAvailability } from '@api/public';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { scrollToSection } from '@app/utils/scroll';
 
 export function Date({ allowedDays }: DateProps) {
   const minDateISO = todayISO();

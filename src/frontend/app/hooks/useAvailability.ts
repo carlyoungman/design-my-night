@@ -1,7 +1,7 @@
-import { checkAvailability } from '../../api/public';
+import { checkAvailability } from '@api/public';
 
-import { useWidgetDispatch, useWidgetState } from '../WidgetProvider';
-import type { AvailabilityReq } from '../../api/public';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import type { AvailabilityReq } from '@api/public';
 /**
  * useAvailability
  * - Centralises availability checks against DMN

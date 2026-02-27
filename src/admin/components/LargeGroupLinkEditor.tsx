@@ -1,7 +1,7 @@
 // src/admin/components/LargeGroupLinkEditor.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAdmin } from '../AdminContext';
-import { adminGetLargeGroupLink, adminSaveLargeGroupLink } from '../api';
+import { useAdmin } from '@admin/AdminContext';
+import { adminGetLargeGroupLink, adminSaveLargeGroupLink } from '@admin/api';
 
 type Props = { onDirty?: (d: boolean) => void };
 

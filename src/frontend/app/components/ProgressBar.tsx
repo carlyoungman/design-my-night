@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useWidgetState } from '../WidgetProvider';
+import { useWidgetState } from '@app/WidgetProvider';
 
 function isEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());

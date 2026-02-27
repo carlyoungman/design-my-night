@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useWidgetState } from '../../WidgetProvider';
+import { useWidgetState } from '@app/WidgetProvider';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import { ChevronDown } from 'lucide-react';
-import { Notice } from '../Notice';
+import { Notice } from '@app/components/Notice';
 
 type Faq = { question: string; answer: string };
 type Props = { faqs?: Faq[]; title?: string; venues: any[] };

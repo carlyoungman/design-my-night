@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material';
 import dayjs from 'dayjs';
-import type { DayName, AllowedDaysInput } from '../types';
+import type { DayName, AllowedDaysInput } from '@app/types';
 
 /**
  * @name parseAllowedDays

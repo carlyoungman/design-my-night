@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getAddons } from '../../api/public';
+import { getAddons } from '@api/public';
 
 export type AddonItem = {
   id: string;

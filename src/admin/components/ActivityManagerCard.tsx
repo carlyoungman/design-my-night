@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { adminListActivities, adminSaveActivity, adminListMenus } from '../api';
-import { useAdmin } from '../AdminContext';
+import { adminListActivities, adminSaveActivity, adminListMenus } from '@admin/api';
+import { useAdmin } from '@admin/AdminContext';
 
 type AdminActivity = {
   id: number;

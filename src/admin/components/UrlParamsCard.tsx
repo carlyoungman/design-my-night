@@ -1,6 +1,6 @@
 // src/admin/components/UrlParamsCard.tsx
 import React, { FormEvent, useEffect, useState } from 'react';
-import { getUrlParams, saveUrlParams, type UrlParamRow } from '../api';
+import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 
 export default function UrlParamsCard() {
   const [rows, setRows] = useState<UrlParamRow[]>([]);

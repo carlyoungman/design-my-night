@@ -1,5 +1,5 @@
 // src/frontend/app/helpers/checkout.ts
-import { checkAvailability, getReturnUrl } from '../../api/public';
+import { checkAvailability, getReturnUrl } from '@api/public';
 
 // ——— Types ———
 export type BookingCustomer = {

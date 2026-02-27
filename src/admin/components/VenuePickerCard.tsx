@@ -1,6 +1,6 @@
 import React from 'react';
-import {useAdmin} from '../AdminContext';
-import {adminListVenues} from '../api';
+import {useAdmin} from '@admin/AdminContext';
+import {adminListVenues} from '@admin/api';
 
 type AdminVenue = { id: number; title: string; dmn_id?: string };
 

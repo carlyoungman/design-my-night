@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getBookingTypes } from '../../api/public';
+import { getBookingTypes } from '@api/public';
 
 // Parameters accepted by useBookingTypes
 type Params = {

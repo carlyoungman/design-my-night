@@ -1,9 +1,9 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import { checkAvailability } from '../../../api/public';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import { checkAvailability } from '@api/public';
 import { FormControl, FormControlLabel, Radio, RadioGroup } from '@mui/material';
-import LoadingAnimation from '../LoadingAnimation';
-import { scrollToSection } from '../../utils/scroll';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { scrollToSection } from '@app/utils/scroll';
 
 type SuggestedTime = { iso: string; label: string };
 

@@ -1,6 +1,6 @@
 // src/admin/components/DataSyncCard.tsx
 import React, { useState } from 'react';
-import { adminSyncAll } from '../api';
+import { adminSyncAll } from '@admin/api';
 
 export default function DataSyncCard() {
   const [busy, setBusy] = useState(false);
