@@ -1191,15 +1191,18 @@ class AdminController
     $url = (string)get_post_meta($venue_id, 'dmn_large_group_url', true);
     $label = (string)get_post_meta($venue_id, 'dmn_large_group_label', true);
     $min = (int)get_post_meta($venue_id, 'dmn_large_group_min', true);
+    $max_party_size = (int)get_post_meta($venue_id, 'dmn_party_size_max', true);
 
     if ($label === '') $label = 'Groups of 12+ — Enquire here';
     if ($min <= 0) $min = 12;
+    if ($max_party_size <= 0) $max_party_size = 12;
 
     return new WP_REST_Response([
       'enabled' => $url !== '',
       'minSize' => $min,
       'label' => $label,
       'url' => $url,
+      'maxPartySize' => $max_party_size,
     ], 200);
   }
 
@@ -1238,6 +1241,11 @@ class AdminController
     if (array_key_exists('minSize', $b)) {
       $min = max(1, (int)$b['minSize']);
       update_post_meta($venue_id, 'dmn_large_group_min', $min);
+    }
+
+    if (array_key_exists('maxPartySize', $b)) {
+      $max = max(1, (int)$b['maxPartySize']);
+      update_post_meta($venue_id, 'dmn_party_size_max', $max);
     }
 
     return new WP_REST_Response(['ok' => true], 200);

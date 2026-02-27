@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getLargeGroupLink } from '../../api/public';
 
-type LinkData = { enabled: boolean; minSize: number; label: string; url: string };
+type LinkData = { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number };
 
 export function useBookingLink(venueId?: string | null, skip = false) {
   const [data, setData] = useState<LinkData | null>(null);

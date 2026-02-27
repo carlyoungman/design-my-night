@@ -150,14 +150,14 @@ export async function getFaqs(
 /** Get Large Group link config for a venue */
 export async function getLargeGroupLink(
   venue_id: number | string,
-): Promise<{ enabled: boolean; minSize: number; label: string; url: string }> {
+): Promise<{ enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number }> {
   return wpPublicFetch(`large-group-link?venue_id=${encodeURIComponent(String(venue_id))}`);
 }
 
 /** Convenience: fetch both in parallel */
 export async function getFaqsAndLink(venue_id: number | string): Promise<{
   faqs: Array<{ question: string; answer: string }>;
-  largeGroup: { enabled: boolean; minSize: number; label: string; url: string };
+  largeGroup: { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number };
 }> {
   const [faqsRes, linkRes] = await Promise.all([getFaqs(venue_id), getLargeGroupLink(venue_id)]);
   return { faqs: faqsRes.faqs ?? [], largeGroup: linkRes };

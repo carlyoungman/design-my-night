@@ -11,17 +11,102 @@ import {
 type Props = { onDirty?: (d: boolean) => void };
 
 const MAX_URL = 300;
+const MAX_LABEL = 120;
 const DEFAULT_LABEL = 'Groups of 12 and above — Enquire here';
-const DEFAULT_MIN = 12;
+const DEFAULT_MAX_PARTY_SIZE = 12;
 
 const isValidUrl = (u: string) =>
   u === '' || u.startsWith('http://') || u.startsWith('https://') || u.startsWith('/');
+
+function useLargeGroupEditor(venueId: number | null) {
+  const [url, setUrl] = useState('');
+  const [label, setLabel] = useState('');
+  const [maxPartySize, setMaxPartySize] = useState(DEFAULT_MAX_PARTY_SIZE);
+
+  const [origUrl, setOrigUrl] = useState('');
+  const [origLabel, setOrigLabel] = useState('');
+  const [origMaxPartySize, setOrigMaxPartySize] = useState(DEFAULT_MAX_PARTY_SIZE);
+
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [ok, setOk] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const dirty = url !== origUrl || label !== origLabel || maxPartySize !== origMaxPartySize;
+  const invalid = useMemo(
+    () => !isValidUrl(url) || url.length > MAX_URL || label.length > MAX_LABEL || maxPartySize < 1,
+    [url, label, maxPartySize],
+  );
+
+  useEffect(() => {
+    if (!venueId) {
+      setUrl('');
+      setLabel('');
+      setMaxPartySize(DEFAULT_MAX_PARTY_SIZE);
+      setOrigUrl('');
+      setOrigLabel('');
+      setOrigMaxPartySize(DEFAULT_MAX_PARTY_SIZE);
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      setErr(null);
+      setOk(null);
+      try {
+        const r = await adminGetLargeGroupLink(venueId);
+        const incomingUrl = typeof r?.url === 'string' ? r.url.slice(0, MAX_URL) : '';
+        const incomingLabel = typeof r?.label === 'string' ? r.label.slice(0, MAX_LABEL) : '';
+        const incomingMax = r?.maxPartySize > 0 ? r.maxPartySize : DEFAULT_MAX_PARTY_SIZE;
+        setUrl(incomingUrl);
+        setOrigUrl(incomingUrl);
+        setLabel(incomingLabel);
+        setOrigLabel(incomingLabel);
+        setMaxPartySize(incomingMax);
+        setOrigMaxPartySize(incomingMax);
+      } catch (e: any) {
+        setErr(e?.message || 'Failed to load link.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [venueId]);
+
+  const save = async () => {
+    if (!venueId || invalid || !dirty) return;
+    setSaving(true);
+    setErr(null);
+    setOk(null);
+    try {
+      await adminSaveLargeGroupLink(venueId, {
+        enabled: url.trim() !== '',
+        url: url.trim(),
+        label: label.trim() || DEFAULT_LABEL,
+        minSize: maxPartySize,
+        maxPartySize,
+      });
+      setOk('Saved.');
+      setOrigUrl(url);
+      setOrigLabel(label);
+      setOrigMaxPartySize(maxPartySize);
+    } catch (e: any) {
+      setErr(e?.message || 'Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return {
+    url, setUrl,
+    label, setLabel,
+    maxPartySize, setMaxPartySize,
+    loading, saving, ok, err, dirty, invalid, save,
+  };
+}
 
 function useVenueLink<T extends { url?: string }>(
   venueId: number | null,
   loader: (venueId: number) => Promise<T>,
   saver: (venueId: number, payload: any) => Promise<void>,
-  payloadDefaults: Record<string, unknown> = {},
 ) {
   const [url, setUrl] = useState('');
   const [origUrl, setOrigUrl] = useState('');
@@ -67,7 +152,6 @@ function useVenueLink<T extends { url?: string }>(
       await saver(venueId, {
         enabled: url.trim() !== '',
         url: url.trim(),
-        ...payloadDefaults,
       });
       setOk('Saved.');
       setOrigUrl(url);
@@ -78,34 +162,17 @@ function useVenueLink<T extends { url?: string }>(
     }
   };
 
-  return {
-    url,
-    setUrl,
-    origUrl,
-    loading,
-    saving,
-    ok,
-    err,
-    dirty,
-    invalid,
-    save,
-  };
+  return { url, setUrl, origUrl, loading, saving, ok, err, dirty, invalid, save };
 }
 
 export default function LinkEditor({ onDirty }: Props) {
   const { selectedVenueId } = useAdmin();
-  const saveLargeVoid = async (id: number, payload: any): Promise<void> => {
-    await adminSaveLargeGroupLink(id, payload);
-  };
   const saveReturnVoid = async (id: number, payload: any): Promise<void> => {
     await adminSaveReturnUrl(id, payload);
   };
-  const large = useVenueLink(selectedVenueId, adminGetLargeGroupLink, saveLargeVoid, {
-    minSize: 12,
-    label: DEFAULT_LABEL,
-  });
+  const large = useLargeGroupEditor(selectedVenueId);
   const ret = useVenueLink(selectedVenueId, adminGetReturnUrl, saveReturnVoid);
-  // bubble up "any dirty"
+
   const anyDirty = large.dirty || ret.dirty;
   useEffect(() => onDirty?.(anyDirty), [anyDirty, onDirty]);
 
@@ -133,7 +200,7 @@ export default function LinkEditor({ onDirty }: Props) {
               disabled={large.saving || !selectedVenueId || !large.dirty || large.invalid}
               aria-disabled={large.saving || !selectedVenueId || !large.dirty || large.invalid}
             >
-              {large.saving ? 'Saving…' : 'Save URL'}
+              {large.saving ? 'Saving…' : 'Save'}
             </button>
           </div>
         </div>
@@ -143,14 +210,12 @@ export default function LinkEditor({ onDirty }: Props) {
           <div className="table">
             <div className="table__row">
               <div className="table__left">
+                <label className="dmn-admin__label">URL</label>
                 <div className="table__cell">
                   <input
                     type="text"
                     value={large.url}
-                    onChange={(e) => {
-                      if (large.ok) /* no-op: local state already tracked */ null;
-                      large.setUrl(e.target.value);
-                    }}
+                    onChange={(e) => large.setUrl(e.target.value)}
                     placeholder="https://example.com/enquire or /enquire"
                     aria-invalid={large.invalid || undefined}
                   />
@@ -158,6 +223,36 @@ export default function LinkEditor({ onDirty }: Props) {
               </div>
             </div>
             {large.invalid && <p className="err">Enter a valid URL or leave blank.</p>}
+            <div className="table__row">
+              <div className="table__left">
+                <label className="dmn-admin__label">Message</label>
+                <div className="table__cell">
+                  <input
+                    type="text"
+                    value={large.label}
+                    onChange={(e) => large.setLabel(e.target.value)}
+                    placeholder={DEFAULT_LABEL}
+                    maxLength={MAX_LABEL}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="table__row">
+              <div className="table__left">
+                <label className="dmn-admin__label">Maximum party size</label>
+                <div className="table__cell">
+                  <input
+                    type="number"
+                    value={large.maxPartySize}
+                    min={1}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v) && v >= 1) large.setMaxPartySize(v);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </section>

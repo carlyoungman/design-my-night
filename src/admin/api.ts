@@ -199,13 +199,13 @@ export async function adminSaveFaqs(
 /** Large Group Link */
 export async function adminGetLargeGroupLink(
   venue_id: number,
-): Promise<{ enabled: boolean; minSize: number; label: string; url: string }> {
+): Promise<{ enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number }> {
   return wpFetch(`large-group-link?venue_id=${encodeURIComponent(venue_id)}`);
 }
 
 export async function adminSaveLargeGroupLink(
   venue_id: number,
-  body: { enabled: boolean; minSize: number; label: string; url: string },
+  body: { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number },
 ): Promise<{ ok: true }> {
   return wpFetch<{ ok: true }>('large-group-link', { method: 'POST', body: { venue_id, ...body } });
 }

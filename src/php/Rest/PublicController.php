@@ -564,6 +564,7 @@ class PublicController
         'minSize' => 12,
         'label' => 'Groups of 12+ — Enquire here',
         'url' => '',
+        'maxPartySize' => 12,
         'error' => 'venue not found',
       ], 404);
     }
@@ -571,15 +572,18 @@ class PublicController
     $url = (string)get_post_meta($post_id, 'dmn_large_group_url', true);
     $label = (string)get_post_meta($post_id, 'dmn_large_group_label', true);
     $min = (int)get_post_meta($post_id, 'dmn_large_group_min', true);
+    $max_party_size = (int)get_post_meta($post_id, 'dmn_party_size_max', true);
 
     if ($label === '') $label = 'Groups of 12+ — Enquire here';
     if ($min <= 0) $min = 12;
+    if ($max_party_size <= 0) $max_party_size = 12;
 
     return new WP_REST_Response([
       'enabled' => $url !== '',
       'minSize' => $min,
       'label' => $label,
       'url' => $url,
+      'maxPartySize' => $max_party_size,
     ], 200);
   }
 }
