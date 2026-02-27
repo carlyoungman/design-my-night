@@ -63,6 +63,7 @@ export default function LargeGroupLinkEditor({ onDirty }: Props) {
         minSize: DEFAULT_MIN,
         label: DEFAULT_LABEL,
         url: url.trim(),
+        maxPartySize: DEFAULT_MIN,
       });
       setOk('Saved.');
       setOrigUrl(url);
