@@ -1,4 +1,3 @@
-// src/admin/components/LargeGroupLinkEditor.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import { adminGetLargeGroupLink, adminSaveLargeGroupLink } from '../api';
