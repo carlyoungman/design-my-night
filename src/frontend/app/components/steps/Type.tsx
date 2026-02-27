@@ -1,9 +1,9 @@
 import React, { useEffect, useId, useMemo } from 'react';
-import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
-import LoadingAnimation from '../LoadingAnimation';
-import { scrollToSection } from '../../utils/scroll';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { scrollToSection } from '@app/utils/scroll';
 
 type Props = {
   types: any[];

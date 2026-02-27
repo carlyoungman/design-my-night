@@ -1,7 +1,7 @@
 // src/admin/components/FaqEditor.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAdmin } from '../AdminContext';
-import { adminListFaqs, adminSaveFaqs } from '../api';
+import { useAdmin } from '@admin/AdminContext';
+import { adminListFaqs, adminSaveFaqs } from '@admin/api';
 
 type Faq = { question: string; answer: string };
 type Props = { onDirty?: (d: boolean) => void };

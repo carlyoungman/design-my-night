@@ -1,7 +1,7 @@
 import React, { useId, useMemo, useState } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import { Notice } from '../Notice';
-import LoadingAnimation from '../LoadingAnimation';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import { Notice } from '@app/components/Notice';
+import LoadingAnimation from '@app/components/LoadingAnimation';
 
 export function Details() {
   const state = useWidgetState();

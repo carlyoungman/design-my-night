@@ -1,6 +1,6 @@
 // src/admin/components/SettingsCard.tsx
 import React, { FormEvent, useEffect, useState } from 'react';
-import { getSettings, saveSettings, testConnection } from '../api';
+import { getSettings, saveSettings, testConnection } from '@admin/api';
 
 type Env = 'prod' | 'qa';
 type FormState = {

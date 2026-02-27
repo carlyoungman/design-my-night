@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useId, useEffect } from 'react';
-import { useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
-import type { VenueStepProps } from '../../types';
-import LoadingAnimation from '../LoadingAnimation';
-import { scrollToSection } from '../../utils/scroll';
+import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import type { VenueStepProps } from '@app/types';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { scrollToSection } from '@app/utils/scroll';
 
 export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueStepProps) {
   const state = useWidgetState();

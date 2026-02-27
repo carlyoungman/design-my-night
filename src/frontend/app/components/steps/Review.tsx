@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '../../WidgetProvider';
+import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
-import { fmt, fmtDate, toNum } from '../../utils/helpers';
-import { continueCheckout } from '../../utils/checkout';
+import { fmt, fmtDate, toNum } from '@app/utils/helpers';
+import { continueCheckout } from '@app/utils/checkout';
 import CircularProgress from '@mui/material/CircularProgress';
 
 type ReviewStepProps = {

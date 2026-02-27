@@ -1,12 +1,12 @@
 // src/admin/components/LinkEditor.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAdmin } from '../AdminContext';
+import { useAdmin } from '@admin/AdminContext';
 import {
   adminGetLargeGroupLink,
   adminSaveLargeGroupLink,
   adminGetReturnUrl,
   adminSaveReturnUrl,
-} from '../api';
+} from '@admin/api';
 
 type Props = { onDirty?: (d: boolean) => void };
 

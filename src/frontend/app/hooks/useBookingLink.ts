@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getLargeGroupLink } from '../../api/public';
+import { getLargeGroupLink } from '@api/public';
 
 type LinkData = { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number };
 

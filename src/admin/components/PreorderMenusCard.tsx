@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAdmin } from '../AdminContext';
-import { adminListMenuItems, adminSaveMenuItem, type AdminMenuItemsResponse } from '../api';
+import { useAdmin } from '@admin/AdminContext';
+import { adminListMenuItems, adminSaveMenuItem, type AdminMenuItemsResponse } from '@admin/api';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 

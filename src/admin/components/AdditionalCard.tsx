@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAdmin } from '../AdminContext';
+import { useAdmin } from '@admin/AdminContext';
 import FaqEditor from './FaqEditor';
 import LinkEditor from './LinkEditor';
 

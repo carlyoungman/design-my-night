@@ -9,7 +9,13 @@
     "isolatedModules": true,
     "noEmit": true,
     "types": [],
-    "lib": ["ES2020", "DOM"]
+    "lib": ["ES2020", "DOM"],
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/frontend/app/*"],
+      "@api/*": ["src/frontend/api/*"],
+      "@admin/*": ["src/admin/*"]
+    }
   },
   "include": ["src/**/*"]
 }

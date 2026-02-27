@@ -1,21 +1,20 @@
 import React, { useMemo } from 'react';
-import { WidgetProvider, useWidgetConfig, useWidgetState } from './WidgetProvider';
-import type { RootProps } from './WidgetProvider';
+import { WidgetProvider, useWidgetConfig, useWidgetState } from '@app/WidgetProvider';
+import type { RootProps } from '@app/WidgetProvider';
 import { Building, Calendar, PenLine, Rocket, Clock4, User } from 'lucide-react';
-import { Venue } from './components/steps/Venue';
-import { PartySize } from './components/steps/PartySize';
-import { Date } from './components/steps/Date';
-import { Time } from './components/steps/Time';
-import { Type } from './components/steps/Type';
-import { useVenues } from './hooks/useVenues';
-import { Details } from './components/steps/Details';
-import { Review } from './components/steps/Review';
-import ProgressBar from './components/ProgressBar';
-import { Faqs } from './components/steps/Faqs';
-import { useBookingTypes } from './hooks/useBookingTypes';
-import { hhmmFromState } from './utils/helpers';
-import AddonsNew from './components/steps/AddonsNew';
-import { parseAllowedDays } from './utils/helpers';
+import { Venue } from '@app/components/steps/Venue';
+import { PartySize } from '@app/components/steps/PartySize';
+import { Date } from '@app/components/steps/Date';
+import { Time } from '@app/components/steps/Time';
+import { Type } from '@app/components/steps/Type';
+import { useVenues } from '@app/hooks/useVenues';
+import { Details } from '@app/components/steps/Details';
+import { Review } from '@app/components/steps/Review';
+import ProgressBar from '@app/components/ProgressBar';
+import { Faqs } from '@app/components/steps/Faqs';
+import { useBookingTypes } from '@app/hooks/useBookingTypes';
+import { hhmmFromState, parseAllowedDays } from '@app/utils/helpers';
+import AddonsNew from '@app/components/steps/AddonsNew';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getVenues } from '../../api/public';
+import { getVenues } from '@api/public';
 
 export function useVenues(venueGroup?: string, skip = false) {
   type Venue = { title: string; _id: string; name?: string; path: string };

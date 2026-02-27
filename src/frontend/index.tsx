@@ -1,8 +1,8 @@
 import * as React from 'react';
 import './styles/index.scss';
 import { createRoot } from 'react-dom/client';
-import WidgetRoot from './app/WidgetRoot';
-import { parseCsvIds } from './app/utils/helpers';
+import WidgetRoot from '@app/WidgetRoot';
+import { parseCsvIds } from '@app/utils/helpers';
 
 function boot(el: HTMLElement) {
   const rawUrlParams = el.dataset.urlParams;

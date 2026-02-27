@@ -2,22 +2,22 @@
 import React, { ReactNode } from 'react';
 import './styles/styles.scss';
 import { createRoot } from 'react-dom/client';
-import SettingsCard from './components/SettingsCard';
-import DataSyncCard from './components/DataSyncCard';
-import ActivityManagerCard from './components/ActivityManagerCard';
-import VenuePickerCard from './components/VenuePickerCard';
-import AdditionalCard from './components/AdditionalCard';
-import InfoCard from './components/InfoCard';
-import { AdminProvider } from './AdminContext';
+import SettingsCard from '@admin/components/SettingsCard';
+import DataSyncCard from '@admin/components/DataSyncCard';
+import ActivityManagerCard from '@admin/components/ActivityManagerCard';
+import VenuePickerCard from '@admin/components/VenuePickerCard';
+import AdditionalCard from '@admin/components/AdditionalCard';
+import InfoCard from '@admin/components/InfoCard';
+import { AdminProvider } from '@admin/AdminContext';
 
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
-import PreorderMenusCard from './components/PreorderMenusCard';
+import PreorderMenusCard from '@admin/components/PreorderMenusCard';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import UrlParamsCard from './components/UrlParamsCard';
+import UrlParamsCard from '@admin/components/UrlParamsCard';
 
 type CustomTabPanelProps = { children?: ReactNode; index: number; value: number };
 
