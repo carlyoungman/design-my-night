@@ -19,13 +19,15 @@ export function PartySize() {
     }
   }, [partySize, dispatch]);
 
+  const max = groupLink?.maxPartySize ?? 12;
+
   const handleValueChange = useCallback(
     (value: number | null) => {
       const n = value == null ? 1 : Math.floor(value);
-      const clamped = Math.min(12, Math.max(1, n));
+      const clamped = Math.min(max, Math.max(1, n));
       dispatch({ type: 'SET_PARTY_SIZE', size: clamped });
     },
-    [dispatch],
+    [dispatch, max],
   );
 
   if (!hasVenue) {
@@ -44,7 +46,7 @@ export function PartySize() {
         id={id}
         value={partySize ?? 2}
         min={1}
-        max={12}
+        max={max}
         step={1}
         className="party-size__picker"
         onValueChange={handleValueChange}
@@ -67,8 +69,7 @@ export function PartySize() {
           rel="noopener noreferrer"
           href={groupLink.url}
         >
-          Large groups of 12 or more,
-          <br /> click here
+          {groupLink.label}
         </a>
       )}
     </section>
