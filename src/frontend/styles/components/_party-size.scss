@@ -57,9 +57,8 @@
 
   &__input {
     @include mixin.input;
-
     flex: 1;
-    max-width: 5rem;
+    width: 5rem;
     text-align: center;
   }
 }
