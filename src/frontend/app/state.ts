@@ -27,7 +27,7 @@ export type AddonLine = {
 export type State = {
   venueId?: string | null;
   venueName?: string | null;
-  partySize: number;
+  partySize: number | null;
   date?: string | null;
   time?: string | null;
   bookingType?: string | null;
@@ -47,7 +47,7 @@ export type State = {
 export const initialState: State = {
   venueId: null,
   venueName: null,
-  partySize: 2,
+  partySize: null,
   date: null,
   time: null,
   bookingType: null,

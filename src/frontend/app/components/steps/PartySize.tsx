@@ -3,7 +3,7 @@ import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
 import { useBookingLink } from '@app/hooks/useBookingLink';
-import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 
 export function PartySize() {
   const { partySize, venueId } = useWidgetState();
@@ -12,12 +12,6 @@ export function PartySize() {
   const hasVenue = Boolean(venueId);
 
   const { data: groupLink } = useBookingLink(venueId);
-
-  useEffect(() => {
-    if (partySize == null) {
-      dispatch({ type: 'SET_PARTY_SIZE', size: 2 });
-    }
-  }, [partySize, dispatch]);
 
   const max = groupLink?.maxPartySize ?? 12;
 
@@ -56,7 +50,7 @@ export function PartySize() {
   if (!hasVenue) {
     return (
       <section className="party-size">
-        <LoadingAnimation type="required" text="Venue required" />
+        <StepPrerequisite requires={['venue']} />
       </section>
     );
   }

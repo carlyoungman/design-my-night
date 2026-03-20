@@ -1,7 +1,7 @@
 import React, { useId, useMemo, useState } from 'react';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { Notice } from '@app/components/Notice';
-import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 
 export function Details() {
   const state = useWidgetState();
@@ -62,10 +62,7 @@ export function Details() {
   if (!enabled) {
     return (
       <section className="details">
-        <LoadingAnimation
-          type="required"
-          text="Venue, party size, date, experience and time required"
-        />
+        <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience', 'time']} />
       </section>
     );
   }

@@ -14,7 +14,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
-import PreorderMenusCard from '@admin/components/PreorderMenusCard';
+// import PreorderMenusCard from '@admin/components/PreorderMenusCard';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
@@ -94,8 +94,8 @@ function App() {
                   aria-label="Admin tabs"
                 >
                   <Tab label="Activity Manager" {...a11yProps(0)} />
-                  <Tab label="Add-on Packages" {...a11yProps(1)} />
-                  <Tab label="Additional" {...a11yProps(2)} />
+                  {/* <Tab label="Add-on Packages" {...a11yProps(1)} /> */}
+                  <Tab label="Additional" {...a11yProps(1)} />
                 </Tabs>
               </Box>
 
@@ -103,21 +103,21 @@ function App() {
                 <ActivityManagerCard onDirty={setTabDirty(0)} />
               </CustomTabPanel>
 
-              <CustomTabPanel value={value} index={1}>
+              {/* <CustomTabPanel value={value} index={1}>
                 <PreorderMenusCard onDirty={setTabDirty(1)} />
-              </CustomTabPanel>
+              </CustomTabPanel> */}
 
-              <CustomTabPanel value={value} index={2}>
-                <AdditionalCard onDirty={setTabDirty(2)} />
+              <CustomTabPanel value={value} index={1}>
+                <AdditionalCard onDirty={setTabDirty(1)} />
               </CustomTabPanel>
             </Box>
           </div>
 
           <div className="dmn-admin__side">
-            <InfoCard />
             <SettingsCard />
             <DataSyncCard />
             <UrlParamsCard />
+            <InfoCard />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { useAddons } from '@app/hooks/useAddons';
 import { AddonLine } from '@app/state';
 import { Notice } from '@app/components/Notice';
@@ -54,7 +55,7 @@ export default function Addons() {
   if (!enabled) {
     return (
       <section className="addons">
-        <LoadingAnimation type="required" text="Venue, date, time and experience required" />
+        <StepPrerequisite requires={['venue', 'date', 'experience', 'time']} />
       </section>
     );
   }

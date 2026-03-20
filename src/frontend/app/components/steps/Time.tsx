@@ -3,6 +3,7 @@ import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { checkAvailability } from '@api/public';
 import { FormControl, FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { scrollToSection } from '@app/utils/scroll';
 
 type SuggestedTime = { iso: string; label: string };
@@ -94,9 +95,7 @@ export function Time() {
       {loading && (
         <LoadingAnimation type="loading" text="Checking availability…"></LoadingAnimation>
       )}
-      {!loading && times.length === 0 && (
-        <LoadingAnimation type="required" text="Venue, party size, date and experience required" />
-      )}
+      <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience']} />
       {!loading && times.length > 0 && (
         <FormControl component="fieldset" variant="standard" className="time">
           <RadioGroup

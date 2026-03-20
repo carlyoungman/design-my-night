@@ -3,6 +3,7 @@ import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetP
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
 import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { scrollToSection } from '@app/utils/scroll';
 
 type Props = {
@@ -132,7 +133,7 @@ export function Type({
   return (
     <section className="type">
       {!enabled ? (
-        <LoadingAnimation type="required" text="Venue, party size, date required" />
+        <StepPrerequisite requires={['venue', 'partySize', 'date']} />
       ) : (
         <>
           {loading && <LoadingAnimation type="loading" text="Loading experiences…" />}

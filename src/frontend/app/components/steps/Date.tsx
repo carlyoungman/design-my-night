@@ -15,6 +15,7 @@ import {
 } from '@app/utils/helpers';
 import { checkAvailability } from '@api/public';
 import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { scrollToSection } from '@app/utils/scroll';
 
 export function Date({ allowedDays }: DateProps) {
@@ -124,9 +125,7 @@ export function Date({ allowedDays }: DateProps) {
 
   return (
     <section className="date">
-      {!loading && validDates.size === 0 && (
-        <LoadingAnimation type="required" text="Venue and party size required" />
-      )}
+      <StepPrerequisite requires={['venue', 'partySize']} />
       {loading && validDates.size === 0 && (
         <LoadingAnimation type="loading" text="Checking availability…" />
       )}
