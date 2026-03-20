@@ -37,6 +37,7 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       ...initialState,
       // lock beats prefill
       venueId: cfg.defaultVenueId ?? null,
+      partySize: cfg.defaultVenueId ? 2 : null,
 
       // only prefill if single
       bookingType: cfg.defaultTypeId ?? singleFromList ?? null,
