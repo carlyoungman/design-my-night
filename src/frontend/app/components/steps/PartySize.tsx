@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
+import { useWidgetDispatch, useWidgetState, useWidgetConfig } from '@app/WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
 import { useBookingLink } from '@app/hooks/useBookingLink';
@@ -8,12 +8,13 @@ import { StepPrerequisite } from '@app/components/StepPrerequisite';
 export function PartySize() {
   const { partySize, venueId } = useWidgetState();
   const dispatch = useWidgetDispatch();
+  const { disableGroupLimit } = useWidgetConfig();
   const id = useId();
   const hasVenue = Boolean(venueId);
 
   const { data: groupLink } = useBookingLink(venueId);
 
-  const max = groupLink?.maxPartySize ?? 12;
+  const max = disableGroupLimit ? undefined : (groupLink?.maxPartySize ?? 12);
 
   // Local state drives the NumberField for immediate UI feedback.
   // The global dispatch (which triggers API calls) is debounced.
@@ -35,7 +36,7 @@ export function PartySize() {
   const handleValueChange = useCallback(
     (value: number | null) => {
       const n = value == null ? 1 : Math.floor(value);
-      const clamped = Math.min(max, Math.max(1, n));
+      const clamped = max != null ? Math.min(max, Math.max(1, n)) : Math.max(1, n);
 
       setLocalSize(clamped);
 
@@ -55,7 +56,7 @@ export function PartySize() {
     );
   }
 
-  const isGroupEligible = groupLink?.enabled && groupLink.url;
+  const isGroupEligible = !disableGroupLimit && groupLink?.enabled && groupLink.url;
 
   return (
     <section className="party-size">
@@ -63,7 +64,7 @@ export function PartySize() {
         id={id}
         value={localSize}
         min={1}
-        max={max}
+        {...(max != null ? { max } : {})}
         step={1}
         className="party-size__picker"
         onValueChange={handleValueChange}

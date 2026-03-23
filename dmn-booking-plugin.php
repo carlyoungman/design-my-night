@@ -72,6 +72,7 @@ add_action('init', function () {
       'allowed_days' => '',
       'url_params' => '',
       'allow_disabled' => '',
+      'disable_group_limit' => '',
     ], $atts, 'dmn_booking');
 
     // Base values from shortcode
@@ -85,6 +86,12 @@ add_action('init', function () {
 
     $allowDisabled = $isFlagPresent
       && (string)($atts['allow_disabled'] ?? '') !== '0';
+
+    $isDisableGroupLimitPresent = array_key_exists('disable_group_limit', (array)$atts)
+      || in_array('disable_group_limit', (array)$atts, true);
+
+    $disableGroupLimit = $isDisableGroupLimitPresent
+      && (string)($atts['disable_group_limit'] ?? '') !== '0';
 
     // Allow GET overrides
     if (isset($_GET['venue_group']) && $_GET['venue_group'] !== '') {
@@ -154,6 +161,7 @@ add_action('init', function () {
          data-type-id="<?php echo esc_attr($typeId); ?>"
          data-allowed-days="<?php echo esc_attr($allowedDays); ?>"
          data-allow-disabled="<?php echo esc_attr($allowDisabled ? '1' : '0'); ?>"
+         data-disable-group-limit="<?php echo esc_attr($disableGroupLimit ? '1' : '0'); ?>"
       <?php if ($dataUrlParams) : ?>
         data-url-params="<?php echo esc_attr($dataUrlParams); ?>"
       <?php endif; ?>

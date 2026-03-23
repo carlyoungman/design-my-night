@@ -7,6 +7,7 @@ import { parseCsvIds } from '@app/utils/helpers';
 function boot(el: HTMLElement) {
   const rawUrlParams = el.dataset.urlParams;
   const allowDisabled = el.dataset.allowDisabled === '1';
+  const disableGroupLimit = el.dataset.disableGroupLimit === '1';
   let urlParams: Record<string, string> | undefined;
 
   if (rawUrlParams) {
@@ -31,6 +32,7 @@ function boot(el: HTMLElement) {
     defaultTypeId: defaultTypeIds?.length === 1 ? defaultTypeIds[0] : undefined,
     allowedDays: el.dataset.allowedDays || undefined,
     allowDisabled,
+    disableGroupLimit,
     urlParams,
   };
 

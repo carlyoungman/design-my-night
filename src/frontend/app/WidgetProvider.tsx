@@ -16,6 +16,7 @@ export type RootProps = {
   urlParams?: Record<string, string>;
   children?: React.ReactNode;
   allowDisabled?: boolean;
+  disableGroupLimit?: boolean;
 };
 
 type Config = Omit<RootProps, 'children'>;
@@ -58,6 +59,7 @@ export function WidgetProvider({ children, ...config }: RootProps) {
       config.returnUrl,
       config.urlParams,
       config.allowDisabled,
+      config.disableGroupLimit,
     ],
   );
 
