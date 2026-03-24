@@ -31,6 +31,11 @@ export default function InfoCard() {
         </li>
 
         <li style={{ marginBottom: '0.75rem' }}>
+          <b>disable_group_limit</b> – Adding disable_group_limit removes the maximum group size
+          cap on the party-size stepper and hides the group enquiry link.
+        </li>
+
+        <li style={{ marginBottom: '0.75rem' }}>
           <b>allowed_days</b> – Restrict bookings to specific days of the week. Use a
           comma-separated list (e.g. Monday,Friday,Saturday).
         </li>
@@ -42,7 +47,7 @@ export default function InfoCard() {
         </li>
       </ul>
       <p><b>Example shortcode:</b></p>
-      <code>[dmn_booking venue_group="" venue_id="" type_id="" allowed_days="" url_params="" allow_disabled]</code>
+      <code>[dmn_booking venue_group="" venue_id="" type_id="" allowed_days="" url_params="" allow_disabled disable_group_limit]</code>
     </section>
   );
 }
