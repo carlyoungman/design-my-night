@@ -9,6 +9,7 @@ class Settings
   public const OPT_ENV = 'dmn_environment';           // 'prod' | 'qa'
   public const OPT_VG = 'dmn_default_venue_group';
   public const OPT_DEBUG = 'dmn_debug_mode';          // '0' | '1'
+  public const OPT_SHOW_API_RESPONSES = 'dmn_show_api_responses'; // '0' | '1'
 
   public static function get_app_id(): string
   {
@@ -36,6 +37,11 @@ class Settings
     return (bool)get_option(self::OPT_DEBUG, false);
   }
 
+  public static function get_show_api_responses(): bool
+  {
+    return (bool)get_option(self::OPT_SHOW_API_RESPONSES, false);
+  }
+
   public static function set(array $data): void
   {
     if (isset($data['app_id'])) update_option(self::OPT_APP_ID, sanitize_text_field((string)$data['app_id']));
@@ -49,6 +55,7 @@ class Settings
     }
     if (isset($data['venue_group'])) update_option(self::OPT_VG, sanitize_text_field((string)$data['venue_group']));
     if (isset($data['debug_mode'])) update_option(self::OPT_DEBUG, (bool)$data['debug_mode']);
+    if (isset($data['show_api_responses'])) update_option(self::OPT_SHOW_API_RESPONSES, (bool)$data['show_api_responses']);
   }
 
   public static function mask(string $key): string

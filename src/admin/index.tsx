@@ -8,6 +8,7 @@ import ActivityManagerCard from '@admin/components/ActivityManagerCard';
 import VenuePickerCard from '@admin/components/VenuePickerCard';
 import AdditionalCard from '@admin/components/AdditionalCard';
 import InfoCard from '@admin/components/InfoCard';
+import ApiResponsesCard from '@admin/components/ApiResponsesCard';
 import { AdminProvider } from '@admin/AdminContext';
 
 import Tabs from '@mui/material/Tabs';
@@ -116,6 +117,7 @@ function App() {
           <div className="dmn-admin__side">
             <SettingsCard />
             <DataSyncCard />
+            <ApiResponsesCard />
             <UrlParamsCard />
             <InfoCard />
           </div>
