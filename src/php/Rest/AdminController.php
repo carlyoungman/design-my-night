@@ -39,17 +39,6 @@ class AdminController
       'callback' => [$this, 'test_connection'],
     ]);
 
-    // API response inspector
-    register_rest_route('dmn/v1/admin', '/api-responses', [
-      'methods' => WP_REST_Server::READABLE,
-      'permission_callback' => fn() => current_user_can('manage_options'),
-      'callback' => [$this, 'api_responses'],
-      'args' => [
-        'venue_id' => ['type' => 'string', 'required' => false],
-        'endpoint' => ['type' => 'string', 'required' => false],
-      ],
-    ]);
-
     // Settings: GET
     register_rest_route('dmn/v1/admin', '/settings', [
       'methods' => WP_REST_Server::READABLE,
@@ -61,7 +50,6 @@ class AdminController
           'environment' => Settings::get_env(),
           'venue_group' => Settings::get_vg(),
           'debug_mode' => Settings::get_debug(),
-          'show_api_responses' => Settings::get_show_api_responses(),
           'has_key' => Settings::get_api_key() !== '',
         ], 200);
       },
@@ -77,7 +65,6 @@ class AdminController
           'ok' => true,
           'environment' => Settings::get_env(),
           'debug_mode' => Settings::get_debug(),
-          'show_api_responses' => Settings::get_show_api_responses(),
           'venue_group' => Settings::get_vg(),
         ], 200);
       },
@@ -364,69 +351,6 @@ class AdminController
       'headers' => $r['headers'],
       'sample' => array_slice($r['data']['payload']['pages'] ?? [], 0, 3),
       'debug' => $debugPayload,
-    ], 200);
-  }
-
-  /**
-   * Fetch and return the raw DMN API response for a given endpoint.
-   * Supports: venues, booking-availability, booking-types.
-   */
-  public function api_responses(WP_REST_Request $req): WP_REST_Response
-  {
-    $endpoint = sanitize_text_field((string)($req->get_param('endpoint') ?? 'venues'));
-    $venue_id = sanitize_text_field((string)($req->get_param('venue_id') ?? ''));
-    $client = new DmnClient();
-
-    $allowed = ['venues', 'booking-availability', 'booking-types'];
-    if (!in_array($endpoint, $allowed, true)) {
-      return new WP_REST_Response(['error' => 'Unknown endpoint. Allowed: ' . implode(', ', $allowed)], 400);
-    }
-
-    $t0 = microtime(true);
-
-    switch ($endpoint) {
-      case 'venues':
-        $q = [];
-        if ($vg = Settings::get_vg()) $q['venue_group'] = $vg;
-        $res = $client->request('GET', '/venues', $q);
-        break;
-
-      case 'booking-availability':
-        if (!$venue_id) {
-          return new WP_REST_Response(['error' => 'venue_id is required for booking-availability'], 400);
-        }
-        $res = $client->request('POST', "/venues/$venue_id/booking-availability", [], [
-          'num_people' => 2,
-          'date' => gmdate('Y-m-d'),
-          'source' => 'partner',
-        ]);
-        break;
-
-      case 'booking-types':
-        if (!$venue_id) {
-          return new WP_REST_Response(['error' => 'venue_id is required for booking-types'], 400);
-        }
-        $res = $client->request('POST', "/venues/$venue_id/booking-availability", ['fields' => 'type'], [
-          'num_people' => 2,
-          'date' => gmdate('Y-m-d'),
-        ]);
-        break;
-
-      default:
-        $res = ['ok' => false, 'status' => 0, 'data' => null, 'raw_body' => null, 'error' => 'Unknown'];
-    }
-
-    $duration_ms = round((microtime(true) - $t0) * 1000);
-
-    return new WP_REST_Response([
-      'ok' => $res['ok'] ?? false,
-      'status' => $res['status'] ?? 0,
-      'endpoint' => $endpoint,
-      'venue_id' => $venue_id ?: null,
-      'duration_ms' => $duration_ms,
-      'data' => $res['data'] ?? null,
-      'raw_body' => $res['raw_body'] ?? null,
-      'error' => $res['error'] ?? null,
     ], 200);
   }
 

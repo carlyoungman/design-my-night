@@ -101,7 +101,6 @@ class DmnClient
       'ok' => ($code >= 200 && $code < 300),
       'status' => $code,
       'data' => $json ?? null,
-      'raw_body' => $raw,
       'error' => $error,
       'validation' => $validation,
     ];

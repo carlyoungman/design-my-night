@@ -22,7 +22,6 @@ export function getSettings() {
     environment: 'prod' | 'qa';
     venue_group: string;
     debug_mode: boolean;
-    show_api_responses: boolean;
     has_key: boolean;
   }>('settings');
 }
@@ -33,32 +32,13 @@ export function saveSettings(payload: {
   environment?: 'prod' | 'qa';
   venue_group?: string;
   debug_mode?: boolean;
-  show_api_responses?: boolean;
 }) {
   return wpFetch<{
     ok: boolean;
     environment: 'prod' | 'qa';
     debug_mode: boolean;
-    show_api_responses: boolean;
     venue_group?: string;
   }>('settings', { method: 'POST', body: payload });
-}
-
-export type ApiResponseEndpoint = 'venues' | 'booking-availability' | 'booking-types';
-
-export function getApiResponse(endpoint: ApiResponseEndpoint, venueId?: string) {
-  const params = new URLSearchParams({ endpoint });
-  if (venueId) params.set('venue_id', venueId);
-  return wpFetch<{
-    ok: boolean;
-    status: number;
-    endpoint: string;
-    venue_id: string | null;
-    duration_ms: number;
-    data: any;
-    raw_body: string | null;
-    error: string | null;
-  }>(`api-responses?${params.toString()}`);
 }
 
 /** URL Parameters */
