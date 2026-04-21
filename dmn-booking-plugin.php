@@ -2,7 +2,7 @@
 /**
  * Plugin Name: DMN Booking Plugin
  * Description: DesignMyNight booking plugin with React + TypeScript (admin + widget).
- * Version: 3.0.0
+ * Version: 3.1.0
  * Author: Carl Youngman
  * Email: me@carlyoungman
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
-define('DMN_BP_VER', '3.0.0');
+define('DMN_BP_VER', '3.1.0');
 define('DMN_BP_DIR', plugin_dir_path(__FILE__));
 define('DMN_BP_URL', plugin_dir_url(__FILE__));
 
