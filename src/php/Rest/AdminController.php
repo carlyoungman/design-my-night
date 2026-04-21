@@ -411,7 +411,7 @@ class AdminController
         'duration_minutes' => (int)get_post_meta($p->ID, '_dmn_duration_minutes', true),
         'type_text' => (string)get_post_meta($p->ID, 'type_text', true),
         'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true))
-        && in_array($m, ['per_person', 'per_room'], true) ? $m : 'per_person',
+        && in_array($m, ['per_person', 'per_room', 'display'], true) ? $m : 'per_person',
       ];
 
     }, $posts);
@@ -474,7 +474,7 @@ class AdminController
 
     if (array_key_exists('price_mode', $b)) {
       $mode = sanitize_text_field((string)($b['price_mode'] ?? ''));
-      if ($mode !== 'per_room') $mode = 'per_person';
+      if (!in_array($mode, ['per_room', 'display'], true)) $mode = 'per_person';
       update_post_meta($id, 'dmn_price_mode', $mode);
     }
 
@@ -672,7 +672,7 @@ class AdminController
         }
 
         $priceMode = (string)get_post_meta($pid, 'dmn_price_mode', true);
-        if (!in_array($priceMode, ['per_person', 'per_room'], true)) {
+        if (!in_array($priceMode, ['per_person', 'per_room', 'display'], true)) {
           update_post_meta($pid, 'dmn_price_mode', 'per_person');
         }
 

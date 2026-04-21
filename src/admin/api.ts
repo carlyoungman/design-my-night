@@ -105,7 +105,7 @@ export async function adminListActivities(venuePostId: number): Promise<{
     menu_post_id?: number | null;
     visible?: boolean;
     type_text?: string;
-    price_mode?: 'per_person' | 'per_room';
+    price_mode?: 'per_person' | 'per_room' | 'display';
   }[];
 }> {
   return wpFetch(`venues/${venuePostId}/activities`);
@@ -122,7 +122,7 @@ export async function adminSaveActivity(
     menu_post_id?: number | null;
     visible?: boolean;
     type_text?: string;
-    price_mode?: 'per_person' | 'per_room';
+    price_mode?: 'per_person' | 'per_room' | 'display';
   },
 ): Promise<{ ok: boolean }> {
   return wpFetch(`activities/${id}`, { method: 'POST', body });
