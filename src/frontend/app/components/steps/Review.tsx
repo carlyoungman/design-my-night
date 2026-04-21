@@ -39,7 +39,8 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
   const unitPrice = useMemo(() => toNum(selectedType?.priceText), [selectedType]);
 
   const basePrice = useMemo(() => {
-    const mode = selectedType?.price_mode === 'per_room' ? 'per_room' : 'per_person';
+    const mode = selectedType?.price_mode;
+    if (mode === 'display') return 0;
     if (!unitPrice) return 0;
 
     const size = state.partySize ?? 0;
@@ -196,10 +197,16 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
               </div>
             </div>
           )}
-          <h6 className="review__row review__row--total">
-            <span>Total</span>
-            <strong>{fmt(grandTotal)}</strong>
-          </h6>
+          {selectedType?.price_mode === 'display' ? (
+            <div className="review__row review__row--display">
+              <span>{selectedType.priceText}</span>
+            </div>
+          ) : (
+            <h6 className="review__row review__row--total">
+              <span>Total</span>
+              <strong>{fmt(grandTotal)}</strong>
+            </h6>
+          )}
         </div>
       </section>
 

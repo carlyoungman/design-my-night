@@ -30,7 +30,7 @@ type BookingTypeItem = {
   valid: boolean | null;
   message?: string | null;
   type_text?: string | null;
-  price_mode?: 'per_person' | 'per_room' | null;
+  price_mode?: 'per_person' | 'per_room' | 'display' | null;
   visible?: boolean | null;
 };
 

@@ -16,7 +16,7 @@ type AdminActivity = {
   visible?: boolean;
   duration_minutes?: number | null;
   type_text?: string;
-  price_mode?: 'per_person' | 'per_room';
+  price_mode?: 'per_person' | 'per_room' | 'display';
 };
 
 type MenuOption = { id: number; title: string; fixed_price?: boolean };
@@ -365,22 +365,21 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                   <div className="table__cell" style={{ marginTop: '1.5rem' }}>
                     <div className="table__label">Pricing</div>
                     <ToggleButtonGroup
-                      value={r.price_mode === 'per_room' ? 'per_room' : 'per_person'}
+                      value={r.price_mode ?? 'per_person'}
                       exclusive
                       onChange={(_, newValue) => {
                         if (!newValue) return; // prevent toggling off both
                         onCell(
                           r.id,
                           'price_mode',
-                          (newValue === 'per_room' ? 'per_room' : 'per_person') as
-                            | 'per_person'
-                            | 'per_room',
+                          newValue as 'per_person' | 'per_room' | 'display',
                         );
                       }}
                       aria-label="Pricing"
                     >
                       <ToggleButton value="per_person">Per person</ToggleButton>
                       <ToggleButton value="per_room">Per room</ToggleButton>
+                      <ToggleButton value="display">Display</ToggleButton>
                     </ToggleButtonGroup>
                   </div>
                 </div>
