@@ -80,7 +80,7 @@ export default function UrlParamsCard() {
         {rows.length === 0 && <p>No parameters configured.</p>}
 
         {rows.map((row, i) => (
-          <div key={i} className="dmn-admin-urlparams__row">
+          <div key={i} className="dmn-admin-urlparams__row" style={{ marginBottom: '1.5rem' }}>
             <label style={{ marginBottom: '0.75rem' }}>
               <span>Parameter name</span>
               <input
