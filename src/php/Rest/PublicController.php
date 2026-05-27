@@ -304,6 +304,32 @@ class PublicController
     $dmn = new DmnClient();
     $res = $dmn->request('GET', '/venues', $query);
 
+    // Build a map of DMN venue _id → display mode from WP posts.
+    $mode_map = [];
+    $wp_venue_ids = get_posts([
+      'post_type'   => 'dmn_venue',
+      'numberposts' => -1,
+      'fields'      => 'ids',
+    ]);
+    foreach ($wp_venue_ids as $pid) {
+      $ext_id = (string)get_post_meta((int)$pid, 'dmn_venue_id', true);
+      if ($ext_id === '') continue;
+      $mode = (string)(get_post_meta((int)$pid, 'dmn_display_mode', true) ?: 'display');
+      $mode_map[$ext_id] = $mode;
+    }
+
+    // Filter out hidden/external_booking venues from the list.
+    if (!empty($res['data']['payload']['pages']) && !empty($mode_map)) {
+      $res['data']['payload']['pages'] = array_values(array_filter(
+        $res['data']['payload']['pages'],
+        function ($v) use ($mode_map) {
+          $id = (string)($v['_id'] ?? '');
+          $mode = $mode_map[$id] ?? 'display';
+          return $mode === 'display';
+        }
+      ));
+    }
+
     return new WP_REST_Response([
       'data' => $res['data'] ?? null,
       'status' => $res['status'] ?? 0,

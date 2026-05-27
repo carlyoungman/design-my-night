@@ -230,6 +230,30 @@ export type AdminMenuItemsResponse = {
   }>;
 };
 
+/** Venue Display Mode */
+export type VenueDisplayMode = 'display' | 'external_booking' | 'hidden';
+
+export type VenueDisplaySettings = {
+  mode: VenueDisplayMode;
+  title: string;
+  content: string;
+  button_text: string;
+  button_url: string;
+  image_id: number | null;
+  image_url: string | null;
+};
+
+export async function adminGetVenueDisplay(venue_id: number): Promise<VenueDisplaySettings> {
+  return wpFetch(`venue-display?venue_id=${encodeURIComponent(venue_id)}`);
+}
+
+export async function adminSaveVenueDisplay(
+  venue_id: number,
+  body: Omit<VenueDisplaySettings, 'image_url'>,
+): Promise<{ ok: true }> {
+  return wpFetch('venue-display', { method: 'POST', body: { venue_id, ...body } });
+}
+
 // Return URL
 export async function adminGetReturnUrl(
   venue_id: number,
