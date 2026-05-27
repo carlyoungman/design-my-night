@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { adminListActivities, adminSaveActivity, adminListMenus } from '@admin/api';
+import { adminListActivities, adminListMenus, adminSaveActivity } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
 
 type AdminActivity = {
@@ -377,9 +377,15 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                       }}
                       aria-label="Pricing"
                     >
-                      <ToggleButton value="per_person">Per person</ToggleButton>
-                      <ToggleButton value="per_room">Per room</ToggleButton>
-                      <ToggleButton value="display">Display</ToggleButton>
+                      <ToggleButton style={{ minWidth: '100%' }} value="per_person">
+                        Per person
+                      </ToggleButton>
+                      <ToggleButton style={{ minWidth: '100%' }} value="per_room">
+                        Per room
+                      </ToggleButton>
+                      <ToggleButton style={{ minWidth: '100%' }} value="display">
+                        Display
+                      </ToggleButton>
                     </ToggleButtonGroup>
                   </div>
                 </div>
