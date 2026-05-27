@@ -80,8 +80,8 @@ export default function UrlParamsCard() {
         {rows.length === 0 && <p>No parameters configured.</p>}
 
         {rows.map((row, i) => (
-          <div key={i} className="dmn-admin-urlparams__row" style={{ marginBottom: '1.5rem' }}>
-            <label style={{ marginBottom: '0.75rem' }}>
+          <div key={i} className="dmn-admin-urlparams__row">
+            <label>
               <span>Parameter name</span>
               <input
                 type="text"
@@ -99,16 +99,15 @@ export default function UrlParamsCard() {
             </label>
 
             <button
-              style={{ marginTop: '1.5rem' }}
               type="button"
-              className="button button--sub"
+              className="button button--sub dmn-admin__spacer-top"
               onClick={() => removeRow(i)}
             >
               Remove
             </button>
           </div>
         ))}
-        <div className="actions" style={{ marginTop: '1.5rem' }}>
+        <div className="actions dmn-admin__spacer-top">
           <button type="button" className="button" onClick={addRow}>
             Add parameter
           </button>

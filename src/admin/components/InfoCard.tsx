@@ -7,35 +7,35 @@ export default function InfoCard() {
         pass parameters to preselect venues, activities, or limit available booking days.
       </p>
       <p><b>Shortcode options</b></p>
-      <ul>
-        <li style={{ marginBottom: '0.75rem' }}>
+      <ul className="dmn-admin__list">
+        <li>
           <b>venue_group</b> – Override the default venue group set in the plugin settings. Defaults
           to the venue group configured on the Settings page if omitted.
         </li>
 
-        <li style={{ marginBottom: '0.75rem' }}>
+        <li>
           <b>venue_id</b> – Preselect a specific venue. You can use "inherit" to inherit the venue
           id from the location settings
         </li>
 
-        <li style={{ marginBottom: '0.75rem' }}>
+        <li>
           <b>type_id</b> – Preselect one or more activity types. Use a comma-separated list for
           multiple types.
           <br />
           <i>Note: venue_id is required when using type_id.</i>
         </li>
 
-        <li style={{ marginBottom: '0.75rem' }}>
+        <li>
           <b>allow_disabled</b> – Adding allow_disabled to the shortcode will show activities that
           are marked as disabled.
         </li>
 
-        <li style={{ marginBottom: '0.75rem' }}>
+        <li>
           <b>disable_group_limit</b> – Adding disable_group_limit removes the maximum group size
           cap on the party-size stepper and hides the group enquiry link.
         </li>
 
-        <li style={{ marginBottom: '0.75rem' }}>
+        <li>
           <b>allowed_days</b> – Restrict bookings to specific days of the week. Use a
           comma-separated list (e.g. Monday,Friday,Saturday).
         </li>

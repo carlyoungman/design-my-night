@@ -13,7 +13,6 @@ import { AdminProvider } from '@admin/AdminContext';
 
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
 // import PreorderMenusCard from '@admin/components/PreorderMenusCard';
 import Snackbar from '@mui/material/Snackbar';
@@ -27,7 +26,7 @@ function CustomTabPanel({ children, value, index }: CustomTabPanelProps) {
   return (
     <Fade in={open} timeout={200} mountOnEnter unmountOnExit>
       <div role="tabpanel" id={`admin-tabpanel-${index}`} aria-labelledby={`admin-tab-${index}`}>
-        <Box sx={{ p: 3 }}>{children}</Box>
+        <div className="dmn-admin__tab-panel">{children}</div>
       </div>
     </Fade>
   );
@@ -82,16 +81,11 @@ function App() {
         <div className="dmn-admin__grid">
           <div className="dmn-admin__main">
             <VenuePickerCard />
-            <Box sx={{ width: '100%' }}>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <div className="dmn-admin__tabs-wrapper">
+              <div className="dmn-admin__tabs-border">
                 <Tabs
                   value={value}
                   onChange={handleChange}
-                  sx={{
-                    '.MuiTabs-indicator': { backgroundColor: 'var(--c-blue)' },
-                    '.MuiTab-root': { color: 'var(--c-black)' },
-                    '.MuiTab-root.Mui-selected': { color: 'var(--c-blue)' },
-                  }}
                   aria-label="Admin tabs"
                 >
                   <Tab label="Activity Manager" {...a11yProps(0)} />
@@ -99,7 +93,7 @@ function App() {
                   {/* <Tab label="Add-on Packages" {...a11yProps(2)} /> */}
                   <Tab label="Additional" {...a11yProps(2)} />
                 </Tabs>
-              </Box>
+              </div>
 
               <CustomTabPanel value={value} index={0}>
                 <ActivityManagerCard onDirty={setTabDirty(0)} />
@@ -116,7 +110,7 @@ function App() {
               <CustomTabPanel value={value} index={2}>
                 <AdditionalCard onDirty={setTabDirty(2)} />
               </CustomTabPanel>
-            </Box>
+            </div>
           </div>
 
           <div className="dmn-admin__side">

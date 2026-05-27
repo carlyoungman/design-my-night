@@ -7,15 +7,27 @@
     margin: 0;
   }
 
-  .css-tj8d99-MuiSwitch-track {
+  .MuiSwitch-track {
     display: block;
   }
 }
 
-.css-rehya9-MuiSwitch-root {
+.MuiSwitch-root {
   width: var(--universal-space-4);
 }
 
-.css-aqlqb4-MuiButtonBase-root-MuiSwitchBase-root-MuiSwitch-switchBase.Mui-checked {
+.MuiSwitch-switchBase.Mui-checked {
   color: var(--c-blue);
+}
+
+.MuiTabs-indicator {
+  background-color: var(--c-blue);
+}
+
+.MuiTab-root {
+  color: var(--c-black);
+
+  &.Mui-selected {
+    color: var(--c-blue);
+  }
 }
