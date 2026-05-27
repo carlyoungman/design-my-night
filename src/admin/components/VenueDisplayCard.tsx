@@ -156,28 +156,24 @@ export default function VenueDisplayCard({ onDirty }: Props) {
 
       {selectedVenueId && !loading && (
         <div style={{ display: 'grid', gap: 16 }}>
-          <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-            <legend style={{ fontWeight: 600, marginBottom: 8 }}>Display mode</legend>
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-              {ALLOWED_MODES.map((m) => (
-                <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name={`dmn-display-mode-${selectedVenueId}`}
-                    value={m}
-                    checked={current.mode === m}
-                    onChange={() => set({ mode: m })}
-                  />
-                  {MODE_LABELS[m]}
-                </label>
-              ))}
-            </div>
+          <div>
+            <label style={{ display: 'block' }}>
+              <span style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Display mode</span>
+              <select
+                value={current.mode}
+                onChange={(e) => set({ mode: e.target.value as VenueDisplayMode })}
+              >
+                {ALLOWED_MODES.map((m) => (
+                  <option key={m} value={m}>{MODE_LABELS[m]}</option>
+                ))}
+              </select>
+            </label>
             <p className="dmn-admin__help" style={{ marginTop: 8 }}>
               <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
               <strong>External Booking</strong>: hidden from dropdown; shows a custom panel when preselected via shortcode.<br />
               <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
             </p>
-          </fieldset>
+          </div>
 
           {current.mode === 'external_booking' && (
             <div style={{ display: 'grid', gap: 12, borderTop: '1px solid #ddd', paddingTop: 16 }}>
