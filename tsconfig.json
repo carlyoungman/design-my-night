@@ -10,7 +10,7 @@
     "noEmit": true,
     "types": [],
     "lib": ["ES2020", "DOM"],
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
       "@app/*": ["src/frontend/app/*"],
