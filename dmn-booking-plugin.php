@@ -154,6 +154,38 @@ add_action('init', function () {
 
     $dataUrlParams = $urlParamsAssoc ? wp_json_encode($urlParamsAssoc) : '';
 
+    // Check venue display mode when a specific venue is preselected.
+    if ($venueId !== '') {
+      $wp_venue = get_posts([
+        'post_type'      => 'dmn_venue',
+        'meta_key'       => 'dmn_venue_id',
+        'meta_value'     => $venueId,
+        'numberposts'    => 1,
+        'fields'         => 'ids',
+      ]);
+      $wp_pid = $wp_venue ? (int)$wp_venue[0] : 0;
+      $display_mode = $wp_pid
+        ? ((string)(get_post_meta($wp_pid, 'dmn_display_mode', true) ?: 'display'))
+        : 'display';
+
+      if ($display_mode === 'hidden') {
+        return '';
+      }
+
+      if ($display_mode === 'external_booking') {
+        dmn_bp_enqueue_widget_assets();
+        $img_id = (int)get_post_meta($wp_pid, 'dmn_ext_image_id', true);
+        $ext_data = wp_json_encode([
+          'title'      => (string)get_post_meta($wp_pid, 'dmn_ext_title', true),
+          'content'    => (string)get_post_meta($wp_pid, 'dmn_ext_content', true),
+          'buttonText' => (string)get_post_meta($wp_pid, 'dmn_ext_button_text', true),
+          'buttonUrl'  => (string)get_post_meta($wp_pid, 'dmn_ext_button_url', true),
+          'imageUrl'   => $img_id > 0 ? wp_get_attachment_image_url($img_id, 'large') : '',
+        ]);
+        return '<div class="dmn-widget-root" data-display-mode="external_booking" data-ext-data="' . esc_attr($ext_data) . '"></div>';
+      }
+    }
+
     ob_start(); ?>
     <div class="dmn-widget-root"
          data-venue-group="<?php echo esc_attr($venueGroup); ?>"

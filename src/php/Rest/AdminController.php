@@ -272,12 +272,28 @@ class AdminController
         'callback' => [$this, 'dmn_admin_return_url_save'],
         'args' => [
           'venue_id' => ['required' => true, 'type' => 'integer'],
-          'url' => ['required' => true, 'type' => 'string'], // blank hides
+          'url' => ['required' => true, 'type' => 'string'],
           'enabled' => ['required' => false, 'type' => 'boolean'],
         ],
       ],
     ]);
 
+    // Venue display mode
+    register_rest_route('dmn/v1', '/admin/venue-display', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_venue_display_get'],
+        'args' => [
+          'venue_id' => ['required' => true, 'type' => 'integer'],
+        ],
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => [$this, 'dmn_admin_venue_display_save'],
+      ],
+    ]);
 
   }
 
@@ -1312,6 +1328,61 @@ class AdminController
 
     $san = mb_substr($san, 0, 300);
     update_post_meta($venue_id, 'dmn_return_url', $san);
+
+    return new WP_REST_Response(['ok' => true], 200);
+  }
+
+  public function dmn_admin_venue_display_get(WP_REST_Request $req): WP_REST_Response
+  {
+    $venue_id = (int)$req->get_param('venue_id');
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['message' => 'venue_id required'], 400);
+    }
+
+    $mode = (string)(get_post_meta($venue_id, 'dmn_display_mode', true) ?: 'display');
+    $img_id = (int)get_post_meta($venue_id, 'dmn_ext_image_id', true);
+
+    return new WP_REST_Response([
+      'mode'        => in_array($mode, ['display', 'external_booking', 'hidden'], true) ? $mode : 'display',
+      'title'       => (string)get_post_meta($venue_id, 'dmn_ext_title', true),
+      'content'     => (string)get_post_meta($venue_id, 'dmn_ext_content', true),
+      'button_text' => (string)get_post_meta($venue_id, 'dmn_ext_button_text', true),
+      'button_url'  => (string)get_post_meta($venue_id, 'dmn_ext_button_url', true),
+      'image_id'    => $img_id > 0 ? $img_id : null,
+      'image_url'   => $img_id > 0 ? wp_get_attachment_image_url($img_id, 'large') : null,
+    ], 200);
+  }
+
+  public function dmn_admin_venue_display_save(WP_REST_Request $req): WP_REST_Response
+  {
+    $b = $req->get_json_params() ?: [];
+    $venue_id = isset($b['venue_id']) ? (int)$b['venue_id'] : 0;
+    if ($venue_id <= 0) {
+      return new WP_REST_Response(['message' => 'venue_id required'], 400);
+    }
+
+    $allowed_modes = ['display', 'external_booking', 'hidden'];
+    $mode = isset($b['mode']) && in_array($b['mode'], $allowed_modes, true)
+      ? $b['mode'] : 'display';
+
+    $raw_url = isset($b['button_url']) ? trim((string)$b['button_url']) : '';
+    if ($raw_url !== '' && !str_starts_with($raw_url, '/') &&
+      !str_starts_with($raw_url, 'http://') && !str_starts_with($raw_url, 'https://')) {
+      return new WP_REST_Response(['message' => 'button_url must be empty, relative (/…), or absolute (http/https)'], 400);
+    }
+
+    update_post_meta($venue_id, 'dmn_display_mode', $mode);
+    update_post_meta($venue_id, 'dmn_ext_title', sanitize_text_field((string)($b['title'] ?? '')));
+    update_post_meta($venue_id, 'dmn_ext_content', wp_kses_post((string)($b['content'] ?? '')));
+    update_post_meta($venue_id, 'dmn_ext_button_text', sanitize_text_field((string)($b['button_text'] ?? '')));
+    update_post_meta($venue_id, 'dmn_ext_button_url', esc_url_raw(mb_substr($raw_url, 0, 300)));
+
+    $img_id = isset($b['image_id']) ? (int)$b['image_id'] : 0;
+    if ($img_id > 0) {
+      update_post_meta($venue_id, 'dmn_ext_image_id', $img_id);
+    } else {
+      delete_post_meta($venue_id, 'dmn_ext_image_id');
+    }
 
     return new WP_REST_Response(['ok' => true], 200);
   }

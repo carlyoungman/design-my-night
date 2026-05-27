@@ -2,9 +2,30 @@ import * as React from 'react';
 import './styles/index.scss';
 import { createRoot } from 'react-dom/client';
 import WidgetRoot from '@app/WidgetRoot';
+import { ExternalBookingPanel } from '@app/components/ExternalBookingPanel';
 import { parseCsvIds } from '@app/utils/helpers';
 
 function boot(el: HTMLElement) {
+  // External booking panel mode — renders panel instead of the widget.
+  if (el.dataset.displayMode === 'external_booking') {
+    let extData: Record<string, string> = {};
+    try {
+      extData = JSON.parse(el.dataset.extData || '{}');
+    } catch {
+      // malformed JSON — render nothing
+    }
+    createRoot(el).render(
+      <ExternalBookingPanel
+        title={extData.title}
+        imageUrl={extData.imageUrl}
+        content={extData.content}
+        buttonText={extData.buttonText}
+        buttonUrl={extData.buttonUrl}
+      />,
+    );
+    return;
+  }
+
   const rawUrlParams = el.dataset.urlParams;
   const allowDisabled = el.dataset.allowDisabled === '1';
   const disableGroupLimit = el.dataset.disableGroupLimit === '1';
