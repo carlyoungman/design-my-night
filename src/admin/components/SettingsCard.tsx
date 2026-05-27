@@ -137,7 +137,7 @@ export default function SettingsCard() {
           />
         </label>
 
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <label className="label--inline">
           <input
             type="checkbox"
             checked={form.debug_mode}
@@ -159,17 +159,7 @@ export default function SettingsCard() {
       {ok && <p className="ok">{ok}</p>}
       {err && <p className="err">{err}</p>}
       {details && (
-        <pre
-          className="debug-dump"
-          style={{
-            background: '#f6f7f7',
-            padding: 12,
-            borderRadius: 6,
-            overflow: 'auto',
-            maxHeight: 320,
-            marginTop: 8,
-          }}
-        >
+        <pre className="debug-dump">
           {JSON.stringify(details, null, 2)}
         </pre>
       )}

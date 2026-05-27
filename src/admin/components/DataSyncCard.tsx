@@ -47,16 +47,8 @@ export default function DataSyncCard() {
           {busy ? 'Importing…' : 'Import data'}
         </button>
       </div>
-      {ok && (
-        <p className="ok" style={{ marginTop: 8 }}>
-          {ok}
-        </p>
-      )}
-      {err && (
-        <p className="err" style={{ marginTop: 8 }}>
-          {err}
-        </p>
-      )}
+      {ok && <p className="ok">{ok}</p>}
+      {err && <p className="err">{err}</p>}
     </section>
   );
 }

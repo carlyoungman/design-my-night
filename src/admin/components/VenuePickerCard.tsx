@@ -45,13 +45,12 @@ export default function VenuePickerCard() {
       {loading ? (
         <p>Loading venues…</p>
       ) : (
-        <label style={{display: 'block', marginBottom: 12}}>
+        <label className="dmn-admin__spacer-bottom">
           <span>Select venue</span>
           <select
             id="dmn-admin-venue-picker"
             value={selectedVenueId ?? ''}
             onChange={(e) => setSelectedVenueId(e.target.value ? Number(e.target.value) : null)}
-            style={{display: 'block', marginTop: 7.5}}
           >
             <option value="">— Choose a venue —</option>
             {venues.map((v) => (

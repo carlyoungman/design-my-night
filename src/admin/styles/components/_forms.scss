@@ -51,3 +51,21 @@ code {
   margin-top: var(--universal-space);
   border: 1px solid var(--c-off-white);
 }
+
+.ok {
+  margin-top: var(--universal-space-half);
+  font-size: 0.9em;
+  color: var(--c-green);
+}
+
+.err {
+  margin-top: var(--universal-space-half);
+  font-size: 0.9em;
+  color: var(--c-red);
+}
+
+label.label--inline {
+  display: inline-flex;
+  gap: var(--universal-space-half);
+  align-items: center;
+}

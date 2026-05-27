@@ -152,7 +152,7 @@ export default function FaqEditor({ onDirty }: Props) {
             })}
           </div>
 
-          <div className="actions" style={{ marginTop: 12 }}>
+          <div className="actions dmn-admin__spacer-top">
             <button className="button" type="button" onClick={addRow}>
               Add FAQ
             </button>
