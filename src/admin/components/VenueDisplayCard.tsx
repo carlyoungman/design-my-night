@@ -50,10 +50,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
     current.button_url !== saved.button_url ||
     (current.image_id ?? null) !== (saved.image_id ?? null);
 
-  const invalid = useMemo(
-    () => !isValidUrl(current.button_url),
-    [current.button_url],
-  );
+  const invalid = useMemo(() => !isValidUrl(current.button_url), [current.button_url]);
 
   useEffect(() => {
     onDirty?.(dirty);
@@ -111,7 +108,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
     });
     frame.on('select', () => {
       const att = frame.state().get('selection').first().toJSON();
-      set({ image_id: att.id, image_url: att.sizes?.large?.url || att.url });
+      set({ image_id: att.id, image_url: att.sizes?.medium?.url || att.url });
     });
     frame.open();
   };
@@ -142,131 +139,129 @@ export default function VenueDisplayCard({ onDirty }: Props) {
   };
 
   return (
-    <section className="dmn-admin__section">
-      <div className="dmn-admin__section-header">
-        <h3>Venue Display</h3>
-        {dirty && <p className="dmn-admin__header__dirty">Unsaved changes</p>}
+    <section className="dmn-admin__card">
+      <div className="dmn-admin__header">
+        <h2 className="dmn-admin__header__headline">Venue Display</h2>
+        <span className="dmn-admin__header__inner">
+          {dirty && <p className="dmn-admin__header__dirty">Unsaved changes</p>}
+          {ok && !dirty && <p className="dmn-admin__header__ok">{ok}</p>}
+          <button
+            type="button"
+            className="button button--action"
+            onClick={save}
+            disabled={saving || !dirty || invalid || !selectedVenueId}
+          >
+            {saving ? 'Saving…' : 'Save display settings'}
+          </button>
+        </span>
       </div>
 
       {!selectedVenueId && (
         <p className="dmn-admin__help">Pick a venue above to manage display settings.</p>
       )}
-
       {selectedVenueId && loading && <p>Loading…</p>}
+      {err && <p className="err">{err}</p>}
 
       {selectedVenueId && !loading && (
-        <div style={{ display: 'grid', gap: 16 }}>
-          <div>
-            <label style={{ display: 'block' }}>
-              <span style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Display mode</span>
-              <select
-                value={current.mode}
-                onChange={(e) => set({ mode: e.target.value as VenueDisplayMode })}
-              >
-                {ALLOWED_MODES.map((m) => (
-                  <option key={m} value={m}>{MODE_LABELS[m]}</option>
-                ))}
-              </select>
-            </label>
-            <p className="dmn-admin__help" style={{ marginTop: 8 }}>
-              <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
-              <strong>External Booking</strong>: hidden from dropdown; shows a custom panel when preselected via shortcode.<br />
-              <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
-            </p>
+        <div className="table">
+          <div className="table__row">
+            <div className="table__left">
+              <label className="dmn-admin__label">Display mode</label>
+              <div className="table__cell">
+                <select
+                  value={current.mode}
+                  onChange={(e) => set({ mode: e.target.value as VenueDisplayMode })}
+                >
+                  {ALLOWED_MODES.map((m) => (
+                    <option key={m} value={m}>{MODE_LABELS[m]}</option>
+                  ))}
+                </select>
+                <p className="dmn-admin__help" style={{ marginTop: 8 }}>
+                  <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
+                  <strong>External Booking</strong>: hidden from dropdown; shows a custom panel when preselected via shortcode.<br />
+                  <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
+                </p>
+              </div>
+            </div>
           </div>
 
           {current.mode === 'external_booking' && (
-            <div style={{ display: 'grid', gap: 12, borderTop: '1px solid #ddd', paddingTop: 16 }}>
-              <h4 style={{ margin: 0 }}>External Booking Panel</h4>
-
-              <label style={{ display: 'block' }}>
-                <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Title</span>
-                <input
-                  type="text"
-                  value={current.title}
-                  onChange={(e) => set({ title: e.target.value })}
-                  placeholder="e.g. Games"
-                  style={{ width: '100%' }}
-                />
-              </label>
-
-              <label style={{ display: 'block' }}>
-                <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Content</span>
-                <textarea
-                  value={current.content}
-                  onChange={(e) => set({ content: e.target.value })}
-                  placeholder="Panel body copy…"
-                  rows={5}
-                  style={{ width: '100%' }}
-                />
-                <span className="dmn-admin__help">Basic HTML is supported.</span>
-              </label>
-
-              <label style={{ display: 'block' }}>
-                <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Button text</span>
-                <input
-                  type="text"
-                  value={current.button_text}
-                  onChange={(e) => set({ button_text: e.target.value })}
-                  placeholder="e.g. View all games"
-                  style={{ width: '100%' }}
-                />
-              </label>
-
-              <label style={{ display: 'block' }}>
-                <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Button URL</span>
-                <input
-                  type="text"
-                  value={current.button_url}
-                  onChange={(e) => set({ button_url: e.target.value })}
-                  placeholder="https://… or /relative-path"
-                  style={{ width: '100%', borderColor: invalid && current.button_url ? 'red' : undefined }}
-                />
-                {invalid && current.button_url && (
-                  <span style={{ color: 'red', fontSize: 13 }}>
-                    URL must be empty, start with / or http(s)://
-                  </span>
-                )}
-              </label>
-
-              <div>
-                <span style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>Image</span>
-                {current.image_url && (
-                  <div style={{ marginBottom: 8 }}>
-                    <img
-                      src={current.image_url}
-                      alt=""
-                      style={{ maxWidth: 200, maxHeight: 120, objectFit: 'cover', display: 'block', marginBottom: 6 }}
-                    />
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" className="button" onClick={openMedia}>
-                    {current.image_id ? 'Change image' : 'Select image'}
-                  </button>
-                  {current.image_id && (
-                    <button type="button" className="button" onClick={clearImage}>
-                      Remove image
-                    </button>
+            <div className="table__row">
+              <div className="table__left">
+                <div className="table__cell">
+                  <div className="table__label">Title</div>
+                  <input
+                    type="text"
+                    value={current.title}
+                    onChange={(e) => set({ title: e.target.value })}
+                    placeholder="e.g. Games"
+                  />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Content</div>
+                  <textarea
+                    value={current.content}
+                    onChange={(e) => set({ content: e.target.value })}
+                    placeholder="Panel body copy…"
+                    rows={5}
+                  />
+                  <span className="dmn-admin__help">Basic HTML is supported.</span>
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Button text</div>
+                  <input
+                    type="text"
+                    value={current.button_text}
+                    onChange={(e) => set({ button_text: e.target.value })}
+                    placeholder="e.g. View all games"
+                  />
+                </div>
+                <div className="table__cell">
+                  <div className="table__label">Button URL</div>
+                  <input
+                    type="text"
+                    value={current.button_url}
+                    onChange={(e) => set({ button_url: e.target.value })}
+                    placeholder="https://… or /relative-path"
+                    aria-invalid={(invalid && !!current.button_url) || undefined}
+                  />
+                  {invalid && current.button_url && (
+                    <span className="err" style={{ fontSize: 13 }}>
+                      URL must be empty, start with / or http(s)://
+                    </span>
                   )}
+                </div>
+              </div>
+              <div className="table__right">
+                <div className="table__image-picker">
+                  <div className="table__label">Image</div>
+                  {current.image_url ? (
+                    <img src={current.image_url} alt="" className="table__image-picker__image" />
+                  ) : (
+                    <div className="table__image-picker__image-preview" />
+                  )}
+                  <div className="table__image-picker__button-wrap">
+                    <button
+                      className="table__image-picker__btn button"
+                      type="button"
+                      onClick={openMedia}
+                    >
+                      Choose image
+                    </button>
+                    {current.image_id && (
+                      <button
+                        className="table__image-picker__btn button button--sub"
+                        type="button"
+                        onClick={clearImage}
+                      >
+                        Clear image
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-
-          {err && <p style={{ color: 'red', margin: 0 }}>{err}</p>}
-          {ok && <p style={{ color: 'green', margin: 0 }}>{ok}</p>}
-
-          <div>
-            <button
-              type="button"
-              className="button button--action"
-              onClick={save}
-              disabled={saving || !dirty || invalid}
-            >
-              {saving ? 'Saving…' : 'Save display settings'}
-            </button>
-          </div>
         </div>
       )}
     </section>
