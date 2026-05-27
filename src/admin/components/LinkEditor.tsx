@@ -200,7 +200,7 @@ export default function LinkEditor({ onDirty }: Props) {
               disabled={large.saving || !selectedVenueId || !large.dirty || large.invalid}
               aria-disabled={large.saving || !selectedVenueId || !large.dirty || large.invalid}
             >
-              {large.saving ? 'Saving…' : 'Save'}
+              {large.saving ? 'Saving…' : 'Save large groups link'}
             </button>
           </div>
         </div>
@@ -268,7 +268,7 @@ export default function LinkEditor({ onDirty }: Props) {
               disabled={ret.saving || !selectedVenueId || !ret.dirty || ret.invalid}
               aria-disabled={ret.saving || !selectedVenueId || !ret.dirty || ret.invalid}
             >
-              {ret.saving ? 'Saving…' : 'Save URL'}
+              {ret.saving ? 'Saving…' : 'Save return URL'}
             </button>
           </div>
         </div>

@@ -7,6 +7,7 @@ import DataSyncCard from '@admin/components/DataSyncCard';
 import ActivityManagerCard from '@admin/components/ActivityManagerCard';
 import VenuePickerCard from '@admin/components/VenuePickerCard';
 import AdditionalCard from '@admin/components/AdditionalCard';
+import VenueDisplayCard from '@admin/components/VenueDisplayCard';
 import InfoCard from '@admin/components/InfoCard';
 import { AdminProvider } from '@admin/AdminContext';
 
@@ -94,8 +95,9 @@ function App() {
                   aria-label="Admin tabs"
                 >
                   <Tab label="Activity Manager" {...a11yProps(0)} />
-                  {/* <Tab label="Add-on Packages" {...a11yProps(1)} /> */}
-                  <Tab label="Additional" {...a11yProps(1)} />
+                  <Tab label="Venue Display" {...a11yProps(1)} />
+                  {/* <Tab label="Add-on Packages" {...a11yProps(2)} /> */}
+                  <Tab label="Additional" {...a11yProps(2)} />
                 </Tabs>
               </Box>
 
@@ -103,12 +105,16 @@ function App() {
                 <ActivityManagerCard onDirty={setTabDirty(0)} />
               </CustomTabPanel>
 
-              {/* <CustomTabPanel value={value} index={1}>
-                <PreorderMenusCard onDirty={setTabDirty(1)} />
+              <CustomTabPanel value={value} index={1}>
+                <VenueDisplayCard onDirty={setTabDirty(1)} />
+              </CustomTabPanel>
+
+              {/* <CustomTabPanel value={value} index={2}>
+                <PreorderMenusCard onDirty={setTabDirty(2)} />
               </CustomTabPanel> */}
 
-              <CustomTabPanel value={value} index={1}>
-                <AdditionalCard onDirty={setTabDirty(1)} />
+              <CustomTabPanel value={value} index={2}>
+                <AdditionalCard onDirty={setTabDirty(2)} />
               </CustomTabPanel>
             </Box>
           </div>
