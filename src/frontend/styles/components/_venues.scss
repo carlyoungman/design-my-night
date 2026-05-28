@@ -6,7 +6,7 @@
     @include mixin.label;
   }
 
-  &__select-wrappe {
+  &__select-wrapper {
     @include mixin.field-wrapper;
     @include mixin.select-down-arrow;
   }
@@ -17,7 +17,17 @@
     &:disabled {
       cursor: not-allowed;
     }
+  }
 
+  &__external-message {
+    margin-top: var(--universal-space);
+    font-size: 0.9em;
+    line-height: 1.5;
+
+    a {
+      color: var(--c-theme-primary);
+      text-decoration: underline;
+    }
   }
 }
 

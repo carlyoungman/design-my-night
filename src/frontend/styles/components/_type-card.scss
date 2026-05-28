@@ -8,6 +8,10 @@
   background: var(--c-white);
   border: 5px solid var(--c-black);
 
+  &--disabled {
+    opacity: 0.5;
+  }
+
   &__image-wrapper {
     @include mixin.aspect-ratio-16-9;
   }
@@ -50,6 +54,15 @@
     box-shadow: var(--box-shadow-1);
 
     &:hover {
+      background: var(--c-theme-primary);
+    }
+
+    &--disabled {
+      background: var(--c-off-black);
+      cursor: not-allowed;
+    }
+
+    &--selected {
       background: var(--c-theme-primary);
     }
   }

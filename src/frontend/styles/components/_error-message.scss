@@ -10,7 +10,7 @@
     color: var(--c-white);
     background-color: var(--c-black);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--box-shadow-1);
 
     &.MuiAlert-colorError {
       border: 4px solid var(--c-error);
