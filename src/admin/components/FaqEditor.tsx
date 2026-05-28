@@ -143,7 +143,7 @@ export default function FaqEditor({ onDirty }: Props) {
                     </div>
                   </div>
                   <div className="table__right">
-                    <button className="button button--sub" type="button" onClick={() => delRow(i)}>
+                    <button className="button button--remove" type="button" onClick={() => delRow(i)}>
                       Remove
                     </button>
                   </div>
