@@ -31,7 +31,7 @@ function dmn_bp_enqueue_widget_assets(): void
   }
   $enqueued = true;
 
-  $asset = DMN_BP_DIR . 'dist/frontend/index.tsx.asset.php';
+  $asset = DMN_BP_DIR . 'dist/frontend/index.asset.php';
   if (!file_exists($asset)) {
     return;
   }
@@ -41,17 +41,17 @@ function dmn_bp_enqueue_widget_assets(): void
 
   wp_enqueue_script(
     'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.tsx.js',
+    DMN_BP_URL . 'dist/frontend/index.js',
     $deps,
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.js'),
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.js'),
     true
   );
 
   wp_enqueue_style(
     'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.tsx.css',
+    DMN_BP_URL . 'dist/frontend/index.css',
     [],
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.css')
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
   );
 
   wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
@@ -223,7 +223,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
     return;
   }
 
-  $asset = DMN_BP_DIR . 'dist/admin/index.tsx.asset.php';
+  $asset = DMN_BP_DIR . 'dist/admin/index.asset.php';
   if (!file_exists($asset)) {
     return;
   }
@@ -233,17 +233,17 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
   wp_enqueue_script(
     'dmn-admin',
-    DMN_BP_URL . 'dist/admin/index.tsx.js',
+    DMN_BP_URL . 'dist/admin/index.js',
     $deps,
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.tsx.js'),
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.js'),
     true
   );
 
   wp_enqueue_style(
     'dmn-admin',
-    DMN_BP_URL . 'dist/admin/index.tsx.css',
+    DMN_BP_URL . 'dist/admin/index.css',
     [],
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.tsx.css')
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/admin/index.css')
   );
 
   // Optional now that apiFetch is used; harmless if kept
@@ -265,7 +265,7 @@ add_action('wp_enqueue_scripts', function () {
     return;
   }
 
-  $asset = DMN_BP_DIR . 'dist/frontend/index.tsx.asset.php';
+  $asset = DMN_BP_DIR . 'dist/frontend/index.asset.php';
   if (!file_exists($asset)) {
     return;
   }
@@ -275,17 +275,17 @@ add_action('wp_enqueue_scripts', function () {
 
   wp_enqueue_script(
     'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.tsx.js',
+    DMN_BP_URL . 'dist/frontend/index.js',
     $deps,
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.js'),
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.js'),
     true
   );
 
   wp_enqueue_style(
     'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.tsx.css',
+    DMN_BP_URL . 'dist/frontend/index.css',
     [],
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.tsx.css')
+    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
   );
 
   wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
