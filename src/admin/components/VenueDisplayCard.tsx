@@ -21,6 +21,7 @@ const MODE_LABELS: Record<VenueDisplayMode, string> = {
 
 const EMPTY: VenueDisplaySettings = {
   mode: 'display',
+  inline_message: '',
   title: '',
   content: '',
   button_text: '',
@@ -44,6 +45,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
 
   const dirty =
     current.mode !== saved.mode ||
+    current.inline_message !== saved.inline_message ||
     current.title !== saved.title ||
     current.content !== saved.content ||
     current.button_text !== saved.button_text ||
@@ -72,6 +74,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
         if (cancel) return;
         const normalised: VenueDisplaySettings = {
           mode: ALLOWED_MODES.includes(r.mode) ? r.mode : 'display',
+          inline_message: r.inline_message ?? '',
           title: r.title ?? '',
           content: r.content ?? '',
           button_text: r.button_text ?? '',
@@ -123,6 +126,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
     try {
       await adminSaveVenueDisplay(Number(selectedVenueId), {
         mode: current.mode,
+        inline_message: current.inline_message,
         title: current.title,
         content: current.content,
         button_text: current.button_text,
@@ -178,7 +182,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                 </select>
                 <p className="dmn-admin__help" style={{ marginTop: 8 }}>
                   <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
-                  <strong>External Booking</strong>: shown in the booking widget dropdown; when selected, displays the Content message below and disables the booking flow. Also renders as a panel when preselected via shortcode.<br />
+                  <strong>External Booking</strong>: shown in the booking widget dropdown; when selected, displays the Inline message below and disables the booking flow. Also renders as a panel when preselected via shortcode.<br />
                   <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
                 </p>
               </div>
@@ -188,6 +192,16 @@ export default function VenueDisplayCard({ onDirty }: Props) {
           {current.mode === 'external_booking' && (
             <div className="table__row">
               <div className="table__left">
+                <div className="table__cell">
+                  <div className="table__label">Inline message</div>
+                  <textarea
+                    value={current.inline_message}
+                    onChange={(e) => set({ inline_message: e.target.value })}
+                    placeholder="e.g. Online bookings for this venue have moved to our new booking partner, <a href="https://…">click here to book</a>."
+                    rows={4}
+                  />
+                  <span className="dmn-admin__help">Shown below the venue dropdown when this venue is selected. HTML is supported.</span>
+                </div>
                 <div className="table__cell">
                   <div className="table__label">Title</div>
                   <input
