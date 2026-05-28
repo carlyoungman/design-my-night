@@ -22,7 +22,10 @@ function wordpressAssetPlugin(): Plugin {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(mode),
+  },
   plugins: [react(), wordpressAssetPlugin()],
   build: {
     lib: {
@@ -50,4 +53,4 @@ export default defineConfig({
       scss: { api: 'modern-compiler' },
     },
   },
-})
+}))

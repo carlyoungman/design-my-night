@@ -1,3 +1,5 @@
+@use 'sass:map';
+
 $breakpoints: (
   x-small: 320px,
   small: 576px,
@@ -9,7 +11,7 @@ $breakpoints: (
 
 // Generic mixin
 @mixin bp($key) {
-  $val: map-get($breakpoints, $key);
+  $val: map.get($breakpoints, $key);
 
   @media screen and (min-width: $val) {
     @content;

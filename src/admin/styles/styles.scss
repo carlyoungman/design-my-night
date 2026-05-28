@@ -1,3 +1,5 @@
+@use 'sass:meta';
+
 :root {
   --box-shadow-1: rgb(50 50 93 / 25%) 0px 2px 5px -1px, rgb(0 0 0 / 30%) 0px 1px 3px -1px; /* Original */
   --box-shadow-2: rgb(50 50 93 / 30%) 0px 4px 8px -2px, rgb(0 0 0 / 35%) 0px 2px 4px -2px;
@@ -37,11 +39,9 @@
     padding: var(--universal-space) 0;
   }
 
-  /* stylelint-disable no-invalid-position-at-import-rule */
-  @import './components/buttons';
-  @import './components/dmn-admin';
-  @import './components/forms';
-  @import './components/table';
-  @import './components/toggles';
-  /* stylelint-enable no-invalid-position-at-import-rule */
+  @include meta.load-css('./components/buttons');
+  @include meta.load-css('./components/dmn-admin');
+  @include meta.load-css('./components/forms');
+  @include meta.load-css('./components/table');
+  @include meta.load-css('./components/toggles');
 }

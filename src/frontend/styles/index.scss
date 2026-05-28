@@ -1,6 +1,7 @@
+@use 'sass:meta';
 
 .dmn-widget-root {
-  @import 'css-reset-and-normalize/scss/reset-and-normalize';
+  @include meta.load-css('css-reset-and-normalize/scss/reset-and-normalize');
 
   width: 100%;
   max-width: 100%;
@@ -31,22 +32,22 @@
     box-sizing: border-box;
   }
 
-  @import 'components/accordion';
-  @import 'components/date';
-  @import 'components/details';
-  @import 'components/error-message';
-  @import 'components/faqs';
-  @import 'components/loading-animation';
-  @import 'components/package-card';
-  @import 'components/party-size';
-  @import 'components/progress-bar';
-  @import 'components/radio';
-  @import 'components/review';
-  @import 'components/venues';
-  @import 'components/steps';
-  @import 'components/time';
-  @import 'components/type-card';
-  @import 'components/typography';
-  @import 'components/dmn-widget';
-  @import 'components/external-booking-panel';
+  @include meta.load-css('components/accordion');
+  @include meta.load-css('components/date');
+  @include meta.load-css('components/details');
+  @include meta.load-css('components/error-message');
+  @include meta.load-css('components/faqs');
+  @include meta.load-css('components/loading-animation');
+  @include meta.load-css('components/package-card');
+  @include meta.load-css('components/party-size');
+  @include meta.load-css('components/progress-bar');
+  @include meta.load-css('components/radio');
+  @include meta.load-css('components/review');
+  @include meta.load-css('components/venues');
+  @include meta.load-css('components/steps');
+  @include meta.load-css('components/time');
+  @include meta.load-css('components/type-card');
+  @include meta.load-css('components/typography');
+  @include meta.load-css('components/dmn-widget');
+  @include meta.load-css('components/external-booking-panel');
 }
