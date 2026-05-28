@@ -33,6 +33,11 @@ function WidgetInner() {
   const { venues, loading, error } = useVenues(venueGroup);
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
 
+  const isExternalVenue = useMemo(
+    () => venues.find((v) => String(v._id) === String(state.venueId))?.is_external === true,
+    [venues, state.venueId],
+  );
+
   // const timeHHmm = useMemo(() => hhmmFromState(state.time), [state.time]);
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
@@ -69,72 +74,78 @@ function WidgetInner() {
             </div>
           </section>
 
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <User className="dmn-widget__icon" />
-              2. Size of your group?
-            </p>
-            <div className="dmn-widget__body">
-              <PartySize />
-            </div>
-          </section>
+          {!isExternalVenue && (
+            <>
+              <section className="dmn-widget__section">
+                <p className="dmn-widget__header">
+                  <User className="dmn-widget__icon" />
+                  2. Size of your group?
+                </p>
+                <div className="dmn-widget__body">
+                  <PartySize />
+                </div>
+              </section>
 
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <Calendar className="dmn-widget__icon" />
-              3. Select a date
-            </p>
-            <div className="dmn-widget__body">
-              <Date allowedDays={formattedAllowedDays} />
-            </div>
-          </section>
+              <section className="dmn-widget__section">
+                <p className="dmn-widget__header">
+                  <Calendar className="dmn-widget__icon" />
+                  3. Select a date
+                </p>
+                <div className="dmn-widget__body">
+                  <Date allowedDays={formattedAllowedDays} />
+                </div>
+              </section>
 
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <Rocket className="dmn-widget__icon" />
-              4. Choose your experience
-            </p>
-            <div className="dmn-widget__body">
-              <Type
-                types={types}
-                loading={typesLoading}
-                error={typesError}
-                enabled={enabled}
-                defaultTypeId={defaultTypeId}
-                defaultTypeIds={defaultTypeIds}
-              />
-            </div>
-          </section>
+              <section className="dmn-widget__section">
+                <p className="dmn-widget__header">
+                  <Rocket className="dmn-widget__icon" />
+                  4. Choose your experience
+                </p>
+                <div className="dmn-widget__body">
+                  <Type
+                    types={types}
+                    loading={typesLoading}
+                    error={typesError}
+                    enabled={enabled}
+                    defaultTypeId={defaultTypeId}
+                    defaultTypeIds={defaultTypeIds}
+                  />
+                </div>
+              </section>
 
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <Clock4 className="dmn-widget__icon" />
-              5. Pick a time
-            </p>
-            <div className="dmn-widget__body">
-              <Time />
-            </div>
-          </section>
+              <section className="dmn-widget__section">
+                <p className="dmn-widget__header">
+                  <Clock4 className="dmn-widget__icon" />
+                  5. Pick a time
+                </p>
+                <div className="dmn-widget__body">
+                  <Time />
+                </div>
+              </section>
 
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <PenLine className="dmn-widget__icon" />
-              6. Confirm your details
-            </p>
-            <div className="dmn-widget__body">
-              <Details />
-            </div>
-          </section>
+              <section className="dmn-widget__section">
+                <p className="dmn-widget__header">
+                  <PenLine className="dmn-widget__icon" />
+                  6. Confirm your details
+                </p>
+                <div className="dmn-widget__body">
+                  <Details />
+                </div>
+              </section>
+            </>
+          )}
         </div>
 
         <div className="dmn-widget__side">
           <ProgressBar></ProgressBar>
-          <Review sections={{ details: false }} venues={venues} types={types} />
+          {!isExternalVenue && (
+            <Review sections={{ details: false }} venues={venues} types={types} />
+          )}
         </div>
       </div>
 
-      <Faqs venues={venues} />
-      <AddonsNew />
+      {!isExternalVenue && <Faqs venues={venues} />}
+      {!isExternalVenue && <AddonsNew />}
     </>
   );
 }

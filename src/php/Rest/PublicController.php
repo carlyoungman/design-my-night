@@ -304,8 +304,9 @@ class PublicController
     $dmn = new DmnClient();
     $res = $dmn->request('GET', '/venues', $query);
 
-    // Build a map of DMN venue _id → display mode from WP posts.
+    // Build maps of DMN venue _id → display mode and external message from WP posts.
     $mode_map = [];
+    $content_map = [];
     $wp_venue_ids = get_posts([
       'post_type'   => 'dmn_venue',
       'numberposts' => -1,
@@ -316,18 +317,23 @@ class PublicController
       if ($ext_id === '') continue;
       $mode = (string)(get_post_meta((int)$pid, 'dmn_display_mode', true) ?: 'display');
       $mode_map[$ext_id] = $mode;
+      $content_map[$ext_id] = (string)(get_post_meta((int)$pid, 'dmn_ext_content', true) ?: '');
     }
 
-    // Filter out hidden/external_booking venues from the list.
-    if (!empty($res['data']['payload']['pages']) && !empty($mode_map)) {
-      $res['data']['payload']['pages'] = array_values(array_filter(
-        $res['data']['payload']['pages'],
-        function ($v) use ($mode_map) {
-          $id = (string)($v['_id'] ?? '');
-          $mode = $mode_map[$id] ?? 'display';
-          return $mode === 'display';
+    // Filter hidden venues; annotate external_booking venues with inline message data.
+    if (!empty($res['data']['payload']['pages'])) {
+      $transformed = [];
+      foreach ($res['data']['payload']['pages'] as $v) {
+        $id = (string)($v['_id'] ?? '');
+        $mode = $mode_map[$id] ?? 'display';
+        if ($mode === 'hidden') continue;
+        if ($mode === 'external_booking') {
+          $v['is_external'] = true;
+          $v['external_message'] = $content_map[$id] ?? '';
         }
-      ));
+        $transformed[] = $v;
+      }
+      $res['data']['payload']['pages'] = array_values($transformed);
     }
 
     return new WP_REST_Response([

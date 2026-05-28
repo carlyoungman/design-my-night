@@ -52,6 +52,15 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
     [venues],
   );
 
+  const selectedVenue = useMemo(
+    () => venues.find((v) => String(v._id) === String(state.venueId)),
+    [venues, state.venueId],
+  );
+  const externalMessage =
+    selectedVenue?.is_external && selectedVenue.external_message
+      ? selectedVenue.external_message
+      : '';
+
   const renderSelect = () => (
     <div className="venues__select-wrapper">
       <select
@@ -73,6 +82,12 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
       {initialLoading && <LoadingAnimation type="loading" text="Loading venues…" />}
       {error && <p className="dmn-widget__error">{error}</p>}
       {!initialLoading && !error && renderSelect()}
+      {externalMessage && (
+        <div
+          className="venues__external-message"
+          dangerouslySetInnerHTML={{ __html: externalMessage }}
+        />
+      )}
     </section>
   );
 }
