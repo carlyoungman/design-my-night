@@ -345,7 +345,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                     </div>
                   </div>
 
-                  <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                  <div className="table__cell dmn-admin__spacer-top">
                     <div className="table__label">Visibility</div>
                     <ToggleButtonGroup
                       value={r.visible ? 'enabled' : 'disabled'}
@@ -361,8 +361,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                     </ToggleButtonGroup>
                   </div>
 
-                  {/* NEW: Pricing toggle (under Visibility) */}
-                  <div className="table__cell" style={{ marginTop: '1.5rem' }}>
+                  <div className="table__cell dmn-admin__spacer-top">
                     <div className="table__label">Pricing</div>
                     <ToggleButtonGroup
                       value={r.price_mode ?? 'per_person'}
@@ -377,15 +376,9 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                       }}
                       aria-label="Pricing"
                     >
-                      <ToggleButton style={{ minWidth: '100%' }} value="per_person">
-                        Per person
-                      </ToggleButton>
-                      <ToggleButton style={{ minWidth: '100%' }} value="per_room">
-                        Per room
-                      </ToggleButton>
-                      <ToggleButton style={{ minWidth: '100%' }} value="display">
-                        Display
-                      </ToggleButton>
+                      <ToggleButton value="per_person">Per person</ToggleButton>
+                      <ToggleButton value="per_room">Per room</ToggleButton>
+                      <ToggleButton value="display">Display</ToggleButton>
                     </ToggleButtonGroup>
                   </div>
                 </div>

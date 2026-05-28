@@ -178,7 +178,7 @@ export default function LinkEditor({ onDirty }: Props) {
 
   return (
     <section className="link-editor">
-      <div>
+      <div className="dmn-admin__header">
         <div className="dmn-admin__header__inner">
           {anyDirty && <p className="dmn-admin__header__dirty">Unsaved changes</p>}
           {!anyDirty && (large.ok || ret.ok) && (
@@ -210,8 +210,8 @@ export default function LinkEditor({ onDirty }: Props) {
           <div className="table">
             <div className="table__row">
               <div className="table__left">
-                <label className="dmn-admin__label">URL</label>
                 <div className="table__cell">
+                  <div className="table__label">URL</div>
                   <input
                     type="text"
                     value={large.url}
@@ -225,8 +225,8 @@ export default function LinkEditor({ onDirty }: Props) {
             {large.invalid && <p className="err">Enter a valid URL or leave blank.</p>}
             <div className="table__row">
               <div className="table__left">
-                <label className="dmn-admin__label">Message</label>
                 <div className="table__cell">
+                  <div className="table__label">Message</div>
                   <input
                     type="text"
                     value={large.label}
@@ -239,8 +239,8 @@ export default function LinkEditor({ onDirty }: Props) {
             </div>
             <div className="table__row">
               <div className="table__left">
-                <label className="dmn-admin__label">Maximum party size</label>
                 <div className="table__cell">
+                  <div className="table__label">Maximum party size</div>
                   <input
                     type="number"
                     value={large.maxPartySize}
@@ -279,6 +279,7 @@ export default function LinkEditor({ onDirty }: Props) {
             <div className="table__row">
               <div className="table__left">
                 <div className="table__cell">
+                  <div className="table__label">URL</div>
                   <input
                     type="text"
                     value={ret.url}
