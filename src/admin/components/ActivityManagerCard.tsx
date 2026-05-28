@@ -376,8 +376,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                       }}
                       aria-label="Pricing"
                     >
-                      <ToggleButton value="per_person">Per person</ToggleButton>
-                      <ToggleButton value="per_room">Per room</ToggleButton>
+                      <ToggleButton value="per_person">Person</ToggleButton>
+                      <ToggleButton value="per_room">Room</ToggleButton>
                       <ToggleButton value="display">Display</ToggleButton>
                     </ToggleButtonGroup>
                   </div>
