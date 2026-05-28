@@ -178,7 +178,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                 </select>
                 <p className="dmn-admin__help" style={{ marginTop: 8 }}>
                   <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
-                  <strong>External Booking</strong>: hidden from dropdown; shows a custom panel when preselected via shortcode.<br />
+                  <strong>External Booking</strong>: shown in the booking widget dropdown; when selected, displays the Content message below and disables the booking flow. Also renders as a panel when preselected via shortcode.<br />
                   <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
                 </p>
               </div>
@@ -205,7 +205,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                     placeholder="Panel body copy…"
                     rows={5}
                   />
-                  <span className="dmn-admin__help">Basic HTML is supported.</span>
+                  <span className="dmn-admin__help">Shown inline when a user selects this venue from the dropdown. Also used as the panel body when the venue is preselected via shortcode. Basic HTML is supported.</span>
                 </div>
                 <div className="table__cell">
                   <div className="table__label">Button text</div>
