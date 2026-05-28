@@ -2,6 +2,7 @@
 import React, { ReactNode } from 'react';
 import './styles/styles.scss';
 import { createRoot } from 'react-dom/client';
+import apiFetch from '@wordpress/api-fetch';
 import SettingsCard from '@admin/components/SettingsCard';
 import DataSyncCard from '@admin/components/DataSyncCard';
 import ActivityManagerCard from '@admin/components/ActivityManagerCard';
@@ -133,6 +134,10 @@ function App() {
       </div>
     </AdminProvider>
   );
+}
+
+if (window.DMN_ADMIN_BOOT?.nonce) {
+  apiFetch.use(apiFetch.createNonceMiddleware(window.DMN_ADMIN_BOOT.nonce));
 }
 
 const mount = document.getElementById('dmn-admin-root');

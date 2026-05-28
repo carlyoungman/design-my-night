@@ -7,8 +7,9 @@ export async function wpFetch<T = any>(
   slug: string,
   opts: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: any } = {},
 ): Promise<T> {
+  const base = window.DMN_ADMIN_BOOT?.restUrl ?? '/wp-json/dmn/v1/admin/';
   return (await apiFetch({
-    path: `/dmn/v1/admin/${slug}`,
+    url: base + slug,
     method: opts.method || 'GET',
     data: opts.body,
   })) as Promise<T>;
