@@ -170,8 +170,8 @@ export default function VenueDisplayCard({ onDirty }: Props) {
         <div className="table">
           <div className="table__row">
             <div className="table__left">
-              <label className="dmn-admin__label">Display mode</label>
               <div className="table__cell">
+                <div className="table__label">Display mode</div>
                 <select
                   value={current.mode}
                   onChange={(e) => set({ mode: e.target.value as VenueDisplayMode })}
@@ -180,7 +180,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                     <option key={m} value={m}>{MODE_LABELS[m]}</option>
                   ))}
                 </select>
-                <p className="dmn-admin__help" style={{ marginTop: 8 }}>
+                <p className="dmn-admin__help dmn-admin__spacer-top">
                   <strong>Display</strong>: shown in the booking widget dropdown (default).<br />
                   <strong>External Booking</strong>: shown in the booking widget dropdown; when selected, displays the Inline message below and disables the booking flow. Also renders as a panel when preselected via shortcode.<br />
                   <strong>Hidden</strong>: hidden from dropdown; widget does not render when preselected via shortcode.
@@ -240,7 +240,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                     aria-invalid={(invalid && !!current.button_url) || undefined}
                   />
                   {invalid && current.button_url && (
-                    <span className="err" style={{ fontSize: 13 }}>
+                    <span className="err dmn-admin__help">
                       URL must be empty, start with / or http(s)://
                     </span>
                   )}

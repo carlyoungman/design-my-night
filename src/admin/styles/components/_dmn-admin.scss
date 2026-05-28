@@ -99,6 +99,12 @@
   margin-top: var(--universal-space);
 }
 
+.dmn-admin__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--universal-space-2);
+}
+
 .dmn-admin__spacer-bottom {
   margin-bottom: var(--universal-space);
 }

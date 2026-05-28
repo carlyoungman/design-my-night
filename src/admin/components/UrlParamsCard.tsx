@@ -100,7 +100,7 @@ export default function UrlParamsCard() {
 
             <button
               type="button"
-              className="button button--sub dmn-admin__spacer-top"
+              className="button button--remove dmn-admin__spacer-top"
               onClick={() => removeRow(i)}
             >
               Remove

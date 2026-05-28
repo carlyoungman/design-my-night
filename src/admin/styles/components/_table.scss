@@ -22,6 +22,11 @@
     gap: var(--universal-space);
   }
 
+  &__cell {
+    display: flex;
+    flex-direction: column;
+  }
+
 
   &__image-picker {
     &__image,
