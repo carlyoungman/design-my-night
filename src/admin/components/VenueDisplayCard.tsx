@@ -197,7 +197,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                   <textarea
                     value={current.inline_message}
                     onChange={(e) => set({ inline_message: e.target.value })}
-                    placeholder="e.g. Online bookings for this venue have moved to our new booking partner, <a href="https://…">click here to book</a>."
+                    placeholder="e.g. Online bookings for this venue have moved to our new booking partner, &lt;a href=&quot;https://…&quot;&gt;click here to book&lt;/a&gt;."
                     rows={4}
                   />
                   <span className="dmn-admin__help">Shown below the venue dropdown when this venue is selected. HTML is supported.</span>
