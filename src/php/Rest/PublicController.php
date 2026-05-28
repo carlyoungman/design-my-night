@@ -317,7 +317,7 @@ class PublicController
       if ($ext_id === '') continue;
       $mode = (string)(get_post_meta((int)$pid, 'dmn_display_mode', true) ?: 'display');
       $mode_map[$ext_id] = $mode;
-      $content_map[$ext_id] = (string)(get_post_meta((int)$pid, 'dmn_ext_content', true) ?: '');
+      $content_map[$ext_id] = (string)(get_post_meta((int)$pid, 'dmn_ext_inline_message', true) ?: '');
     }
 
     // Filter hidden venues; annotate external_booking venues with inline message data.

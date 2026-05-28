@@ -236,6 +236,7 @@ export type VenueDisplayMode = 'display' | 'external_booking' | 'hidden';
 
 export type VenueDisplaySettings = {
   mode: VenueDisplayMode;
+  inline_message: string;
   title: string;
   content: string;
   button_text: string;
