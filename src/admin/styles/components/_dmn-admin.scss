@@ -1,4 +1,4 @@
-@import '../settings/breakpoints';
+@use '../settings/breakpoints' as breakpoint;
 
 .dmn-admin {
   &__help {
@@ -11,15 +11,15 @@
     grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: var(--universal-space-2);
 
-    @include large-screen-min {
+    @include breakpoint.large-screen-min {
       grid-template-columns: 1fr 30%;
     }
 
-    @include x-large-screen-min {
+    @include breakpoint.x-large-screen-min {
       gap: var(--universal-space-3);
     }
 
-    @include xx-large-screen-min {
+    @include breakpoint.xx-large-screen-min {
       gap: var(--universal-space-4);
     }
   }
@@ -40,7 +40,7 @@
     border: 1px solid var(--c-off-white);
     border-radius: var(--border-radius);
 
-    @include large-screen-min {
+    @include breakpoint.large-screen-min {
       margin-bottom: var(--universal-space-2);
     }
   }

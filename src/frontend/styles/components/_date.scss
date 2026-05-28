@@ -1,4 +1,4 @@
-@import '../settings/mixins';
+@use '../settings/mixins' as mixin;
 
 
 .date {
@@ -10,7 +10,7 @@
   }
 
   &__quick-btn {
-    @include button-reset;
+    @include mixin.button-reset;
 
     flex: 1;
     height: var(--input-height);
