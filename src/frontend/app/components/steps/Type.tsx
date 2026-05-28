@@ -147,7 +147,7 @@ export function Type({
           {showEmpty && <p className="type__empty">No experiences available for this selection.</p>}
 
           {showList && (
-            <div className="step_field">
+            <div className="step__field">
               <RadioGroup
                 aria-labelledby={captionId}
                 value={state.bookingType ?? ''}
