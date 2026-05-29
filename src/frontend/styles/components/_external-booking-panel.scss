@@ -3,6 +3,7 @@
 
 .dmn-ext-panel {
   width: 100%;
+<<<<<<< HEAD
   color: var(--c-white);
   background-color: var(--c-black);
   border: 4px solid var(--c-theme-primary);
@@ -14,11 +15,20 @@
     margin-top: var(--universal-space-4);
   }
 
+=======
+  overflow: hidden;
+  color: var(--c-white);
+  background-color: var(--c-black);
+  border: 4px solid var(--c-theme-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 10px 0 var(--c-theme-primary) inset;
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: center;
+<<<<<<< HEAD
     position: absolute;
     top: 0;
     left: 50%;
@@ -39,16 +49,35 @@
     color: var(--c-white);
     text-align: center;
     text-transform: uppercase;
+=======
+    padding: var(--universal-space) var(--universal-space-2);
+    background: linear-gradient(135deg, #7b2ff7 0%, var(--c-theme-primary) 100%);
+  }
+
+  &__title {
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    font-weight: 900;
+    color: var(--c-white);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
   }
 
   &__body {
     display: grid;
     grid-template-columns: 1fr;
+<<<<<<< HEAD
     padding: var(--universal-space);
     margin-top: 40px;
     @include breakpoint.medium-screen-min {
       grid-template-columns: 1fr 1fr;
       padding: var(--universal-space-3);
+=======
+
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: 1fr 1fr;
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
     }
   }
 
@@ -76,14 +105,21 @@
     flex-direction: column;
     gap: var(--universal-space);
     padding: var(--universal-space-2);
+<<<<<<< HEAD
     @include breakpoint.medium-screen-min {
       margin-left: var(--universal-space);
       gap: var(--universal-space-2);
     }
+=======
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
   }
 
   &__copy {
     flex: 1;
+<<<<<<< HEAD
+=======
+    line-height: 1.6;
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
 
     p {
       margin: 0 0 var(--universal-space) 0;
@@ -101,6 +137,7 @@
 
   &__button {
     @include mixin.button-reset;
+<<<<<<< HEAD
     display: inline-block;
     align-self: flex-start;
     padding: var(--universal-space) var(--universal-space-3);
@@ -119,6 +156,20 @@
     &:hover {
       color: var(--c-black);
       background: var(--c-yellow)
+=======
+
+    display: inline-block;
+    align-self: flex-start;
+    padding: var(--universal-space) var(--universal-space-2);
+    color: var(--c-white);
+    text-decoration: none;
+    border: 2px solid var(--c-white);
+    transition: var(--transition);
+
+    &:hover {
+      color: var(--c-black);
+      background: var(--c-white);
+>>>>>>> afb0198c09ec666e9364f2f59c8757b001a146fa
     }
   }
 }
