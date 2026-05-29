@@ -21,7 +21,6 @@ function boot(el: HTMLElement) {
         content={extData.content}
         buttonText={extData.buttonText}
         buttonUrl={extData.buttonUrl}
-        themeColor={extData.themeColor}
       />,
     );
     return;

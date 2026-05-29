@@ -181,7 +181,6 @@ add_action('init', function () {
           'buttonText' => (string)get_post_meta($wp_pid, 'dmn_ext_button_text', true),
           'buttonUrl'  => (string)get_post_meta($wp_pid, 'dmn_ext_button_url', true),
           'imageUrl'   => $img_id > 0 ? wp_get_attachment_image_url($img_id, 'large') : '',
-          'themeColor' => (string)get_post_meta($wp_pid, 'dmn_ext_theme_color', true),
         ]);
         return '<div class="dmn-widget-root" data-display-mode="external_booking" data-ext-data="' . esc_attr($ext_data) . '"></div>';
       }
