@@ -10,6 +10,9 @@
     @include mixin.field-wrapper;
     @include mixin.select-down-arrow;
   }
+  &__external-message{
+    margin-top: var(--universal-space-2);
+  }
 
   &__select {
     @include mixin.select;
