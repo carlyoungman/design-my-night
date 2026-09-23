@@ -177,7 +177,7 @@ add_action('init', function () {
         $img_id = (int)get_post_meta($wp_pid, 'dmn_ext_image_id', true);
         $ext_data = wp_json_encode([
           'title'      => (string)get_post_meta($wp_pid, 'dmn_ext_title', true),
-          'content'    => (string)get_post_meta($wp_pid, 'dmn_ext_content', true),
+          'content'    => wpautop((string)get_post_meta($wp_pid, 'dmn_ext_content', true)),
           'buttonText' => (string)get_post_meta($wp_pid, 'dmn_ext_button_text', true),
           'buttonUrl'  => (string)get_post_meta($wp_pid, 'dmn_ext_button_url', true),
           'imageUrl'   => $img_id > 0 ? wp_get_attachment_image_url($img_id, 'large') : '',

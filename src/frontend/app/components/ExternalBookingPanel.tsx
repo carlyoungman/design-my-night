@@ -19,7 +19,7 @@ export function ExternalBookingPanel({
     <div className="dmn-ext-panel">
       {title && (
         <div className="dmn-ext-panel__header">
-          <span className="dmn-ext-panel__title">{title}</span>
+          <p className="dmn-ext-panel__title font-pi txt-40">{title}</p>
         </div>
       )}
       <div className="dmn-ext-panel__body">
@@ -30,10 +30,7 @@ export function ExternalBookingPanel({
         )}
         <div className="dmn-ext-panel__content">
           {content && (
-            <div
-              className="dmn-ext-panel__copy"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
+            <div className="dmn-ext-panel__copy" dangerouslySetInnerHTML={{ __html: content }} />
           )}
           {buttonText && buttonUrl && (
             <a
