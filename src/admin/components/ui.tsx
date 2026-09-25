@@ -70,11 +70,12 @@ export function FieldError({ id, children }: { id: string; children: React.React
   );
 }
 
-/** Shared "saved / unsaved" indicator for editor headers. */
-export function SaveState({ dirty, ok }: { dirty: boolean; ok?: string | null }) {
-  if (dirty) return <StatusMessage tone="warning">Unsaved changes</StatusMessage>;
-  if (ok) return <StatusMessage tone="success">{ok}</StatusMessage>;
-  return null;
+/**
+ * Shared "unsaved changes" indicator for editor headers. It stays while the edits do, so it is
+ * inline; confirming a save is a toast.
+ */
+export function SaveState({ dirty }: { dirty: boolean }) {
+  return dirty ? <StatusMessage tone="warning">Unsaved changes</StatusMessage> : null;
 }
 
 export type ProgressState = 'running' | 'success' | 'error';

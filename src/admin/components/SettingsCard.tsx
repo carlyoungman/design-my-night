@@ -10,7 +10,7 @@ import {
   errorMessage,
   type ProgressState,
 } from '@admin/components/ui';
-import { useErrorToast } from '@admin/components/Toasts';
+import { useToast } from '@admin/components/Toasts';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -27,8 +27,7 @@ export default function SettingsCard() {
   const [saving, setSaving] = useState(false);
   const [test, setTest] = useState<{ state: ProgressState; message?: string } | null>(null);
   const testing = test?.state === 'running';
-  const saveError = useErrorToast();
-  const [ok, setOk] = useState<string | null>(null);
+  const saveToast = useToast();
   const [details, setDetails] = useState<unknown | null>(null);
 
   const [form, setForm] = useState<FormState>({
@@ -67,8 +66,7 @@ export default function SettingsCard() {
   const onSave = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    saveError.clear();
-    setOk(null);
+    saveToast.clear();
     setTest(null);
     try {
       const payload = {
@@ -85,9 +83,9 @@ export default function SettingsCard() {
         setMask(s.api_key_mask || '');
       }
       setForm((f) => ({ ...f, api_key: '' }));
-      setOk('Settings saved.');
+      saveToast.success('Settings saved.');
     } catch (e) {
-      saveError.show('Settings could not be saved. Check your connection and try again.', {
+      saveToast.error('Settings could not be saved. Check your connection and try again.', {
         error: e,
       });
     } finally {
@@ -99,8 +97,7 @@ export default function SettingsCard() {
     // aria-disabled rather than disabled, so the button keeps focus while the test runs.
     if (testing) return;
     setTest({ state: 'running' });
-    saveError.clear();
-    setOk(null);
+    saveToast.clear();
     setDetails(null);
     try {
       const r = await testConnection(form.debug_mode);
@@ -224,11 +221,6 @@ export default function SettingsCard() {
             </div>
           </form>
 
-          {ok && (
-            <StatusMessage tone="success" block>
-              {ok}
-            </StatusMessage>
-          )}
           {test && (
             <div className="dmn-admin__spacer-top">
               <ProgressPanel

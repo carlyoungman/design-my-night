@@ -4,23 +4,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { adminOverview, adminSyncAll } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
-import { ProgressPanel, StatusMessage, useElapsedSeconds } from '@admin/components/ui';
-import { useErrorToast } from '@admin/components/Toasts';
+import { ProgressPanel, useElapsedSeconds } from '@admin/components/ui';
+import { useToast } from '@admin/components/Toasts';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const seconds = (ms: number) => Math.max(1, Math.round(ms / 1000));
 
-/** A successful import. A failed one is reported in an error toast with Try again. */
-type Result = { message: string; durationMs?: number; issues?: number };
-
 export default function PageHeader() {
   const { notifyDataChanged, goToSection } = useAdmin();
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
   // How long the last successful import took, to set expectations for the next one.
   const [typicalMs, setTypicalMs] = useState<number | null>(null);
   const elapsed = useElapsedSeconds(busy);
-  const importError = useErrorToast();
+  const importToast = useToast();
   // Try again in the toast runs the import as it is then.
   const runImportRef = useRef<() => void>(() => {});
 
@@ -45,25 +41,27 @@ export default function PageHeader() {
     // aria-disabled rather than disabled, so the button keeps focus while the import runs.
     if (busy) return;
     setBusy(true);
-    setResult(null);
-    importError.clear();
+    importToast.clear();
     try {
       const r = await adminSyncAll();
-      setResult({
-        message:
-          r.message ||
+      importToast.success(
+        r.message ||
           `Imported ${plural(r.venues_count ?? 0, 'venue', 'venues')} and ${plural(
             r.types_count ?? 0,
             'activity',
             'activities',
           )}.`,
-        durationMs: r.duration_ms,
-        issues: r.issues_count,
-      });
+        {
+          description: r.duration_ms ? `Took ${seconds(r.duration_ms)} s.` : undefined,
+          action: r.issues_count
+            ? { label: 'See problems on the Dashboard', onClick: () => goToSection('dashboard') }
+            : undefined,
+        },
+      );
       if (r.duration_ms) setTypicalMs(r.duration_ms);
       notifyDataChanged();
     } catch (e) {
-      importError.show('Import from DesignMyNight failed.', {
+      importToast.error('Import from DesignMyNight failed.', {
         error: e,
         action: { label: 'Try again', onClick: () => runImportRef.current() },
       });
@@ -106,47 +104,24 @@ export default function PageHeader() {
           {busy ? 'Importing…' : 'Import from DesignMyNight'}
         </button>
       </div>
-      {(busy || result) && (
+      {busy && (
         <div className="dmn-admin__page-header-status">
-          {busy ? (
-            <ProgressPanel
-              state="running"
-              meta={
-                <span aria-hidden="true" className="dmn-admin__progress-timer">
-                  {elapsed} s
-                </span>
-              }
-            >
-              <p className="dmn-admin__progress-title" role="status">
-                Importing venues and activities from DesignMyNight…
-              </p>
-              <p className="dmn-admin__help">
-                Fetching your venues, then each venue&rsquo;s activities. {expectation} Keep this
-                page open until it finishes.
-              </p>
-            </ProgressPanel>
-          ) : (
-            result && (
-              <ProgressPanel
-                state="success"
-                meta={result.durationMs ? `Took ${seconds(result.durationMs)} s` : undefined}
-                onDismiss={() => setResult(null)}
-                actions={
-                  !!result.issues && (
-                    <button
-                      type="button"
-                      className="button button--text"
-                      onClick={() => goToSection('dashboard')}
-                    >
-                      See problems on the Dashboard
-                    </button>
-                  )
-                }
-              >
-                <StatusMessage tone="success">{result.message}</StatusMessage>
-              </ProgressPanel>
-            )
-          )}
+          <ProgressPanel
+            state="running"
+            meta={
+              <span aria-hidden="true" className="dmn-admin__progress-timer">
+                {elapsed} s
+              </span>
+            }
+          >
+            <p className="dmn-admin__progress-title" role="status">
+              Importing venues and activities from DesignMyNight…
+            </p>
+            <p className="dmn-admin__help">
+              Fetching your venues, then each venue&rsquo;s activities. {expectation} Keep this page
+              open until it finishes.
+            </p>
+          </ProgressPanel>
         </div>
       )}
     </header>

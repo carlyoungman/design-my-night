@@ -1,10 +1,11 @@
 // src/admin/components/Toasts.tsx
-// Error toasts (Base UI Toast) for actions that fail, such as a save or an import. Problems that
-// stop a screen from showing its content (load errors with Try again) and field validation stay
-// inline, next to what they are about.
+// Toasts (Base UI Toast) for the outcome of an action the user started, such as a save or an
+// import: errors, and confirmations that it worked. Problems that stop a screen from showing its
+// content (load errors with Try again), field validation, state that lasts (such as "Unsaved
+// changes") and results the user asked to see (the connection test) stay inline.
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Toast } from '@base-ui-components/react/toast';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { errorReason } from '@admin/components/ui';
 
 export type ToastAction = { label: string; onClick: () => void };
@@ -25,7 +26,11 @@ function ToastList() {
   const { toasts } = Toast.useToastManager();
   return toasts.map((toast) => (
     <Toast.Root key={toast.id} toast={toast} className="dmn-admin__toast">
-      <AlertCircle aria-hidden="true" className="dmn-admin__toast-icon" />
+      {toast.type === 'success' ? (
+        <CheckCircle2 aria-hidden="true" className="dmn-admin__toast-icon" />
+      ) : (
+        <AlertCircle aria-hidden="true" className="dmn-admin__toast-icon" />
+      )}
       <div className="dmn-admin__toast-body">
         <Toast.Title className="dmn-admin__toast-title" />
         <Toast.Description className="dmn-admin__toast-description" />
@@ -40,14 +45,19 @@ function ToastList() {
   ));
 }
 
+type ToastOptions = { description?: string; action?: ToastAction };
+
 /**
- * One error toast owned by the calling component. `show` replaces the previous one, so a repeated
- * failure is announced again rather than stacking; `clear` closes it, for example when the user
- * retries or the context changes. The title says what failed; the description is `description`,
- * or else the server's reason taken from `error`. Errors stay until dismissed (no timeout) and are
- * announced assertively.
+ * One toast owned by the calling component: a new one replaces the previous, so a repeated failure
+ * is announced again rather than stacking, and a success replaces an earlier error. `clear` closes
+ * it, for example when the user retries or the context changes.
+ *
+ * - `error`: says what failed; the description is `description`, or else the server's reason taken
+ *   from `error`. Errors stay until dismissed and are announced assertively.
+ * - `success`: confirms an action near-silently. It is announced politely and closes after a few
+ *   seconds (paused while hovered or focused), unless it has an action, which keeps it open.
  */
-export function useErrorToast() {
+export function useToast() {
   const { add, close } = Toast.useToastManager();
   const idRef = useRef<string | null>(null);
 
@@ -56,28 +66,39 @@ export function useErrorToast() {
     idRef.current = null;
   }, [close]);
 
-  const show = useCallback(
-    (title: string, opts: { error?: unknown; description?: string; action?: ToastAction } = {}) => {
+  const open = useCallback(
+    (type: 'error' | 'success', title: string, opts: ToastOptions) => {
       if (idRef.current) close(idRef.current);
       idRef.current = add({
         title,
-        description: opts.description ?? (errorReason(opts.error) || undefined),
-        type: 'error',
-        priority: 'high',
-        timeout: 0,
+        description: opts.description,
+        type,
+        priority: type === 'error' ? 'high' : 'low',
+        timeout: type === 'error' || opts.action ? 0 : 5000,
         actionProps: opts.action
-          ? {
-              children: opts.action.label,
-              onClick: opts.action.onClick,
-            }
+          ? { children: opts.action.label, onClick: opts.action.onClick }
           : undefined,
       });
     },
     [add, close],
   );
 
+  const error = useCallback(
+    (title: string, opts: ToastOptions & { error?: unknown } = {}) =>
+      open('error', title, {
+        ...opts,
+        description: opts.description ?? (errorReason(opts.error) || undefined),
+      }),
+    [open],
+  );
+
+  const success = useCallback(
+    (title: string, opts: ToastOptions = {}) => open('success', title, opts),
+    [open],
+  );
+
   // A toast about a screen that has gone away would have lost its context.
   useEffect(() => clear, [clear]);
 
-  return useMemo(() => ({ show, clear }), [show, clear]);
+  return useMemo(() => ({ error, success, clear }), [error, success, clear]);
 }

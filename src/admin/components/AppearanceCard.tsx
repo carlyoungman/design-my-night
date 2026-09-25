@@ -6,7 +6,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { getAppearance, saveAppearance, type Appearance, type ColourMode } from '@admin/api';
 import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
-import { useErrorToast } from '@admin/components/Toasts';
+import { useToast } from '@admin/components/Toasts';
 
 type FormState = {
   theme_colour: string;
@@ -46,8 +46,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const saveError = useErrorToast();
-  const [ok, setOk] = useState<string | null>(null);
+  const saveToast = useToast();
   const [colourErr, setColourErr] = useState<string | null>(null);
   const [defaultColour, setDefaultColour] = useState('#6750a4');
   const [saved, setSaved] = useState<FormState | null>(null);
@@ -101,14 +100,12 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
   }, [load]);
 
   const update = (patch: Partial<FormState>) => {
-    setOk(null);
     setForm((f) => ({ ...f, ...patch }));
   };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    saveError.clear();
-    setOk(null);
+    saveToast.clear();
     const colour = normaliseHex(form.theme_colour);
     if (!colour) {
       setColourErr('Enter a hex colour such as #6750a4, or pick one with the swatch.');
@@ -121,9 +118,9 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
       const res = await saveAppearance({ ...form, theme_colour: colour });
       accept(res);
       applyToAdmin(res);
-      setOk('Appearance saved.');
+      saveToast.success('Appearance saved.');
     } catch (e2) {
-      saveError.show('Appearance could not be saved. Try again.', { error: e2 });
+      saveToast.error('Appearance could not be saved. Try again.', { error: e2 });
     } finally {
       setSaving(false);
     }
@@ -140,7 +137,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
             The theme colour and light or dark mode for this screen and the booking widget.
           </p>
         </div>
-        <SaveState dirty={dirty} ok={ok} />
+        <SaveState dirty={dirty} />
       </div>
 
       {loading && <Loading>Loading appearance…</Loading>}
@@ -225,7 +222,10 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
             />
             Load the booking widget styles
           </label>
-          <p id="dmn-appearance-widget-styles-help" className="dmn-admin__help dmn-admin__help--flush">
+          <p
+            id="dmn-appearance-widget-styles-help"
+            className="dmn-admin__help dmn-admin__help--flush"
+          >
             Turn this off to style the booking widget from your theme instead. The widget keeps its
             markup and <code>dmn-</code> class names, but the plugin's stylesheet, including the
             theme colour and widget mode above, is not loaded on your site.

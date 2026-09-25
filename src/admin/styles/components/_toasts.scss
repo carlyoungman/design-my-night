@@ -1,7 +1,7 @@
 @use '../settings/breakpoints' as breakpoint;
 
-// Error toasts (Base UI Toast, see components/Toasts.tsx). Pinned to the bottom right of the
-// window, clear of the WordPress admin bar and menu; the newest sits nearest the edge.
+// Error and success toasts (Base UI Toast, see components/Toasts.tsx). Pinned to the bottom right
+// of the window, clear of the WordPress admin bar and menu; the newest sits nearest the edge.
 .dmn-admin {
   &__toasts {
     position: fixed;
@@ -61,6 +61,15 @@
 
     &[data-swiping] {
       transition: none;
+    }
+
+    // Confirmations: the colour is decorative, the icon and text carry the meaning.
+    &[data-type='success'] {
+      border-color: var(--c-success);
+
+      .dmn-admin__toast-icon {
+        color: var(--c-success);
+      }
     }
 
     .button--icon {
