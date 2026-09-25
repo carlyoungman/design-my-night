@@ -11,17 +11,6 @@ export type Customer = {
 };
 
 /**
- * A single addon line item selected or available for booking.
- */
-export type AddonLine = {
-  id: string;
-  dmn_package_id: string;
-  name: string;
-  priceText: string;
-  quantity: number;
-};
-
-/**
  * Shape of the entire booking state used by the frontend booking flow.
  */
 export type State = {
@@ -36,9 +25,6 @@ export type State = {
   customer: Customer;
   reviewDeadline?: number;
   submitting: boolean;
-  addons: AddonLine[];
-  addonsSelected: string[];
-  addonsResolved: boolean;
   /** Set when the customer tries to continue, so every Details error is shown at once. */
   detailsAttempted: boolean;
 };
@@ -56,9 +42,6 @@ export const initialState: State = {
   duration: null,
   customer: { first_name: '', last_name: '', email: '', phone: '', message: '', gdpr: false },
   submitting: false,
-  addons: [],
-  addonsSelected: [],
-  addonsResolved: false,
   detailsAttempted: false,
 };
 
@@ -74,8 +57,6 @@ export type Action =
   | { type: 'SET_DURATION'; value: number | null }
   | { type: 'SET_TIME'; value: string | null }
   | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
-  | { type: 'SET_ADDONS'; value: AddonLine[] }
-  | { type: 'SET_ADDONS_SELECTED'; value: string[] }
   | { type: 'ATTEMPT_DETAILS' };
 
 /**
@@ -131,10 +112,6 @@ export function reducer(s: State, a: Action): State {
     }
     case 'SET_CUSTOMER':
       return { ...s, customer: { ...s.customer, ...a.value } };
-    case 'SET_ADDONS':
-      return { ...s, addons: a.value };
-    case 'SET_ADDONS_SELECTED':
-      return { ...s, addonsSelected: a.value };
     case 'ATTEMPT_DETAILS':
       return { ...s, detailsAttempted: true };
     default:

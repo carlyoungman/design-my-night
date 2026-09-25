@@ -8,12 +8,6 @@
     display: grid;
     gap: var(--universal-space);
   }
-
-  &__extra-text {
-    padding: var(--universal-space);
-    background: var(--c-off-white);
-    border-radius: var(--universal-space-half);
-  }
 }
 
 // Each card is a <label> wrapping a Base UI radio, so the whole card selects the option.

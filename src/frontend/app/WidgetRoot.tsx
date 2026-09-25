@@ -12,7 +12,6 @@ import { Review } from '@app/components/steps/Review';
 import ProgressBar from '@app/components/ProgressBar';
 import { useBookingTypes } from '@app/hooks/useBookingTypes';
 import { parseAllowedDays } from '@app/utils/helpers';
-import AddonsNew from '@app/components/steps/AddonsNew';
 import { STEPS, stepHeadingId, type StepKey } from '@app/utils/steps';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
@@ -151,7 +150,6 @@ function WidgetInner() {
         <aside className="dmn-widget__side" aria-label="Booking summary">
           <ProgressBar showSteps />
           <Review sections={{ details: false }} venues={venues} types={types} />
-          <AddonsNew />
         </aside>
       </div>
 

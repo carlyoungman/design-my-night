@@ -48,40 +48,6 @@ class PostTypes
       'rewrite' => false,
     ]);
 
-    // ---- Menus (preorder menus) ----
-    register_post_type('dmn_menu', [
-      'labels' => [
-        'name' => 'DMN Menus',
-        'singular_name' => 'DMN Menu',
-      ],
-      'public' => false,
-      'show_ui' => false,
-      'show_in_rest' => true,
-      'has_archive' => false,
-      'hierarchical' => false,
-      'supports' => ['title', 'editor', 'custom-fields'],
-      'menu_icon' => 'dashicons-list-view',
-      'map_meta_cap' => true,
-      'rewrite' => false,
-    ]);
-
-    // ---- Menu Items (items inside a preorder menu) ----
-    register_post_type('dmn_menu_item', [
-      'labels' => [
-        'name' => 'DMN Menu Items',
-        'singular_name' => 'DMN Menu Item',
-      ],
-      'public' => false,
-      'show_ui' => false,
-      'show_in_rest' => true,
-      'has_archive' => false,
-      'hierarchical' => false,
-      'supports' => ['title', 'editor', 'custom-fields'],
-      'menu_icon' => 'dashicons-buddicons-replies',
-      'map_meta_cap' => true,
-      'rewrite' => false,
-    ]);
-
     self::register_meta();
   }
 
@@ -98,16 +64,7 @@ class PostTypes
     // Activities
     self::meta('dmn_activity', 'venue_id', 'integer');
     self::meta('dmn_activity', 'slug', 'string');
-    self::meta('dmn_activity', 'preorder_menu_id', 'integer');
     self::meta('dmn_activity', 'dmn_price_mode', 'string');
-
-    // Menus
-    self::meta('dmn_menu', 'venue_id', 'integer');
-
-    // Menu Items
-    self::meta('dmn_menu_item', 'menu_id', 'integer');
-    self::meta('dmn_menu_item', 'price', 'number');
-    self::meta('dmn_menu_item', 'sku', 'string');
   }
 
   /**

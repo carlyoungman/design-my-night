@@ -88,36 +88,3 @@ export function getBookingTypes(params: BookingTypeQuery) {
     }>;
   }>('booking-types?' + qs.toString());
 }
-
-/* ---------- Addons ---------- */
-
-export async function getAddons(venueId: string, activityId?: string, allowDisabled?: boolean) {
-  const base =
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__DMN_API_BASE__ ||
-    (window.DMN_PUBLIC_BOOT?.restUrl || '/wp-json/dmn/v1/').replace(/\/$/, '');
-  if (!venueId) {
-    throw new Error('Missing venue id');
-  }
-
-  const url = new URL(`${base}/addons`, window.location.origin);
-  // IMPORTANT: send the external DMN venue id (string), not a number
-  url.searchParams.set('venue_id', String(venueId));
-  if (activityId) url.searchParams.set('activity_id', String(activityId));
-  if (allowDisabled) url.searchParams.set('allow_disabled', '1');
-
-  const r = await fetch(url.toString(), { credentials: 'same-origin' });
-  if (!r.ok) {
-    let msg = 'Failed to load add-ons';
-    try {
-      const jj = await r.json();
-      msg = jj?.message || msg;
-    } catch {
-      // Not JSON; keep the default message.
-    }
-    throw new Error(msg);
-  }
-
-  const jj = await r.json();
-  return { data: jj?.data ?? [] };
-}

@@ -54,8 +54,6 @@ export function Type({
     return types.filter((t) => allowedIds.includes(String(t.id)));
   }, [types, allowedIds]);
 
-  const shortcodeHasType = allowedIds.length > 0;
-
   // Clear selection if prerequisites are not met
   useEffect(() => {
     if (!enabled && state.bookingType) {
@@ -120,18 +118,6 @@ export function Type({
       dispatch({ type: 'SET_DURATION', value: only.duration ?? null });
     }
   }, [enabled, loading, allowedIds.length, types, state.bookingType, dispatch, allowDisabled]);
-
-  const selectedForExtraText = useMemo(() => {
-    if (!shortcodeHasType) return null;
-
-    const current = filteredTypes.find((t) => String(t.id) === String(state.bookingType));
-    if (current) return current;
-
-    // If nothing selected yet and there's only one in filteredTypes, use it for text
-    if (filteredTypes.length === 1) return filteredTypes[0];
-
-    return null;
-  }, [shortcodeHasType, filteredTypes, state.bookingType]);
 
   if (!enabled) {
     return <StepPrerequisite requires={['venue', 'partySize', 'date']} />;
@@ -233,14 +219,6 @@ export function Type({
           );
         })}
       </RadioGroup>
-
-      {/* Only show when shortcode type_id is provided (single or multiple) */}
-      {shortcodeHasType && selectedForExtraText?.type_text && (
-        <div
-          className="type__extra-text"
-          dangerouslySetInnerHTML={{ __html: selectedForExtraText.type_text }}
-        />
-      )}
     </div>
   );
 }

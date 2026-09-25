@@ -29,7 +29,6 @@ type BookingTypeItem = {
   image_id?: number | null;
   valid: boolean | null;
   message?: string | null;
-  type_text?: string | null;
   price_mode?: 'per_person' | 'per_room' | 'display' | null;
   visible?: boolean | null;
 };
@@ -95,7 +94,6 @@ export function useBookingTypes({
         image_id: t.image_id ?? null,
         valid: typeof t.valid === 'boolean' ? t.valid : null,
         message: t.message ?? null,
-        type_text: t.type_text ?? null,
         price_mode: t.price_mode ?? 'per_person',
         visible: typeof t.visible === 'boolean' ? t.visible : null,
       }));

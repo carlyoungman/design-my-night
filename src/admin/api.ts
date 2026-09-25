@@ -103,9 +103,7 @@ export async function adminListActivities(venuePostId: number): Promise<{
     image_id?: number | null;
     image_url?: string | null;
     gallery_ids?: number[];
-    menu_post_id?: number | null;
     visible?: boolean;
-    type_text?: string;
     price_mode?: 'per_person' | 'per_room' | 'display';
   }[];
 }> {
@@ -120,9 +118,7 @@ export async function adminSaveActivity(
     priceText?: string;
     image_id?: number | null;
     gallery_ids?: number[];
-    menu_post_id?: number | null;
     visible?: boolean;
-    type_text?: string;
     price_mode?: 'per_person' | 'per_room' | 'display';
   },
 ): Promise<{ ok: boolean }> {
@@ -134,71 +130,8 @@ export async function adminSyncAll(): Promise<{
   ok: boolean;
   venues_count: number;
   types_count: number;
-  menus_count?: number;
-  menu_items_count?: number;
   duration_ms?: number;
   message?: string;
 }> {
   return wpFetch('sync/all', { method: 'POST' });
 }
-
-/** Menus */
-export async function adminListMenus(): Promise<{
-  menus: { id: number; title: string; fixed_price?: boolean }[];
-}> {
-  return wpFetch('menus', { method: 'GET' });
-}
-
-export async function adminListMenuItems(venueId: number): Promise<{
-  menus: Array<{
-    menu_post_id: number;
-    menu_title: string;
-    activities: Array<{ id: number; dmn_type_id: string; name: string }>;
-    items: Array<{
-      visible: boolean;
-      id: number;
-      dmn_item_id: string;
-      name: string;
-      description: string;
-      type: string;
-      price_ro: number;
-      image_id: number | null;
-      image_url: string | null;
-      menu_post_id: number;
-    }>;
-  }>;
-}> {
-  return wpFetch(`menu-items?venue=${venueId}`);
-}
-
-export async function adminSaveMenuItem(
-  id: number,
-  payload: {
-    name?: string;
-    description?: string;
-    image_id?: number | null;
-    visible?: boolean;
-  },
-) {
-  return wpFetch(`menu-items/${id}`, { method: 'POST', body: payload });
-}
-
-export type AdminMenuItemsResponse = {
-  menus: Array<{
-    menu_post_id: number;
-    menu_title: string;
-    activities: Array<{ id: number; dmn_type_id: string; name: string }>;
-    items: Array<{
-      visible: boolean;
-      id: number;
-      dmn_item_id: string;
-      name: string;
-      description: string;
-      type: string;
-      price_ro: number;
-      image_id: number | null;
-      image_url: string | null;
-      menu_post_id: number;
-    }>;
-  }>;
-};

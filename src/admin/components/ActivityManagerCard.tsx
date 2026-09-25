@@ -25,10 +25,8 @@ type AdminActivity = {
   priceText?: string;
   image_id?: number | null;
   image_url?: string | null;
-  menu_post_id?: number | null;
   visible?: boolean;
   duration_minutes?: number | null;
-  type_text?: string;
   price_mode?: PriceMode;
 };
 
@@ -59,9 +57,7 @@ const isChanged = (r: AdminActivity, o: AdminActivity) =>
   (r.description || '') !== (o.description || '') ||
   (r.priceText || '') !== (o.priceText || '') ||
   (r.image_id ?? null) !== (o.image_id ?? null) ||
-  (r.menu_post_id ?? null) !== (o.menu_post_id ?? null) ||
   (r.visible ?? true) !== (o.visible ?? true) ||
-  (r.type_text || '') !== (o.type_text || '') ||
   (r.price_mode || 'per_person') !== (o.price_mode || 'per_person');
 
 export default function ActivityManagerCard({ onDirty }: Props) {
@@ -113,9 +109,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     setQuery('');
     setVisibility('all');
   };
-
-  // Pre-order menus are not in use. To bring back the per-activity menu picker, load the options
-  // with adminListMenus() and add a select bound to `menu_post_id`.
 
   const load = useCallback(async () => {
     const isCurrent = beginRequest();
@@ -199,9 +192,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             description: r.description ?? '',
             priceText: r.priceText ?? '',
             image_id: r.image_id ?? null,
-            menu_post_id: r.menu_post_id ?? null,
             visible: r.visible ?? true,
-            type_text: r.type_text ?? '',
             price_mode: r.price_mode ?? 'per_person',
           }),
         ),
@@ -487,20 +478,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                           />
                           <p id={`${base}-price-help`} className="dmn-admin__help">
                             For example £25. How it is charged is set under Pricing.
-                          </p>
-                        </div>
-                        <div className="dmn-admin__field">
-                          <label htmlFor={`${base}-typetext`}>Shortcode text</label>
-                          <input
-                            id={`${base}-typetext`}
-                            type="text"
-                            value={r.type_text || ''}
-                            aria-describedby={`${base}-typetext-help`}
-                            onChange={(e) => onCell(r.id, 'type_text', e.target.value)}
-                          />
-                          <p id={`${base}-typetext-help`} className="dmn-admin__help">
-                            Shown only when the shortcode preselects this activity with{' '}
-                            <code>type_id</code>. HTML is allowed.
                           </p>
                         </div>
                       </div>
