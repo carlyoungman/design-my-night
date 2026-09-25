@@ -127,11 +127,40 @@
     font-size: 14px;
   }
 
-  // Venue-level widget settings, above the activity toolbar.
-  &__venue-settings {
+  // Venue page: activities, with the venue options in a sidebar on wide screens. The options come
+  // first in the source, so they sit above the activities on narrow screens and are reached first
+  // by keyboard.
+  &__venue-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--universal-space);
+    align-items: start;
+
+    &--with-options {
+      @include breakpoint.x-large-screen-min {
+        grid-template-areas: 'main options';
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+        gap: var(--universal-space-2);
+
+        > .dmn-admin__venue-main {
+          grid-area: main;
+        }
+
+        > .dmn-admin__venue-options {
+          grid-area: options;
+        }
+      }
+    }
+  }
+
+  &__venue-main {
+    min-width: 0;
+  }
+
+  &__venue-options {
     display: grid;
     gap: var(--universal-space-half);
-    margin: 0 0 var(--universal-space);
+    margin: 0;
 
     h3 {
       margin: 0;
