@@ -164,6 +164,8 @@ export default function ActivityManagerCard({
   useEffect(() => {
     onDirty?.(dirty.size > 0);
   }, [dirty, onDirty]);
+  // Edits go with the editor, for example when its venue is removed.
+  useEffect(() => () => onDirty?.(false), [onDirty]);
 
   // Match on the saved values, so an edit never removes the card being edited from the list.
   const filtered = useMemo(() => {

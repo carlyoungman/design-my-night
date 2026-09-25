@@ -15,6 +15,7 @@ import {
 import { type AdminVenue, type ImportRecord, adminListVenues, adminOverview } from '@admin/api';
 import { useAdmin, venueHref } from '@admin/AdminContext';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
+import RemoveDataCard from '@admin/components/RemoveDataCard';
 
 type Overview = Awaited<ReturnType<typeof adminOverview>>;
 
@@ -316,6 +317,8 @@ export default function Dashboard() {
               )}
             </div>
           )}
+
+          <RemoveDataCard />
         </div>
       )}
     </section>
