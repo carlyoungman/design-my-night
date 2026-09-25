@@ -338,30 +338,46 @@ export default function ActivityManagerCard({
             aria-labelledby="dmn-admin-venue-options-title"
           >
             <h3 id="dmn-admin-venue-options-title">Venue options</h3>
-            <div className="dmn-admin__field">
-              <span className="dmn-admin__label" id="dmn-admin-venue-unavailable-label">
-                Unavailable activities
-              </span>
-              <ToggleButtonGroup
-                value={hideUnavailable ? 'hide' : 'show'}
-                exclusive
-                disabled={venueSaving}
-                onChange={(_, newValue) => {
-                  if (!newValue) return; // one option must stay selected
-                  saveHideUnavailable(newValue === 'hide');
-                }}
-                aria-labelledby="dmn-admin-venue-unavailable-label"
-                aria-describedby="dmn-admin-venue-unavailable-help"
-              >
-                <ToggleButton value="show">Show as unavailable</ToggleButton>
-                <ToggleButton value="hide">Hide</ToggleButton>
-              </ToggleButtonGroup>
+            <fieldset
+              className="dmn-admin__field"
+              disabled={venueSaving}
+              aria-describedby="dmn-admin-venue-unavailable-help"
+            >
+              <legend className="dmn-admin__label">Unavailable activities</legend>
               <p id="dmn-admin-venue-unavailable-help" className="dmn-admin__help">
-                When DesignMyNight can&apos;t take an activity for the chosen date or group size,
-                either show it in the booking widget with its reason or leave it out. Saved straight
-                away.
+                When DesignMyNight can&apos;t take an activity for the chosen date or group size.
+                Changes save straight away.
               </p>
-            </div>
+              <div className="dmn-admin__choices">
+                {(
+                  [
+                    {
+                      value: false,
+                      title: 'Show as unavailable',
+                      help: 'Customers see it greyed out, with the reason.',
+                    },
+                    {
+                      value: true,
+                      title: 'Hide',
+                      help: 'Left out of the booking widget.',
+                    },
+                  ] as const
+                ).map((option) => (
+                  <label key={option.title} className="dmn-admin__choice">
+                    <input
+                      type="radio"
+                      name="dmn-admin-venue-unavailable"
+                      checked={hideUnavailable === option.value}
+                      onChange={() => saveHideUnavailable(option.value)}
+                    />
+                    <span>
+                      <span className="dmn-admin__choice-title">{option.title}</span>
+                      <span className="dmn-admin__choice-help">{option.help}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             {venueSaving && (
               <p className="dmn-admin__help" role="status">
                 Saving…
