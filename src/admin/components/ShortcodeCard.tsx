@@ -1,6 +1,7 @@
 // src/admin/components/ShortcodeCard.tsx
-// Reference for the [dmn_booking] shortcode.
+// The [dmn_booking] shortcode: a generator, then a reference for every option.
 import React from 'react';
+import ShortcodeGenerator from '@admin/components/ShortcodeGenerator';
 
 const OPTIONS: Array<{ name: string; description: React.ReactNode }> = [
   { name: 'venue_group', description: 'Overrides the default venue group set under Connection.' },
@@ -52,26 +53,16 @@ export default function ShortcodeCard() {
       <div className="dmn-admin__card-header">
         <h2 id="dmn-admin-shortcode-title">Shortcode</h2>
         <p className="dmn-admin__help">
-          Add the shortcode to any page or post to show the booking widget. Options can preselect a
-          venue or activity, or limit which days can be booked.
+          Add the shortcode to any page or post to show the booking widget. Choose options below to
+          preselect a venue or activities, or limit which days can be booked, then copy the result.
         </p>
       </div>
 
-      <div className="dmn-admin__split">
-        <div>
-          <h3>Basic use</h3>
-          <code className="dmn-admin__code-block">[dmn_booking]</code>
-        </div>
-        <div>
-          <h3>Example with options</h3>
-          <code className="dmn-admin__code-block">
-            [dmn_booking venue_id=&quot;&quot; type_id=&quot;&quot; allowed_days=&quot;&quot;
-            allow_disabled]
-          </code>
-        </div>
-      </div>
+      <ShortcodeGenerator />
 
-      <h3 id="dmn-admin-shortcode-options">Options</h3>
+      <h3 id="dmn-admin-shortcode-options" className="dmn-admin__spacer-top">
+        Options reference
+      </h3>
       <div className="dmn-admin__table-wrap">
         <table className="dmn-admin__table" aria-labelledby="dmn-admin-shortcode-options">
           <thead>

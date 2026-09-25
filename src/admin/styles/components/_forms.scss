@@ -288,3 +288,57 @@ fieldset.dmn-admin__field > legend {
     font-family: ui-monospace, sfmono-regular, menlo, consolas, monospace;
   }
 }
+
+// Checkbox options in columns that fill the width, such as activities or weekdays.
+.dmn-admin__check-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--universal-space-half) var(--universal-space);
+
+  &--days {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
+  }
+
+  .dmn-admin__checkbox {
+    align-items: flex-start;
+
+    input {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  }
+}
+
+// Secondary options behind a disclosure.
+.dmn-admin__disclosure summary {
+  min-height: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary-text);
+  cursor: pointer;
+}
+
+// Shortcode generator: the form, then the shortcode, which stays in view beside the form on
+// wide screens.
+.dmn-admin__generator {
+  gap: var(--universal-space-2);
+  align-items: start;
+}
+
+.dmn-admin__generator-output {
+  display: flex;
+  flex-direction: column;
+  gap: var(--universal-space);
+  min-width: 0;
+
+  h3,
+  .dmn-admin__code-block,
+  .dmn-admin__help {
+    margin: 0;
+  }
+
+  @include breakpoint.medium-screen-min {
+    position: sticky;
+    top: calc(var(--wp-admin--admin-bar--height, 32px) + var(--universal-space));
+  }
+}
