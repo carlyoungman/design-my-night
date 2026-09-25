@@ -263,7 +263,7 @@ class AdminController
   }
 
   /**
-   * List dmn_venue posts.
+   * List dmn_venue posts with a summary of their activities for the venues overview.
    *
    * @return WP_REST_Response Response with 'venues'.
    */
@@ -276,11 +276,31 @@ class AdminController
       'order' => 'ASC',
     ]);
 
-    $venues = array_map(function (WP_Post $p) {
+    // One query for every venue's activities; get_posts primes the meta cache for the loop below.
+    $activities = get_posts([
+      'post_type' => 'dmn_activity',
+      'numberposts' => -1,
+      'post_parent__in' => $posts ? wp_list_pluck($posts, 'ID') : [0],
+    ]);
+
+    $summary = [];
+    foreach ($activities as $a) {
+      $s = $summary[$a->post_parent] ?? ['total' => 0, 'visible' => 0, 'without_image' => 0];
+      $s['total']++;
+      if (get_post_meta($a->ID, 'visible', true) !== '0') $s['visible']++;
+      if (!get_post_thumbnail_id($a->ID)) $s['without_image']++;
+      $summary[$a->post_parent] = $s;
+    }
+
+    $venues = array_map(function (WP_Post $p) use ($summary) {
+      $s = $summary[$p->ID] ?? ['total' => 0, 'visible' => 0, 'without_image' => 0];
       return [
         'id' => $p->ID,
         'title' => $p->post_title,
         'dmn_id' => (string)get_post_meta($p->ID, 'dmn_venue_id', true),
+        'activities_count' => $s['total'],
+        'visible_count' => $s['visible'],
+        'without_image_count' => $s['without_image'],
       ];
     }, $posts);
 

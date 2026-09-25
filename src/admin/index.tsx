@@ -6,7 +6,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { AdminProvider, type SectionId, useAdmin } from '@admin/AdminContext';
 import PageHeader from '@admin/components/PageHeader';
 import SectionTabs, { panelId, tabId } from '@admin/components/SectionTabs';
-import ActivityManagerCard from '@admin/components/ActivityManagerCard';
+import VenuesPanel from '@admin/components/VenuesPanel';
 import SettingsCard from '@admin/components/SettingsCard';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
@@ -37,9 +37,9 @@ function Panel({ id, children }: { id: SectionId; children: React.ReactNode }) {
 }
 
 function App() {
-  const [activitiesDirty, setActivitiesDirty] = React.useState(false);
+  const [venuesDirty, setVenuesDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
-  const dirty = activitiesDirty || paramsDirty;
+  const dirty = venuesDirty || paramsDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
@@ -55,9 +55,9 @@ function App() {
   return (
     <AdminProvider>
       <PageHeader />
-      <SectionTabs unsaved={{ activities: activitiesDirty, 'url-params': paramsDirty }} />
-      <Panel id="activities">
-        <ActivityManagerCard onDirty={setActivitiesDirty} />
+      <SectionTabs unsaved={{ venues: venuesDirty, 'url-params': paramsDirty }} />
+      <Panel id="venues">
+        <VenuesPanel onDirty={setVenuesDirty} />
       </Panel>
       <Panel id="connection">
         <SettingsCard />
