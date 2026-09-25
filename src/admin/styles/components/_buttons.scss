@@ -25,30 +25,30 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--c-white);
-  background: var(--c-purple);
-  border: 1px solid var(--c-purple);
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border: 1px solid var(--c-primary);
   border-radius: 999px;
   transition: var(--transition);
 
   &:hover:not(:disabled) {
-    color: var(--c-white);
+    color: var(--c-on-primary);
     box-shadow: var(--box-shadow-1);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--c-purple);
+    outline: 2px solid var(--c-primary);
     outline-offset: 2px;
   }
 
   &--secondary {
-    color: var(--c-purple);
+    color: var(--c-primary-text);
     background: transparent;
     border-color: var(--c-outline);
 
     &:hover:not(:disabled) {
-      color: var(--c-purple);
-      background: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      color: var(--c-primary-text);
+      background: color-mix(in srgb, var(--c-primary) 8%, transparent);
       box-shadow: none;
     }
   }
@@ -56,13 +56,13 @@
   // Text button: low-emphasis actions such as Expand all.
   &--text {
     padding-inline: 12px;
-    color: var(--c-purple);
+    color: var(--c-primary-text);
     background: transparent;
     border-color: transparent;
 
     &:hover:not(:disabled) {
-      color: var(--c-purple);
-      background: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      color: var(--c-primary-text);
+      background: color-mix(in srgb, var(--c-primary) 8%, transparent);
       box-shadow: none;
     }
 
@@ -72,21 +72,21 @@
   }
 
   &--danger {
-    color: var(--c-red);
+    color: var(--c-error);
     background: transparent;
     border-color: var(--c-outline);
 
     &:hover:not(:disabled) {
-      color: var(--c-red);
-      background: color-mix(in srgb, var(--c-red) 8%, transparent);
+      color: var(--c-error);
+      background: color-mix(in srgb, var(--c-error) 8%, transparent);
       box-shadow: none;
     }
   }
 
   &:disabled {
-    color: color-mix(in srgb, var(--c-near-black) 50%, transparent);
+    color: color-mix(in srgb, var(--c-text) 50%, transparent);
     cursor: not-allowed;
-    background: color-mix(in srgb, var(--c-near-black) 8%, transparent);
+    background: color-mix(in srgb, var(--c-text) 8%, transparent);
     border-color: transparent;
   }
 

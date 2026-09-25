@@ -68,29 +68,29 @@ export const calendarTheme = createTheme({
           height: 'auto',
           maxHeight: 'none',
           margin: 0,
-          color: 'var(--c-near-black)',
-          backgroundColor: 'var(--c-white)',
-          border: '1px solid var(--c-lilac-grey)',
+          color: 'var(--c-text)',
+          backgroundColor: 'var(--c-surface)',
+          border: '1px solid var(--c-divider)',
           borderRadius: 'var(--border-radius)',
           '& .MuiDayCalendar-header, & .MuiDayCalendar-weekContainer': {
             justifyContent: 'space-around',
           },
-          '& .MuiDayCalendar-weekDayLabel': { color: 'var(--c-near-black)', fontWeight: 600 },
+          '& .MuiDayCalendar-weekDayLabel': { color: 'var(--c-text)', fontWeight: 600 },
           '& .MuiPickersSlideTransition-root': { minHeight: 260 },
         },
       },
     },
     MuiPickersCalendarHeader: {
       styleOverrides: {
-        root: { color: 'var(--c-near-black)' },
+        root: { color: 'var(--c-text)' },
         label: { fontWeight: 600 },
       },
     },
     MuiPickersArrowSwitcher: {
       styleOverrides: {
         button: {
-          color: 'var(--c-near-black)',
-          '&:focus-visible': { outline: '2px solid var(--c-purple)' },
+          color: 'var(--c-text)',
+          '&:focus-visible': { outline: '2px solid var(--c-primary)' },
           '&.Mui-disabled': { color: 'var(--c-outline)' },
         },
       },
@@ -99,13 +99,13 @@ export const calendarTheme = createTheme({
       styleOverrides: {
         root: {
           fontSize: 14,
-          color: 'var(--c-near-black)',
+          color: 'var(--c-text)',
           fontWeight: 600,
-          '&:hover': { backgroundColor: 'var(--c-lilac-grey)' },
+          '&:hover': { backgroundColor: 'var(--c-divider)' },
           '&:focus-visible': {
-            outline: '2px solid var(--c-purple)',
+            outline: '2px solid var(--c-primary)',
             outlineOffset: 1,
-            backgroundColor: 'var(--c-lilac-grey)',
+            backgroundColor: 'var(--c-divider)',
           },
           // Unavailable days: struck through as well as faded, so it's not colour alone.
           '&.Mui-disabled:not(.Mui-selected)': {
@@ -117,15 +117,15 @@ export const calendarTheme = createTheme({
             border: '1px solid var(--c-outline)',
           },
           '&.Mui-selected, &.Mui-selected:hover, &.Mui-selected:focus': {
-            color: 'var(--c-white)',
-            backgroundColor: 'var(--c-purple)',
+            color: 'var(--c-on-primary)',
+            backgroundColor: 'var(--c-primary)',
           },
         },
       },
     },
     MuiIconButton: {
       styleOverrides: {
-        root: { color: 'var(--c-near-black)' },
+        root: { color: 'var(--c-text)' },
       },
     },
   },

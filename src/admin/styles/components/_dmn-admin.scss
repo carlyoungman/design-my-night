@@ -29,7 +29,7 @@
   // Section tabs (MUI Tabs styled as Material 3 primary tabs).
   &__nav {
     margin-bottom: var(--universal-space-2);
-    border-bottom: 1px solid var(--c-lilac-grey);
+    border-bottom: 1px solid var(--c-divider);
 
     .MuiTabs-root {
       min-height: 48px;
@@ -37,7 +37,7 @@
 
     .MuiTabs-indicator {
       height: 3px;
-      background-color: var(--c-purple);
+      background-color: var(--c-primary);
       border-radius: 3px 3px 0 0;
     }
 
@@ -49,7 +49,7 @@
       font-size: 14px;
       font-weight: 600;
       line-height: 1.4;
-      color: var(--c-near-black);
+      color: var(--c-text);
       text-transform: none;
       letter-spacing: normal;
       border-radius: var(--universal-space-half) var(--universal-space-half) 0 0;
@@ -57,16 +57,16 @@
       transition: var(--transition);
 
       &:hover {
-        background-color: color-mix(in srgb, var(--c-purple) 8%, transparent);
+        background-color: color-mix(in srgb, var(--c-primary) 8%, transparent);
       }
 
       &.Mui-focusVisible {
-        outline: 2px solid var(--c-purple);
+        outline: 2px solid var(--c-primary);
         outline-offset: -2px;
       }
 
       &.Mui-selected {
-        color: var(--c-purple);
+        color: var(--c-primary-text);
       }
     }
 
@@ -83,7 +83,7 @@
     }
 
     .MuiTabs-scrollButtons {
-      color: var(--c-near-black);
+      color: var(--c-text);
 
       &.Mui-disabled {
         opacity: 0.3;
@@ -100,7 +100,7 @@
   &__nav-dot {
     width: 8px;
     height: 8px;
-    background: var(--c-red);
+    background: var(--c-error);
     border-radius: 50%;
   }
 
@@ -134,14 +134,14 @@
     // On narrow screens the header wraps to several lines, so it only sticks from tablet width up.
     &--sticky {
       padding-bottom: var(--universal-space);
-      border-bottom: 1px solid var(--c-lilac-grey);
+      border-bottom: 1px solid var(--c-divider);
 
       @include breakpoint.medium-screen-min {
         position: sticky;
         top: var(--dmn-sticky-top);
         z-index: 10;
         padding-top: var(--universal-space);
-        background: var(--c-off-white);
+        background: var(--c-background);
       }
     }
   }
@@ -165,8 +165,8 @@
   &__card {
     width: 100%;
     padding: var(--universal-space);
-    background: var(--c-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-surface);
+    border: 1px solid var(--c-divider);
     border-radius: var(--border-radius);
 
     @include breakpoint.medium-screen-min {
@@ -197,7 +197,7 @@
     margin: 0;
     font-size: 14px;
     line-height: 1.4;
-    color: var(--c-near-black);
+    color: var(--c-text);
 
     svg {
       flex-shrink: 0;
@@ -207,15 +207,15 @@
     }
 
     &--success svg {
-      color: var(--c-green);
+      color: var(--c-success);
     }
 
     &--error {
-      color: var(--c-red);
+      color: var(--c-error);
     }
 
     &--warning svg {
-      color: var(--c-red);
+      color: var(--c-error);
     }
 
     &--block {
@@ -232,7 +232,7 @@
     font-size: 14px;
 
     .MuiCircularProgress-root {
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
   }
 
@@ -245,7 +245,7 @@
     margin: 0;
     font-size: 16px;
     text-align: center;
-    background: var(--c-white);
+    background: var(--c-surface);
     border: 1px dashed var(--c-outline);
     border-radius: var(--border-radius);
 
@@ -265,8 +265,8 @@
     margin-top: var(--universal-space);
     overflow: auto;
     font-size: 13px;
-    background: var(--c-off-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-background);
+    border: 1px solid var(--c-divider);
     border-radius: var(--universal-space-half);
   }
 }

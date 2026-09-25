@@ -3,6 +3,7 @@
 namespace DMN\Booking\Rest;
 
 use DateInterval;
+use DMN\Booking\Config\Appearance;
 use DMN\Booking\Config\Settings;
 use DMN\Booking\Services\DmnClient;
 use Exception;
@@ -76,6 +77,28 @@ class AdminController
       },
     ]);
 
+    // Appearance: theme colour and light/dark mode for the admin and the widget.
+    register_rest_route('dmn/v1/admin', '/appearance', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => fn() => new WP_REST_Response(Appearance::to_array(), 200),
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => fn() => current_user_can('manage_options'),
+        'callback' => function (WP_REST_Request $req) {
+          $errors = Appearance::set($req->get_json_params() ?? []);
+          if ($errors) {
+            return new WP_Error('dmn_invalid_appearance', reset($errors), [
+              'status' => 400,
+              'fields' => $errors,
+            ]);
+          }
+          return new WP_REST_Response(['ok' => true] + Appearance::to_array(), 200);
+        },
+      ],
+    ]);
 
     /**
      * URL parameters (global) – used to append values to the DMN booking URL.

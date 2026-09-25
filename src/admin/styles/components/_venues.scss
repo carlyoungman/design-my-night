@@ -16,8 +16,8 @@
 
   &__stat {
     padding: var(--universal-space);
-    background: var(--c-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-surface);
+    border: 1px solid var(--c-divider);
     border-radius: var(--border-radius);
 
     dt {
@@ -65,7 +65,7 @@
     transition: var(--transition);
 
     &:hover {
-      border-color: var(--c-purple);
+      border-color: var(--c-primary);
     }
 
     > p {
@@ -92,7 +92,7 @@
   }
 
   &__venue-link {
-    color: var(--c-near-black);
+    color: var(--c-text);
     text-decoration: none;
 
     &::after {
@@ -103,14 +103,14 @@
     }
 
     .dmn-admin__venue:hover & {
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
 
     &:focus-visible {
       outline: 0;
 
       &::after {
-        outline: 2px solid var(--c-purple);
+        outline: 2px solid var(--c-primary);
         outline-offset: 2px;
       }
     }
@@ -120,7 +120,7 @@
     flex-shrink: 0;
     width: 24px;
     height: 24px;
-    color: var(--c-purple);
+    color: var(--c-primary-text);
   }
 
   &__venue-summary {

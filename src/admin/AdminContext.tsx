@@ -1,5 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { CodeXml, LayoutDashboard, Link2, MapPin, PlugZap, type LucideIcon } from 'lucide-react';
+import {
+  CodeXml,
+  LayoutDashboard,
+  Link2,
+  MapPin,
+  Palette,
+  PlugZap,
+  type LucideIcon,
+} from 'lucide-react';
 
 /** Top-level sections of the plugin screen, in navigation order. */
 export const SECTIONS = [
@@ -8,6 +16,7 @@ export const SECTIONS = [
   { id: 'connection', label: 'Connection', icon: PlugZap },
   { id: 'url-params', label: 'URL parameters', icon: Link2 },
   { id: 'shortcode', label: 'Shortcode', icon: CodeXml },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
 ] as const satisfies readonly { id: string; label: string; icon: LucideIcon }[];
 
 export type SectionId = (typeof SECTIONS)[number]['id'];

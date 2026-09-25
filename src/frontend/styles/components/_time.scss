@@ -21,14 +21,14 @@
     min-height: 48px;
     padding: 0 var(--universal-space);
     font-weight: 600;
-    background: var(--c-white);
+    background: var(--c-surface);
     border: 1px solid var(--c-outline);
     border-radius: var(--universal-space-half);
     transition: var(--transition);
 
     &:hover:not([data-disabled]) {
-      background: color-mix(in srgb, var(--c-purple) 8%, var(--c-white));
-      border-color: var(--c-purple);
+      background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface));
+      border-color: var(--c-primary);
     }
 
     &:focus-visible {
@@ -36,9 +36,9 @@
     }
 
     &[data-checked] {
-      color: var(--c-white);
-      background: var(--c-purple);
-      border-color: var(--c-purple);
+      color: var(--c-on-primary);
+      background: var(--c-primary);
+      border-color: var(--c-primary);
     }
   }
 }

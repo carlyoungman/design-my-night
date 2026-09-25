@@ -17,9 +17,9 @@
     flex: 1 1 120px;
 
     &[aria-pressed='true'] {
-      color: var(--c-white);
-      background: var(--c-purple);
-      border-color: var(--c-purple);
+      color: var(--c-on-primary);
+      background: var(--c-primary);
+      border-color: var(--c-primary);
     }
   }
 

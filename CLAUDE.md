@@ -12,7 +12,7 @@ Design dashboards that help users understand their current state, identify what 
 - The admin is built with **MUI v7**, which implements Material Design 2. Theme and style MUI components toward Material 3 (shape, colour roles, typography, component states) instead of accepting MUI's default Material 2 look. Don't add a second component library just to get Material 3 components.
 - Apply established SaaS dashboard interaction patterns rather than inventing unfamiliar controls.
 - Maintain a common design-token and component system across related plugins.
-- Use a clean, approachable **light theme** for the admin, with restrained colour, generous whitespace, clear typography, and rounded components.
+- Use a clean, approachable theme, light by default with a dark mode (section 4), with restrained colour, generous whitespace, clear typography, and rounded components.
 - Do not copy the example data or visual treatment blindly: choose structure and content according to each screen's actual user goals.
 
 ## 2. Information architecture and layout
@@ -37,7 +37,7 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 3. Navigation
 
-The admin screen is one WordPress menu page with a page header (title, intro, and the page-level **Import from DesignMyNight** action) followed by section tabs, each with an icon and a text label: Dashboard, Venues, Connection, URL parameters, and Shortcode (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
+The admin screen is one WordPress menu page with a page header (title, intro, and the page-level **Import from DesignMyNight** action) followed by section tabs, each with an icon and a text label: Dashboard, Venues, Connection, URL parameters, Shortcode, and Appearance (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
 
 Dashboard is the landing view (`Dashboard.tsx`): setup steps until the plugin is connected and imported, the outcome of the last import (recorded by `dmn_admin_sync_all` in the `dmn_last_import` option and read from `GET dmn/v1/admin/overview`), the connection settings, totals, and venues that need attention. It makes no DesignMyNight request when opened.
 
@@ -63,7 +63,7 @@ Use the shared design tokens instead of ad-hoc values. The values below are this
 | Page heading | 28 px (`.dmn-admin__title`); section headings (`h2`) 22 px, card titles (`h3`) 18 px |
 | Spacing scale | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px |
 | Card corner radius | 15 px (`--border-radius`) |
-| Borders | 1 px `--c-lilac-grey` |
+| Borders | 1 px `--c-divider` |
 | Shadows | `--box-shadow-1` (resting), `--box-shadow-2` (raised), `--box-shadow-3` (overlay) |
 | Transition | `--transition`: `all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1)` |
 | Colour | See the colour palette below |
@@ -71,24 +71,30 @@ Use the shared design tokens instead of ad-hoc values. The values below are this
 
 ### Colour palette
 
-This palette applies to both the admin app and the booking widget. Variables are named by appearance; the table shows what each one is for.
+This palette applies to both the admin app and the booking widget. It is defined once, in `src/shared/styles/_palette.scss`, and included on `.dmn-admin` and `.dmn-widget-root`. Variables are named by role, so each has a light and a dark value.
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--c-purple` | `#6750A4` | Primary buttons, selection, and active navigation |
-| `--c-white` | `#FFFFFF` | Cards, panels, and primary content surfaces |
-| `--c-off-white` | `#F8F7FA` | Main application background |
-| `--c-lilac-grey` | `#E7E0EC` | Borders, dividers, and secondary surfaces |
-| `--c-outline` | `#79747E` | Input, checkbox, and other control borders (about 4.6:1) |
-| `--c-near-black` | `#1D1B20` | Main headings and body text |
-| `--c-green` | `#379f70` | Success and saved states |
-| `--c-red` | `#bb3d3d` | Errors and unsaved changes |
+| Variable | Light | Dark | Use |
+| --- | --- | --- | --- |
+| `--c-primary` | theme colour (default `#6750A4`) | theme colour, shaded | Primary buttons, selection, active navigation, and focus rings |
+| `--c-primary-text` | theme colour, shaded | theme colour, shaded | The theme colour used as text or icons: links, secondary and text buttons |
+| `--c-on-primary` | `#FFFFFF` or `#1D1B20` | `#FFFFFF` or `#1D1B20` | Text and icons on `--c-primary` fills |
+| `--c-primary-hover` | `--c-primary` mixed 12% with `--c-primary-shade` | same | Hovered primary fills. The shade is the opposite of `--c-on-primary`, so hovering only raises the text's contrast |
+| `--c-surface` | `#FFFFFF` | `#211F26` | Cards, panels, inputs, and primary content surfaces |
+| `--c-background` | `#F8F7FA` | `#141218` | Main application background |
+| `--c-divider` | `#E7E0EC` | `#49454F` | Decorative borders, dividers, and secondary surfaces |
+| `--c-outline` | `#79747E` | `#938F99` | Input, checkbox, and other control borders |
+| `--c-text` | `#1D1B20` | `#E6E0E9` | Main headings and body text |
+| `--c-success` | `#379f70` | `#6fcf9f` | Success and saved states |
+| `--c-error` | `#bb3d3d` | `#f2b8b5` | Errors and unsaved changes |
 
-Contrast limits (checked against `--c-white` and `--c-off-white`):
+**Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Appearance section (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
 
-- `--c-green` is only about 3.1–3.3:1, so it fails the 4.5:1 minimum for normal text. Use it for icons, fills, and borders, or for text of at least 24 px (19 px bold). Always pair it with a readable text label in `--c-near-black`.
-- `--c-lilac-grey` is about 1.3:1, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use `--c-outline` for those.
-- `--c-purple`, `--c-red`, and `--c-near-black` pass 4.5:1 on both surfaces.
+Contrast limits (checked against `--c-surface` and `--c-background` in each mode):
+
+- `--c-success` in light mode is only about 3.1–3.3:1, so it fails the 4.5:1 minimum for normal text. Use it for icons, fills, and borders, or for text of at least 24 px (19 px bold). Always pair it with a readable text label in `--c-text`.
+- `--c-divider` is below 3:1 in both modes, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use `--c-outline` for those.
+- `--c-outline` reaches at least 3:1 in both modes (about 4.3–4.6:1 light, 5.1–5.9:1 dark), enough for control borders.
+- `--c-primary-text`, `--c-error`, and `--c-text` pass 4.5:1 on both surfaces in both modes.
 
 - Distinguish page, section, label, metric, and supporting-text hierarchy through typography before adding decorative elements.
 - Use the named palette variables for every colour. Do not add ad-hoc hex values; if a new colour is needed, add it to the palette first. Use each colour only for the purpose listed in the palette.
@@ -166,7 +172,7 @@ The booking widget (`src/frontend`) is embedded in pages of someone else's theme
 
 - **Isolation first.** Everything, including the CSS reset and design tokens, is scoped under `.dmn-widget-root` (see `src/frontend/styles/index.scss`). Never add styles or custom properties on `:root`, `body`, or bare element selectors: the widget must not change the host theme, and the host theme should affect the widget as little as possible.
 - **Own tokens.** The widget has its own token set, separate from the admin's. The base font size is 16 px and the font is inherited from the host theme; spacing, radius, and transition values match the admin (15 px base, 15 px radius). It uses the same colour palette as the admin (section 4), defined again inside `.dmn-widget-root`. Only use tokens that are defined inside `.dmn-widget-root`; admin tokens (such as `--box-shadow-1`) are not loaded on the front end.
-- **Visual style.** The widget uses the same light palette as the admin: light surfaces, `--c-near-black` text, and `--c-purple` for primary actions and selection. Keep colours in tokens so a site can re-theme it by overriding them on `.dmn-widget-root`. The MUI date calendar reads the same variables through its theme (`calendarTheme` in `src/frontend/app/utils/helpers.tsx`).
+- **Visual style.** The widget uses the same palette as the admin, including the theme colour, with its own light/dark mode setting: `--c-surface` cards on a `--c-background` panel, `--c-text` text, and `--c-primary` for primary actions and selection. Keep colours in tokens so a site can still re-theme it by overriding them on `.dmn-widget-root`. The palette rules use `:where()` so they have no specificity, and a site's override wins in every mode wherever its stylesheet loads; keep it that way. The old token names still work: `--c-purple` in both modes, and `--c-white`, `--c-off-white`, `--c-lilac-grey`, `--c-near-black`, `--c-green`, and `--c-red` in light mode only. The MUI date calendar reads the same variables through its theme (`calendarTheme` in `src/frontend/app/utils/helpers.tsx`).
 - **Step flow.** The booking flow is a linear sequence of steps, all shown on one page and defined in `src/frontend/app/utils/steps.ts`: Venue → Group size → Date → Experience → Time → Details, with the Review summary alongside. Add-ons are chosen on DesignMyNight's checkout. Each step must:
   - show where the user is in the flow (progress bar and step headings),
   - allow going back without losing entered data,

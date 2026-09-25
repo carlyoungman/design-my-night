@@ -1,7 +1,7 @@
 @use '../settings/breakpoints' as breakpoint;
 
 // Form controls. Loaded inside `.dmn-admin`, so these element selectors never reach the rest of wp-admin.
-// Control borders use --c-outline (at least 3:1); --c-lilac-grey is only for decorative dividers.
+// Control borders use --c-outline (at least 3:1); --c-divider is only for decorative dividers.
 
 fieldset {
   min-width: 0;
@@ -29,7 +29,7 @@ label,
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--c-near-black);
+  color: var(--c-text);
 }
 
 .dmn-admin__form-grid {
@@ -47,7 +47,7 @@ label,
 .dmn-admin__form-footer {
   padding-top: var(--universal-space);
   margin-top: var(--universal-space);
-  border-top: 1px solid var(--c-lilac-grey);
+  border-top: 1px solid var(--c-divider);
 }
 
 // URL parameter row: name, value and remove on one line on wider screens.
@@ -57,7 +57,7 @@ label,
   gap: var(--universal-space);
   align-items: end;
   padding: var(--universal-space) 0;
-  border-bottom: 1px solid var(--c-lilac-grey);
+  border-bottom: 1px solid var(--c-divider);
 
   &:first-of-type {
     padding-top: 0;
@@ -88,44 +88,55 @@ input:not([type='checkbox'], [type='radio']) {
   font-family: inherit;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--c-near-black);
-  background-color: var(--c-white);
+  color: var(--c-text);
+  background-color: var(--c-surface);
   border: 1px solid var(--c-outline);
   border-radius: 4px;
   box-shadow: none;
   transition: var(--transition);
 
   &:hover:not(:disabled, [readonly]) {
-    border-color: var(--c-near-black);
+    border-color: var(--c-text);
   }
 
   &:focus,
   &:focus-visible {
-    border-color: var(--c-purple);
-    outline: 2px solid var(--c-purple);
+    border-color: var(--c-primary);
+    outline: 2px solid var(--c-primary);
     outline-offset: 0;
     box-shadow: none;
   }
 
   &[aria-invalid='true'] {
-    border-color: var(--c-red);
-    outline-color: var(--c-red);
+    border-color: var(--c-error);
+    outline-color: var(--c-error);
   }
 
   &[readonly] {
-    background-color: var(--c-off-white);
+    background-color: var(--c-background);
     border-style: dashed;
   }
 
   &:disabled {
-    color: color-mix(in srgb, var(--c-near-black) 60%, transparent);
+    color: color-mix(in srgb, var(--c-text) 60%, transparent);
     cursor: not-allowed;
-    background-color: var(--c-off-white);
+    background-color: var(--c-background);
   }
 }
 
+// WordPress draws the select arrow in a fixed dark grey, which disappears in dark mode. Draw it
+// in the text colour instead.
 select {
-  padding-right: var(--universal-space-2);
+  padding-right: var(--universal-space-3);
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--c-text) 50%),
+    linear-gradient(135deg, var(--c-text) 50%, transparent 50%);
+  background-repeat: no-repeat;
+  background-position:
+    calc(100% - 21px) 50%,
+    calc(100% - 16px) 50%;
+  background-size: 5px 5px;
 }
 
 textarea {
@@ -139,7 +150,7 @@ input[type='checkbox'] {
   width: 20px;
   height: 20px;
   margin: 0;
-  accent-color: var(--c-purple);
+  accent-color: var(--c-primary);
   border-color: var(--c-outline);
 }
 
@@ -159,12 +170,51 @@ input[type='checkbox'] {
   margin: 0;
   font-size: 13px;
   line-height: 1.4;
-  color: var(--c-red);
+  color: var(--c-error);
 
   svg {
     flex-shrink: 0;
     width: 16px;
     height: 16px;
     margin-top: 1px;
+  }
+}
+
+// Theme colour: a swatch that opens the browser's colour picker, beside the hex value.
+.dmn-admin__colour {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space-half) var(--universal-space);
+  align-items: center;
+
+  input.dmn-admin__colour-swatch[type='color'] {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    padding: 4px;
+    cursor: pointer;
+    background-color: var(--c-surface);
+    border-radius: 999px;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    // Separate rules: a browser drops a whole selector list with a pseudo-element it doesn't know.
+    &::-webkit-color-swatch {
+      border: 0;
+      border-radius: 999px;
+    }
+
+    &::-moz-color-swatch {
+      border: 0;
+      border-radius: 999px;
+    }
+  }
+
+  .dmn-admin__colour-hex {
+    flex: 0 1 10em;
+    width: auto;
+    font-family: ui-monospace, sfmono-regular, menlo, consolas, monospace;
   }
 }

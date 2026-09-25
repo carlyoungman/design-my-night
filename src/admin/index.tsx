@@ -11,6 +11,7 @@ import Dashboard from '@admin/components/Dashboard';
 import SettingsCard from '@admin/components/SettingsCard';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
+import AppearanceCard from '@admin/components/AppearanceCard';
 
 declare global {
   interface Window {
@@ -40,7 +41,8 @@ function Panel({ id, children }: { id: SectionId; children: React.ReactNode }) {
 function App() {
   const [venuesDirty, setVenuesDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
-  const dirty = venuesDirty || paramsDirty;
+  const [appearanceDirty, setAppearanceDirty] = React.useState(false);
+  const dirty = venuesDirty || paramsDirty || appearanceDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
@@ -56,7 +58,13 @@ function App() {
   return (
     <AdminProvider>
       <PageHeader />
-      <SectionTabs unsaved={{ venues: venuesDirty, 'url-params': paramsDirty }} />
+      <SectionTabs
+        unsaved={{
+          venues: venuesDirty,
+          'url-params': paramsDirty,
+          appearance: appearanceDirty,
+        }}
+      />
       <Panel id="dashboard">
         <Dashboard />
       </Panel>
@@ -71,6 +79,9 @@ function App() {
       </Panel>
       <Panel id="shortcode">
         <ShortcodeCard />
+      </Panel>
+      <Panel id="appearance">
+        <AppearanceCard onDirty={setAppearanceDirty} />
       </Panel>
     </AdminProvider>
   );

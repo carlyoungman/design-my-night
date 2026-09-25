@@ -20,6 +20,7 @@ require_once DMN_BP_DIR . 'src/php/Autoloader.php';
 
 DMN\Booking\Autoloader::register();
 
+use DMN\Booking\Config\Appearance;
 use DMN\Booking\Config\Settings;
 use DMN\Booking\PostTypes;
 
@@ -156,6 +157,8 @@ add_action('init', function () {
 
     ob_start(); ?>
     <div class="dmn-widget-root"
+         data-mode="<?php echo esc_attr(Appearance::get_widget_mode()); ?>"
+         style="<?php echo esc_attr(Appearance::style_attr()); ?>"
          data-venue-group="<?php echo esc_attr($venueGroup); ?>"
          data-venue-id="<?php echo esc_attr($venueId); ?>"
          data-type-id="<?php echo esc_attr($typeId); ?>"
@@ -183,7 +186,9 @@ add_action('admin_menu', function () {
       // notices from core and other plugins don't pick up the plugin's scoped styles.
       echo '<div class="wrap">'
         . '<hr class="wp-header-end">'
-        . '<div class="dmn-admin">'
+        // Theme colour and mode are applied here so the page never renders in the wrong colours.
+        . '<div class="dmn-admin" data-mode="' . esc_attr(Appearance::get_admin_mode()) . '"'
+        . ' style="' . esc_attr(Appearance::style_attr()) . '">'
         // The React app renders the page header and replaces this placeholder when it mounts.
         . '<div id="dmn-admin-root">'
         . '<h1 class="dmn-admin__title">' . esc_html__('DesignMyNight bookings', 'dmn-booking') . '</h1>'

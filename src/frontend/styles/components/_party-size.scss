@@ -25,16 +25,16 @@
     justify-content: center;
     width: 48px;
     height: 48px;
-    color: var(--c-purple);
+    color: var(--c-primary-text);
     cursor: pointer;
     user-select: none;
-    background: var(--c-white);
+    background: var(--c-surface);
     border: 1px solid var(--c-outline);
     border-radius: 50%;
     transition: var(--transition);
 
     &:hover:not(:disabled, [data-disabled]) {
-      background: color-mix(in srgb, var(--c-purple) 8%, var(--c-white));
+      background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface));
     }
 
     &:focus-visible {
@@ -43,9 +43,9 @@
 
     &:disabled,
     &[data-disabled] {
-      color: color-mix(in srgb, var(--c-near-black) 40%, transparent);
+      color: color-mix(in srgb, var(--c-text) 40%, transparent);
       cursor: not-allowed;
-      border-color: color-mix(in srgb, var(--c-near-black) 20%, transparent);
+      border-color: color-mix(in srgb, var(--c-text) 20%, transparent);
     }
 
     svg {

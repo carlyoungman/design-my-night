@@ -25,7 +25,7 @@
 
   // Waiting on an earlier step.
   &--prerequisite {
-    background: var(--c-off-white);
+    background: var(--c-background);
     border: 1px dashed var(--c-outline);
 
     > svg {
@@ -35,26 +35,26 @@
 
   // Nothing available.
   &--empty {
-    background: var(--c-off-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-background);
+    border: 1px solid var(--c-divider);
 
     > svg {
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
   }
 
   &--error {
-    color: var(--c-red);
-    background: color-mix(in srgb, var(--c-red) 6%, var(--c-white));
-    border: 1px solid var(--c-red);
+    color: var(--c-error);
+    background: color-mix(in srgb, var(--c-error) 6%, var(--c-surface));
+    border: 1px solid var(--c-error);
   }
 
   &--info {
-    background: color-mix(in srgb, var(--c-purple) 6%, var(--c-white));
-    border: 1px solid var(--c-lilac-grey);
+    background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface));
+    border: 1px solid var(--c-divider);
 
     > svg {
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
   }
 
@@ -77,9 +77,9 @@
     height: var(--universal-space);
     background: linear-gradient(
       90deg,
-      var(--c-lilac-grey) 0%,
-      var(--c-off-white) 50%,
-      var(--c-lilac-grey) 100%
+      var(--c-divider) 0%,
+      var(--c-background) 50%,
+      var(--c-divider) 100%
     );
     background-size: 200% 100%;
     border-radius: 4px;

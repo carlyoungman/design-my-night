@@ -1,11 +1,11 @@
 @use '../settings/breakpoints' as breakpoint;
 @use '../settings/mixins' as mixin;
 
-// Light surfaces: an off-white widget background with white cards. Cards use a border, not a shadow.
+// A background with raised surfaces for cards, in light or dark mode. Cards use a border, not a shadow.
 .dmn-widget {
   padding: var(--universal-space);
-  color: var(--c-near-black);
-  background: var(--c-off-white);
+  color: var(--c-text);
+  background: var(--c-background);
   border-radius: var(--border-radius);
 
   @include breakpoint.medium-screen-min {
@@ -35,8 +35,8 @@
   &__main,
   &__side {
     min-width: 0;
-    background: var(--c-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-surface);
+    border: 1px solid var(--c-divider);
     border-radius: var(--border-radius);
   }
 
@@ -67,7 +67,7 @@
     padding: var(--universal-space-2) 0;
 
     + .dmn-widget__section {
-      border-top: 1px solid var(--c-lilac-grey);
+      border-top: 1px solid var(--c-divider);
     }
   }
 
@@ -97,8 +97,8 @@
     width: 28px;
     height: 28px;
     font-size: 14px;
-    color: var(--c-white);
-    background: var(--c-purple);
+    color: var(--c-on-primary);
+    background: var(--c-primary);
     border-radius: 50%;
   }
 
