@@ -184,9 +184,11 @@ add_action('admin_menu', function () {
       echo '<div class="wrap">'
         . '<hr class="wp-header-end">'
         . '<div class="dmn-admin">'
+        // The React app renders the page header and replaces this placeholder when it mounts.
+        . '<div id="dmn-admin-root">'
         . '<h1 class="dmn-admin__title">' . esc_html__('DesignMyNight bookings', 'dmn-booking') . '</h1>'
-        . '<p class="dmn-admin__intro">' . esc_html__('Connect to DesignMyNight, import your venues and activities, then choose how each venue appears in the booking widget.', 'dmn-booking') . '</p>'
-        . '<div id="dmn-admin-root"><p class="dmn-admin__loading">' . esc_html__('Loading…', 'dmn-booking') . '</p></div>'
+        . '<p class="dmn-admin__loading">' . esc_html__('Loading…', 'dmn-booking') . '</p>'
+        . '</div>'
         . '</div>'
         . '</div>';
     },
