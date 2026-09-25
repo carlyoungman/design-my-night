@@ -2,7 +2,7 @@
 import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 import { LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
-import { useErrorToast } from '@admin/components/Toasts';
+import { useToast } from '@admin/components/Toasts';
 
 export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
@@ -10,8 +10,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const saveError = useErrorToast();
-  const [ok, setOk] = useState<string | null>(null);
+  const saveToast = useToast();
 
   const dirty = useMemo(() => JSON.stringify(rows) !== JSON.stringify(orig), [rows, orig]);
 
@@ -38,25 +37,21 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
   }, [load]);
 
   const addRow = () => {
-    setOk(null);
     setRows((prev) => [...prev, { name: '', value: '' }]);
   };
 
   const removeRow = (index: number) => {
-    setOk(null);
     setRows((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateRow = (index: number, patch: Partial<UrlParamRow>) => {
-    setOk(null);
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    saveError.clear();
-    setOk(null);
+    saveToast.clear();
     try {
       // Rows without a name are dropped.
       const cleaned = rows
@@ -69,9 +64,9 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
       const res = await saveUrlParams(cleaned);
       setRows(res.items || []);
       setOrig(res.items || []);
-      setOk('URL parameters saved.');
+      saveToast.success('URL parameters saved.');
     } catch (e) {
-      saveError.show('URL parameters could not be saved. Try again.', { error: e });
+      saveToast.error('URL parameters could not be saved. Try again.', { error: e });
     } finally {
       setSaving(false);
     }
@@ -87,7 +82,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
             tracking. Rows without a name are ignored.
           </p>
         </div>
-        <SaveState dirty={dirty} ok={ok} />
+        <SaveState dirty={dirty} />
       </div>
 
       {loading && <Loading />}
