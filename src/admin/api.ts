@@ -139,7 +139,10 @@ export type ImportRecord = {
   finished_at: number;
   last_success_at: number | null;
   ok: boolean;
+  /** Environment this import used. */
   environment: 'prod' | 'qa';
+  /** Environment the stored venues came from: the last successful import's. */
+  data_environment?: 'prod' | 'qa' | null;
   venues_count: number;
   types_count: number;
   duration_ms: number;

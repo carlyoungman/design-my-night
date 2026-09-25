@@ -97,7 +97,11 @@ export default function Dashboard() {
     { activities: 0, visible: 0, withoutImage: 0 },
   );
 
-  const hasImported = !!last?.last_success_at && venues.length > 0;
+  // Venues count as imported even without a record: imports before the record existed left none.
+  const hasImported = venues.length > 0;
+  // Environment the stored venues came from. Older records only have `environment`, which is
+  // right only when that import succeeded.
+  const dataEnv = last ? (last.data_environment ?? (last.ok ? last.environment : null)) : null;
   const setupDone = !!connection?.has_credentials && hasImported;
 
   const attention = venues.flatMap((v) => {
@@ -207,7 +211,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          <ImportCard last={last} />
+          <ImportCard last={last} hasVenues={hasImported} />
 
           <div className="dmn-admin__card">
             <h3>Connection</h3>
@@ -231,10 +235,11 @@ export default function Dashboard() {
                 <dd>{connection?.venue_group || 'Not set'}</dd>
               </div>
             </dl>
-            {last && connection && last.environment !== connection.environment && (
+            {dataEnv && connection && hasImported && dataEnv !== connection.environment && (
               <StatusMessage tone="warning" block>
-                The environment has changed since the last import ({envLabel(last.environment)}).
-                Import again to load {envLabel(connection.environment)} venues.
+                Your venues were imported from {envLabel(dataEnv)}, but the environment is now set
+                to {envLabel(connection.environment)}. Import again to load{' '}
+                {envLabel(connection.environment)} venues.
               </StatusMessage>
             )}
             <div className="actions dmn-admin__spacer-top">
@@ -318,7 +323,18 @@ export default function Dashboard() {
 }
 
 /** Outcome of the most recent import, and how old the imported data is. */
-function ImportCard({ last }: { last: ImportRecord | null }) {
+function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues: boolean }) {
+  if (!last && hasVenues) {
+    return (
+      <div className="dmn-admin__card">
+        <h3>Last import</h3>
+        <p>
+          Your venues were imported before this version of the plugin recorded imports, so there are
+          no details yet. Import from DesignMyNight again to see them here.
+        </p>
+      </div>
+    );
+  }
   if (!last) {
     return (
       <div className="dmn-admin__card">
@@ -361,7 +377,15 @@ function ImportCard({ last }: { last: ImportRecord | null }) {
         {!last.ok && (
           <div>
             <dt>Last successful import</dt>
-            <dd>{last.last_success_at ? <When at={last.last_success_at} /> : 'None yet'}</dd>
+            <dd>
+              {last.last_success_at ? (
+                <When at={last.last_success_at} />
+              ) : hasVenues ? (
+                'Not recorded (before this version of the plugin)'
+              ) : (
+                'None yet'
+              )}
+            </dd>
           </div>
         )}
         {last.ok && (

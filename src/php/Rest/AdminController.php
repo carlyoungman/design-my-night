@@ -666,20 +666,27 @@ class AdminController
       $types_count = 0;
     } else {
       $venues_count = $this->upsert_venues_from_dmn();
-      $types_count = $this->upsert_types_for_all_venues();
+      // If the venue list failed (bad credentials, rate limit…), per-venue requests would fail the
+      // same way and only use up more of the hourly limit.
+      $types_count = $this->import_error === null ? $this->upsert_types_for_all_venues() : 0;
     }
 
     $ms = (int)round((microtime(true) - $t0) * 1000);
     $ok = $this->import_error === null;
     $previous = get_option(self::OPT_LAST_IMPORT, null);
     $previous_success = is_array($previous) ? ($previous['last_success_at'] ?? null) : null;
+    $previous_data_env = is_array($previous)
+      ? ($previous['data_environment'] ?? (!empty($previous['ok']) ? ($previous['environment'] ?? null) : null))
+      : null;
 
     $record = [
       'finished_at' => time(),
       // Kept across failed imports, so the dashboard can say how old the imported data is.
       'last_success_at' => $ok ? time() : $previous_success,
       'ok' => $ok,
+      // The environment this attempt used, and the one the stored venues came from.
       'environment' => Settings::get_env(),
+      'data_environment' => $ok ? Settings::get_env() : $previous_data_env,
       'venues_count' => $venues_count,
       'types_count' => $types_count,
       'duration_ms' => $ms,
