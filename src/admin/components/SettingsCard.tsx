@@ -1,7 +1,15 @@
 // src/admin/components/SettingsCard.tsx
 import React, { FormEvent, useCallback, useEffect, useState } from 'react';
 import { getSettings, saveSettings, testConnection } from '@admin/api';
-import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
+import { Globe, Plug } from 'lucide-react';
+import {
+  LoadError,
+  Loading,
+  ProgressPanel,
+  StatusMessage,
+  errorMessage,
+  type ProgressState,
+} from '@admin/components/ui';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -16,7 +24,8 @@ export default function SettingsCard() {
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
+  const [test, setTest] = useState<{ state: ProgressState; message?: string } | null>(null);
+  const testing = test?.state === 'running';
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [details, setDetails] = useState<unknown | null>(null);
@@ -59,6 +68,7 @@ export default function SettingsCard() {
     setSaving(true);
     setErr(null);
     setOk(null);
+    setTest(null);
     try {
       const payload = {
         app_id: form.app_id.trim(),
@@ -83,22 +93,23 @@ export default function SettingsCard() {
   };
 
   const onTest = async () => {
-    setTesting(true);
+    // aria-disabled rather than disabled, so the button keeps focus while the test runs.
+    if (testing) return;
+    setTest({ state: 'running' });
     setErr(null);
     setOk(null);
     setDetails(null);
     try {
       const r = await testConnection(form.debug_mode);
       if (r.debug) setDetails(r.debug);
-      if (r.ok) setOk(`Connection works (status ${r.status}).`);
+      if (r.ok) setTest({ state: 'success', message: `Connection works (status ${r.status}).` });
       else
-        setErr(
-          `Connection failed (status ${r.status}). ${r.error || 'Check the App ID, API key and environment.'}`,
-        );
+        setTest({
+          state: 'error',
+          message: `Connection failed (status ${r.status}). ${r.error || 'Check the App ID, API key and environment.'}`,
+        });
     } catch (e) {
-      setErr(errorMessage(e, 'The connection test could not run.'));
-    } finally {
-      setTesting(false);
+      setTest({ state: 'error', message: errorMessage(e, 'The connection test could not run.') });
     }
   };
 
@@ -195,10 +206,11 @@ export default function SettingsCard() {
                   className="button button--secondary"
                   type="button"
                   onClick={onTest}
-                  disabled={testing}
+                  aria-disabled={testing}
                   aria-busy={testing}
                   aria-describedby="dmn-settings-test-help"
                 >
+                  <Plug aria-hidden="true" className={testing ? 'dmn-admin__pulse' : undefined} />
                   {testing ? 'Testing…' : 'Test connection'}
                 </button>
               </div>
@@ -219,11 +231,59 @@ export default function SettingsCard() {
               {err}
             </StatusMessage>
           )}
+          {test && (
+            <div className="dmn-admin__spacer-top">
+              <ProgressPanel
+                state={test.state}
+                visual={<ConnectionVisual />}
+                onDismiss={() => setTest(null)}
+                actions={
+                  test.state === 'error' && (
+                    <button type="button" className="button button--secondary" onClick={onTest}>
+                      Try again
+                    </button>
+                  )
+                }
+              >
+                {test.state === 'running' ? (
+                  <p className="dmn-admin__progress-title" role="status">
+                    Contacting DesignMyNight with your saved credentials…
+                  </p>
+                ) : (
+                  <StatusMessage tone={test.state === 'success' ? 'success' : 'error'}>
+                    {test.message}
+                  </StatusMessage>
+                )}
+              </ProgressPanel>
+            </div>
+          )}
           {details != null && (
             <pre className="dmn-admin__debug-dump">{JSON.stringify(details, null, 2)}</pre>
           )}
         </>
       )}
     </section>
+  );
+}
+
+/**
+ * This site and DesignMyNight joined by a line: a signal travels along it while testing, and it
+ * turns solid (connected) or broken (failed) with the result. Decorative; the text says the outcome.
+ */
+function ConnectionVisual() {
+  return (
+    <div className="dmn-admin__link-visual" aria-hidden="true">
+      <span className="dmn-admin__link-node">
+        <Globe />
+        This site
+      </span>
+      <span className="dmn-admin__link-line">
+        <span className="dmn-admin__link-signal" />
+      </span>
+      <span className="dmn-admin__link-node">
+        <Plug />
+        DesignMyNight
+      </span>
+    </div>
   );
 }
