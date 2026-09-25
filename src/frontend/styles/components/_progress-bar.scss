@@ -7,14 +7,14 @@
   &__bar {
     height: 8px;
     overflow: hidden;
-    background: var(--c-lilac-grey);
+    background: var(--c-divider);
     border-radius: 999px;
   }
 
   &__fill {
     width: 0;
     height: 100%;
-    background: var(--c-purple);
+    background: var(--c-primary);
     border-radius: inherit;
     transition: var(--transition);
   }
@@ -32,7 +32,7 @@
   z-index: 2;
   padding: var(--universal-space-half) 0;
   margin-bottom: var(--universal-space);
-  background: var(--c-off-white);
+  background: var(--c-background);
 
   @include breakpoint.medium-screen-min {
     display: none;

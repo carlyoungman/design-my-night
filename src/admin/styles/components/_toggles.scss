@@ -16,7 +16,7 @@
     font-family: inherit;
     font-size: 14px;
     font-weight: 600;
-    color: var(--c-near-black);
+    color: var(--c-text);
     text-transform: none;
     border: 0;
     border-radius: 0;
@@ -26,20 +26,20 @@
     }
 
     &:hover {
-      background-color: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      background-color: color-mix(in srgb, var(--c-primary) 8%, transparent);
     }
 
     &.Mui-focusVisible {
-      outline: 2px solid var(--c-purple);
+      outline: 2px solid var(--c-primary);
       outline-offset: -2px;
     }
 
     &.Mui-selected {
-      color: var(--c-white);
-      background-color: var(--c-purple);
+      color: var(--c-on-primary);
+      background-color: var(--c-primary);
 
       &:hover {
-        background-color: var(--c-purple);
+        background-color: var(--c-primary);
       }
     }
   }

@@ -11,8 +11,8 @@
     padding: var(--universal-space);
     padding-bottom: calc(var(--universal-space) + 4px);
     overflow: hidden;
-    background: var(--c-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-surface);
+    border: 1px solid var(--c-divider);
     border-radius: var(--border-radius);
     animation: dmn-admin-progress-in 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
   }
@@ -68,7 +68,7 @@
     left: 0;
     height: 4px;
     overflow: hidden;
-    background: color-mix(in srgb, var(--c-purple) 16%, transparent);
+    background: color-mix(in srgb, var(--c-primary) 16%, transparent);
 
     span {
       position: absolute;
@@ -76,7 +76,7 @@
       bottom: 0;
       left: 0;
       width: 40%;
-      background: var(--c-purple);
+      background: var(--c-primary);
       border-radius: 4px;
     }
   }
@@ -91,7 +91,7 @@
 
     span {
       width: 100%;
-      background: var(--c-green);
+      background: var(--c-success);
       animation: dmn-admin-progress-fill 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
     }
   }
@@ -101,7 +101,7 @@
 
     span {
       width: 100%;
-      background: var(--c-red);
+      background: var(--c-error);
     }
   }
 
@@ -142,8 +142,8 @@
     align-items: center;
     padding: 4px 8px;
     font-size: 0; // Icons only on phones; the labels don't fit side by side.
-    background: var(--c-off-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-background);
+    border: 1px solid var(--c-divider);
     border-radius: 999px;
 
     @include breakpoint.small-screen-min {
@@ -154,7 +154,7 @@
     svg {
       width: 16px;
       height: 16px;
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
   }
 
@@ -174,7 +174,7 @@
     left: 0;
     width: 10px;
     height: 10px;
-    background: var(--c-purple);
+    background: var(--c-primary);
     border-radius: 50%;
     opacity: 0;
     transform: translate(-50%, -50%);
@@ -185,20 +185,20 @@
   }
 
   &__progress--success &__link-line {
-    background: var(--c-green);
+    background: var(--c-success);
   }
 
   &__progress--success &__link-node svg {
-    color: var(--c-green);
+    color: var(--c-success);
   }
 
   // A break in the middle of the line.
   &__progress--error &__link-line {
     background-image: linear-gradient(
       90deg,
-      var(--c-red) 0 46%,
+      var(--c-error) 0 46%,
       transparent 46% 54%,
-      var(--c-red) 54% 100%
+      var(--c-error) 54% 100%
     );
     background-size: 100% 2px;
   }

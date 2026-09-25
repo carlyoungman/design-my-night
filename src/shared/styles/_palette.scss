@@ -1,0 +1,53 @@
+// Colour palette shared by the admin app and the booking widget (see CLAUDE.md section 4).
+// Tokens are named by role so they can change with the mode.
+
+// The primary colour is the theme colour setting. The server writes it as `--theme-*` custom
+// properties on the root element (`Appearance::style_attr()` in src/php/Config/Appearance.php),
+// already shaded for each mode so it keeps enough contrast. The fallbacks are the default colour.
+// The root's `data-mode` attribute picks the mode: light, dark, or system (follow the device).
+// Surface, background and text colours are also used by Appearance.php: keep the two in step.
+
+@mixin light {
+  --c-primary: var(--theme-primary, #6750a4);
+  --c-primary-text: var(--theme-primary-text, #6750a4);
+  --c-on-primary: var(--theme-on-primary, #fff);
+  --c-surface: #fff;
+  --c-background: #f8f7fa;
+  --c-divider: #e7e0ec;
+  --c-outline: #79747e;
+  --c-text: #1d1b20;
+  --c-success: #379f70;
+  --c-error: #bb3d3d;
+
+  color-scheme: light;
+}
+
+@mixin dark {
+  --c-primary: var(--theme-primary-dark, #725dab);
+  --c-primary-text: var(--theme-primary-text-dark, #9180bd);
+  --c-on-primary: var(--theme-on-primary-dark, #fff);
+  --c-surface: #211f26;
+  --c-background: #141218;
+  --c-divider: #49454f;
+  --c-outline: #938f99;
+  --c-text: #e6e0e9;
+  --c-success: #6fcf9f;
+  --c-error: #f2b8b5;
+
+  color-scheme: dark;
+}
+
+// Light by default; dark when `data-mode` asks for it. Include inside the root selector.
+@mixin modes {
+  @include light;
+
+  &[data-mode='dark'] {
+    @include dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &[data-mode='system'] {
+      @include dark;
+    }
+  }
+}

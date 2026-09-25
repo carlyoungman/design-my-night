@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && npm run build:admin && npm run build:frontend",
     "lint:ts": "eslint --ext .ts,.tsx,.js,.jsx src/admin src/frontend",
-    "lint:scss": "stylelint \"src/{admin,frontend}/**/*.scss\"",
+    "lint:scss": "stylelint \"src/{admin,frontend,shared}/**/*.scss\"",
     "lint": "npm run lint:ts && npm run lint:scss",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,scss,css,md,json,yml,yaml}\""
   },

@@ -8,7 +8,7 @@
   font-size: 28px;
   font-weight: 600;
   line-height: 1.3;
-  color: var(--c-near-black);
+  color: var(--c-text);
 }
 
 .dmn-admin__intro {
@@ -21,7 +21,7 @@ h3 {
   margin: 0 0 var(--universal-space);
   font-family: inherit;
   line-height: 1.3;
-  color: var(--c-near-black);
+  color: var(--c-text);
 }
 
 h2 {
@@ -41,16 +41,16 @@ p {
 }
 
 a {
-  color: var(--c-purple);
+  color: var(--c-primary-text);
   text-decoration: underline;
 }
 
 code {
   padding: 2px 6px;
   font-size: 0.85em;
-  color: var(--c-near-black);
+  color: var(--c-text);
   overflow-wrap: anywhere;
-  background: var(--c-lilac-grey);
+  background: var(--c-divider);
   border-radius: 4px;
 }
 
@@ -58,8 +58,8 @@ code {
   display: block;
   padding: var(--universal-space);
   margin: 0 0 var(--universal-space);
-  background: var(--c-off-white);
-  border: 1px solid var(--c-lilac-grey);
+  background: var(--c-background);
+  border: 1px solid var(--c-divider);
   border-radius: var(--universal-space-half);
 }
 
@@ -67,7 +67,7 @@ code {
   margin: var(--universal-space-half) 0 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--c-near-black);
+  color: var(--c-text);
 
   // Inside a flex/grid field the gap already provides the spacing.
   .dmn-admin__field > & {
@@ -82,7 +82,7 @@ code {
 // Reference tables (for example the shortcode options).
 .dmn-admin__table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--c-lilac-grey);
+  border: 1px solid var(--c-divider);
   border-radius: var(--universal-space-half);
 }
 
@@ -96,12 +96,12 @@ code {
     padding: 12px var(--universal-space);
     text-align: left;
     vertical-align: top;
-    border-bottom: 1px solid var(--c-lilac-grey);
+    border-bottom: 1px solid var(--c-divider);
   }
 
   thead th {
     font-weight: 600;
-    background: var(--c-off-white);
+    background: var(--c-background);
   }
 
   tbody th {
@@ -116,7 +116,7 @@ code {
 
 // Visible focus indicator for every interactive element in the app.
 :focus-visible {
-  outline: 2px solid var(--c-purple);
+  outline: 2px solid var(--c-primary);
   outline-offset: 2px;
 }
 

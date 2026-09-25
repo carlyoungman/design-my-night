@@ -108,7 +108,7 @@
     summary {
       min-height: 24px;
       font-weight: 600;
-      color: var(--c-purple);
+      color: var(--c-primary-text);
       cursor: pointer;
     }
 
@@ -131,7 +131,7 @@
       width: 18px;
       height: 18px;
       margin-top: 2px;
-      color: var(--c-red);
+      color: var(--c-error);
     }
   }
 
@@ -149,7 +149,7 @@
       align-items: flex-start;
       padding: var(--universal-space-half) 0;
       margin: 0;
-      border-bottom: 1px solid var(--c-lilac-grey);
+      border-bottom: 1px solid var(--c-divider);
 
       &:last-child {
         border-bottom: 0;

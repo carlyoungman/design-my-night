@@ -1,4 +1,5 @@
 @use 'sass:meta';
+@use '../../shared/styles/palette';
 
 // The widget is embedded in someone else's theme. Everything, including the reset and the design
 // tokens, is scoped under `.dmn-widget-root`. Never add styles to `:root`, `body` or bare elements.
@@ -15,21 +16,15 @@
   --universal-space-half: calc(var(--universal-space) / 2);
   --input-height: 52px;
 
-  // Colour palette (see CLAUDE.md section 4). Override these on `.dmn-widget-root` to re-theme.
-  --c-purple: #6750a4;
-  --c-white: #fff;
-  --c-off-white: #f8f7fa;
-  --c-lilac-grey: #e7e0ec;
-  --c-outline: #79747e;
-  --c-near-black: #1d1b20;
-  --c-green: #379f70;
-  --c-red: #bb3d3d;
+  // Colour palette and light/dark mode (see CLAUDE.md section 4). The theme colour and mode are
+  // plugin settings; a site can still override the `--c-*` tokens on `.dmn-widget-root`.
+  @include palette.modes;
 
   width: 100%;
   max-width: 100%;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--c-near-black);
+  color: var(--c-text);
   text-align: left;
 
   :where(*, *::before, *::after) {

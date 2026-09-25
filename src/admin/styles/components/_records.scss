@@ -9,8 +9,8 @@
     align-items: end;
     padding: var(--universal-space);
     margin-bottom: var(--universal-space);
-    background: var(--c-white);
-    border: 1px solid var(--c-lilac-grey);
+    background: var(--c-surface);
+    border: 1px solid var(--c-divider);
     border-radius: var(--border-radius);
 
     @include breakpoint.medium-screen-min {
@@ -66,14 +66,14 @@
     }
 
     &:hover .dmn-admin__record-toggle {
-      color: var(--c-purple);
+      color: var(--c-primary-text);
     }
   }
 
   &__record--open &__record-header {
     padding-bottom: var(--universal-space);
     margin-bottom: var(--universal-space);
-    border-bottom: 1px solid var(--c-lilac-grey);
+    border-bottom: 1px solid var(--c-divider);
   }
 
   &__record-chevron {
@@ -116,7 +116,7 @@
 
       &::after {
         border-radius: var(--universal-space-half);
-        outline: 2px solid var(--c-purple);
+        outline: 2px solid var(--c-primary);
         outline-offset: 4px;
       }
     }
@@ -193,9 +193,9 @@
     font-size: 13px;
     font-weight: 600;
     line-height: 1.3;
-    color: var(--c-near-black);
+    color: var(--c-text);
     white-space: nowrap;
-    background: var(--c-off-white);
+    background: var(--c-background);
     border: 1px solid var(--c-outline);
     border-radius: var(--universal-space-half);
 
@@ -207,11 +207,11 @@
   }
 
   &__chip-icon--success {
-    color: var(--c-green);
+    color: var(--c-success);
   }
 
   &__chip-icon--warning {
-    color: var(--c-red);
+    color: var(--c-error);
   }
 
   &__image {
@@ -226,7 +226,7 @@
       align-items: center;
       justify-content: center;
       font-size: 13px;
-      background-color: var(--c-off-white);
+      background-color: var(--c-background);
       border: 1px dashed var(--c-outline);
     }
   }
