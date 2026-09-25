@@ -348,10 +348,11 @@ class AdminController
       return new WP_REST_Response(['message' => 'Venue not found. Reload the page and try again.'], 404);
     }
 
-    $b = $r->get_json_params() ?: [];
-
-    if (array_key_exists('hide_unavailable', $b)) {
-      update_post_meta($id, 'dmn_hide_unavailable', $b['hide_unavailable'] ? '1' : '0');
+    // Read through the request so the 'boolean' arg schema applies; rest_sanitize_boolean
+    // treats strings such as "false" and "0" as false, which a plain truthiness check would not.
+    if ($r->has_param('hide_unavailable')) {
+      $hide = rest_sanitize_boolean($r->get_param('hide_unavailable'));
+      update_post_meta($id, 'dmn_hide_unavailable', $hide ? '1' : '0');
     }
 
     return new WP_REST_Response([
