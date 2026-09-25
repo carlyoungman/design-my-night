@@ -253,12 +253,11 @@ class PublicController
         $valid = array_key_exists('valid', $base) ? $base['valid'] : null;
         $msg = array_key_exists('message', $base) ? ($base['message'] ?? '') : '';
 
-        $description = ($valid === false && $msg) ? $msg : ($conf['description'] ?? '');
-
+        // The unavailable reason goes in `message` only; the widget shows it under the description.
         $out[] = [
           'id' => $id,
           'name' => $conf['name'] ?? $base['name'],
-          'description' => $description,
+          'description' => $conf['description'] ?? '',
           'priceText' => $conf['priceText'] ?? '',
           'image_id' => $conf['image_id'] ?? null,
           'image_url' => $conf['image_url'] ?? null,
