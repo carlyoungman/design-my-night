@@ -218,8 +218,8 @@ export default function ShortcodeGenerator() {
           )}
           {!venuesLoading && !venuesError && pickable.length === 0 && (
             <p className="dmn-admin__empty">
-              No venues imported yet. Use <strong>Import from DesignMyNight</strong> to list them
-              here.
+              No venues imported yet. Use <strong>Import from DesignMyNight</strong> under
+              Connection to list them here.
             </p>
           )}
         </div>
