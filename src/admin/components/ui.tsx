@@ -142,12 +142,15 @@ export function useElapsedSeconds(running: boolean) {
   return seconds;
 }
 
+/** The server's reason for a failed request, or '' when it gave none. */
+export const errorReason = (e: unknown) =>
+  e && typeof e === 'object' && 'message' in e && typeof e.message === 'string'
+    ? e.message.trim()
+    : '';
+
 /** Says what failed in plain words, then adds the server's reason when there is one. */
 export const errorMessage = (e: unknown, context: string) => {
-  const reason =
-    e && typeof e === 'object' && 'message' in e && typeof e.message === 'string'
-      ? e.message.trim()
-      : '';
+  const reason = errorReason(e);
   return reason ? `${context} (${reason})` : context;
 };
 

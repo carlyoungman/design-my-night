@@ -1,7 +1,8 @@
 // src/admin/components/UrlParamsCard.tsx
 import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
-import { LoadError, Loading, SaveState, StatusMessage, errorMessage } from '@admin/components/ui';
+import { LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
+import { useErrorToast } from '@admin/components/Toasts';
 
 export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
@@ -9,7 +10,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const saveError = useErrorToast();
   const [ok, setOk] = useState<string | null>(null);
 
   const dirty = useMemo(() => JSON.stringify(rows) !== JSON.stringify(orig), [rows, orig]);
@@ -54,7 +55,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setErr(null);
+    saveError.clear();
     setOk(null);
     try {
       // Rows without a name are dropped.
@@ -70,7 +71,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
       setOrig(res.items || []);
       setOk('URL parameters saved.');
     } catch (e) {
-      setErr(errorMessage(e, 'URL parameters could not be saved. Try again.'));
+      saveError.show('URL parameters could not be saved. Try again.', { error: e });
     } finally {
       setSaving(false);
     }
@@ -141,12 +142,6 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
             </button>
           </div>
         </form>
-      )}
-
-      {err && (
-        <StatusMessage tone="error" block>
-          {err}
-        </StatusMessage>
       )}
     </section>
   );

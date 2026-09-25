@@ -1,0 +1,110 @@
+@use '../settings/breakpoints' as breakpoint;
+
+// Error toasts (Base UI Toast, see components/Toasts.tsx). Pinned to the bottom right of the
+// window, clear of the WordPress admin bar and menu; the newest sits nearest the edge.
+.dmn-admin {
+  &__toasts {
+    position: fixed;
+    right: var(--universal-space);
+    bottom: var(--universal-space);
+    left: var(--universal-space);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--universal-space-half);
+    align-items: stretch;
+    pointer-events: none;
+
+    &:empty {
+      display: none;
+    }
+
+    @include breakpoint.small-screen-min {
+      right: var(--universal-space-2);
+      bottom: var(--universal-space-2);
+      left: auto;
+      width: 400px;
+    }
+  }
+
+  &__toast {
+    display: flex;
+    gap: var(--universal-space);
+    align-items: flex-start;
+    padding: var(--universal-space);
+    color: var(--c-text);
+    pointer-events: auto;
+    background: var(--c-surface);
+    border: 1px solid var(--c-error);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-3);
+    transition:
+      transform 0.3s cubic-bezier(0.215, 0.61, 0.355, 1),
+      opacity 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translate(var(--toast-swipe-movement-x, 0), var(--toast-swipe-movement-y, 0));
+
+    &:focus-visible {
+      outline: 2px solid var(--c-primary);
+      outline-offset: 2px;
+    }
+
+    &[data-starting-style],
+    &[data-ending-style],
+    &[data-limited] {
+      opacity: 0;
+      transform: translateY(var(--universal-space));
+    }
+
+    &[data-ending-style][data-swipe-direction='right'] {
+      transform: translateX(calc(var(--toast-swipe-movement-x, 0) + 120%));
+    }
+
+    &[data-swiping] {
+      transition: none;
+    }
+
+    .button--icon {
+      margin: -6px -6px 0 0;
+    }
+  }
+
+  &__toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: var(--c-error);
+  }
+
+  &__toast-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  &__toast-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--c-text);
+    overflow-wrap: anywhere;
+  }
+
+  &__toast-description {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--c-text);
+    overflow-wrap: anywhere;
+  }
+
+  &__toast-action {
+    min-height: 32px;
+    padding: 6px 16px;
+    margin-top: var(--universal-space-half);
+  }
+}

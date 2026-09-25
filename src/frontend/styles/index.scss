@@ -22,12 +22,20 @@
   --universal-space-half: calc(var(--universal-space) / 2);
   --input-height: 52px;
 
+  // Overlays only, such as toasts. Matches the admin's --box-shadow-3.
+  --box-shadow-3: rgb(29 27 32 / 15%) 0 4px 8px 3px, rgb(29 27 32 / 30%) 0 1px 3px 0;
+
   width: 100%;
   max-width: 100%;
   font-size: 16px;
   line-height: 1.5;
   color: var(--c-text);
   text-align: left;
+
+  // A widget's toast container (see app/components/Toasts.tsx): it only carries the tokens.
+  &--toasts {
+    display: contents;
+  }
 
   :where(*, *::before, *::after) {
     font-size: inherit;
@@ -50,6 +58,7 @@
   @include meta.load-css('components/time');
   @include meta.load-css('components/details');
   @include meta.load-css('components/review');
+  @include meta.load-css('components/toasts');
 
   @media (prefers-reduced-motion: reduce) {
     *,

@@ -10,6 +10,7 @@ import {
   errorMessage,
   type ProgressState,
 } from '@admin/components/ui';
+import { useErrorToast } from '@admin/components/Toasts';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -26,7 +27,7 @@ export default function SettingsCard() {
   const [saving, setSaving] = useState(false);
   const [test, setTest] = useState<{ state: ProgressState; message?: string } | null>(null);
   const testing = test?.state === 'running';
-  const [err, setErr] = useState<string | null>(null);
+  const saveError = useErrorToast();
   const [ok, setOk] = useState<string | null>(null);
   const [details, setDetails] = useState<unknown | null>(null);
 
@@ -66,7 +67,7 @@ export default function SettingsCard() {
   const onSave = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setErr(null);
+    saveError.clear();
     setOk(null);
     setTest(null);
     try {
@@ -86,7 +87,9 @@ export default function SettingsCard() {
       setForm((f) => ({ ...f, api_key: '' }));
       setOk('Settings saved.');
     } catch (e) {
-      setErr(errorMessage(e, 'Settings could not be saved. Check your connection and try again.'));
+      saveError.show('Settings could not be saved. Check your connection and try again.', {
+        error: e,
+      });
     } finally {
       setSaving(false);
     }
@@ -96,7 +99,7 @@ export default function SettingsCard() {
     // aria-disabled rather than disabled, so the button keeps focus while the test runs.
     if (testing) return;
     setTest({ state: 'running' });
-    setErr(null);
+    saveError.clear();
     setOk(null);
     setDetails(null);
     try {
@@ -224,11 +227,6 @@ export default function SettingsCard() {
           {ok && (
             <StatusMessage tone="success" block>
               {ok}
-            </StatusMessage>
-          )}
-          {err && (
-            <StatusMessage tone="error" block>
-              {err}
             </StatusMessage>
           )}
           {test && (
