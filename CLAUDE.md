@@ -219,6 +219,7 @@ When designing or implementing a new dashboard screen or widget step:
 7. Validate the result at desktop, tablet, mobile, and 200% browser zoom, including long content and failure scenarios.
 8. Check for WordPress (admin) or host-theme (widget) CSS collisions, and that plugin functionality and admin navigation remain intact.
 9. Run `npm run lint` and `npm run build` (which includes the typecheck) before finishing.
+10. Before opening a pull request, run a code review of the branch's changes (`/code-review`) and fix every issue it finds. Re-run the review, lint, and build after the fixes, and only open the PR once the review comes back clean.
 
 ### Acceptance checklist
 
@@ -235,6 +236,7 @@ When designing or implementing a new dashboard screen or widget step:
 - [ ] Widget styles stay inside `.dmn-widget-root` and only use tokens defined there.
 - [ ] Performance, permissions, and server-side validation have been addressed.
 - [ ] DesignMyNight API calls follow the official DMN developer documentation (section 12) and run server-side only.
+- [ ] A code review has been run on the changes and every issue it found has been fixed before the PR was opened.
 
 ## Core principle
 
