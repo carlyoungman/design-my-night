@@ -329,313 +329,328 @@ export default function ActivityManagerCard({
         </div>
       </div>
 
-      {showList && (
-        <div className="dmn-admin__card dmn-admin__venue-settings">
-          <h3>Booking widget</h3>
-          <div className="dmn-admin__field">
-            <span className="dmn-admin__label" id="dmn-admin-venue-unavailable-label">
-              Unavailable activities
-            </span>
-            <ToggleButtonGroup
-              value={hideUnavailable ? 'hide' : 'show'}
-              exclusive
-              disabled={venueSaving}
-              onChange={(_, newValue) => {
-                if (!newValue) return; // one option must stay selected
-                saveHideUnavailable(newValue === 'hide');
-              }}
-              aria-labelledby="dmn-admin-venue-unavailable-label"
-              aria-describedby="dmn-admin-venue-unavailable-help"
-            >
-              <ToggleButton value="show">Show as unavailable</ToggleButton>
-              <ToggleButton value="hide">Hide</ToggleButton>
-            </ToggleButtonGroup>
-            <p id="dmn-admin-venue-unavailable-help" className="dmn-admin__help">
-              When DesignMyNight can&apos;t take an activity for the chosen date or group size,
-              either show it with its reason or leave it out of the widget. Saved straight away.
-            </p>
-          </div>
-          {venueSaving && (
-            <p className="dmn-admin__help" role="status">
-              Saving…
-            </p>
-          )}
-          {!venueSaving && venueOk && <StatusMessage tone="success">{venueOk}</StatusMessage>}
-          {venueErr && <StatusMessage tone="error">{venueErr}</StatusMessage>}
-        </div>
-      )}
-
-      {showList && (
-        <div className="dmn-admin__toolbar dmn-admin__toolbar--two">
-          <div className="dmn-admin__field dmn-admin__toolbar-search">
-            <label htmlFor="dmn-admin-activity-search">Search activities</label>
-            <div className="dmn-admin__search">
-              <Search aria-hidden="true" />
-              <input
-                id="dmn-admin-activity-search"
-                type="search"
-                value={query}
-                placeholder="Name or type ID"
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="dmn-admin__field dmn-admin__toolbar-filter">
-            <label htmlFor="dmn-admin-activity-filter">Show</label>
-            <select
-              id="dmn-admin-activity-filter"
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value as VisibilityFilter)}
-            >
-              <option value="all">All activities</option>
-              <option value="shown">Shown in widget</option>
-              <option value="hidden">Hidden from widget</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {err && (
-        <StatusMessage tone="error" block>
-          {err}
-        </StatusMessage>
-      )}
-
-      {loading && <Loading>Loading activities…</Loading>}
-      {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
-      {!loading && !loadErr && rows.length === 0 && (
-        <div className="dmn-admin__empty">
-          <p>
-            No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to
-            bring them in.
-          </p>
-          <button
-            type="button"
-            className="button button--secondary"
-            onClick={() => openVenue(null)}
+      <div
+        className={`dmn-admin__venue-layout${showList ? ' dmn-admin__venue-layout--with-options' : ''}`}
+      >
+        {showList && (
+          <aside
+            className="dmn-admin__card dmn-admin__venue-options"
+            aria-labelledby="dmn-admin-venue-options-title"
           >
-            Back to venues
-          </button>
-        </div>
-      )}
-
-      {showList && (
-        <>
-          <div className="dmn-admin__list-bar">
-            <p className="dmn-admin__result-count" role="status">
-              {isFiltered
-                ? `Showing ${filtered.length} of ${countLabel(rows.length)}`
-                : countLabel(rows.length)}
-            </p>
-            {filtered.length > 1 && (
-              <div className="actions dmn-admin__list-bar-actions">
-                <button
-                  type="button"
-                  className="button button--text"
-                  disabled={filtered.every((r) => open.has(r.id))}
-                  onClick={() =>
-                    setOpen((prev) => new Set([...prev, ...filtered.map((r) => r.id)]))
-                  }
-                >
-                  Expand all
-                </button>
-                <button
-                  type="button"
-                  className="button button--text"
-                  disabled={filtered.every((r) => !open.has(r.id))}
-                  onClick={() => setOpen(new Set())}
-                >
-                  Collapse all
-                </button>
-              </div>
+            <h3 id="dmn-admin-venue-options-title">Venue options</h3>
+            <div className="dmn-admin__field">
+              <span className="dmn-admin__label" id="dmn-admin-venue-unavailable-label">
+                Unavailable activities
+              </span>
+              <ToggleButtonGroup
+                value={hideUnavailable ? 'hide' : 'show'}
+                exclusive
+                disabled={venueSaving}
+                onChange={(_, newValue) => {
+                  if (!newValue) return; // one option must stay selected
+                  saveHideUnavailable(newValue === 'hide');
+                }}
+                aria-labelledby="dmn-admin-venue-unavailable-label"
+                aria-describedby="dmn-admin-venue-unavailable-help"
+              >
+                <ToggleButton value="show">Show as unavailable</ToggleButton>
+                <ToggleButton value="hide">Hide</ToggleButton>
+              </ToggleButtonGroup>
+              <p id="dmn-admin-venue-unavailable-help" className="dmn-admin__help">
+                When DesignMyNight can&apos;t take an activity for the chosen date or group size,
+                either show it in the booking widget with its reason or leave it out. Saved straight
+                away.
+              </p>
+            </div>
+            {venueSaving && (
+              <p className="dmn-admin__help" role="status">
+                Saving…
+              </p>
             )}
-          </div>
+            {!venueSaving && venueOk && <StatusMessage tone="success">{venueOk}</StatusMessage>}
+            {venueErr && <StatusMessage tone="error">{venueErr}</StatusMessage>}
+          </aside>
+        )}
 
-          {filtered.length === 0 && (
+        <div className="dmn-admin__venue-main">
+          {showList && (
+            <div className="dmn-admin__toolbar dmn-admin__toolbar--two">
+              <div className="dmn-admin__field dmn-admin__toolbar-search">
+                <label htmlFor="dmn-admin-activity-search">Search activities</label>
+                <div className="dmn-admin__search">
+                  <Search aria-hidden="true" />
+                  <input
+                    id="dmn-admin-activity-search"
+                    type="search"
+                    value={query}
+                    placeholder="Name or type ID"
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="dmn-admin__field dmn-admin__toolbar-filter">
+                <label htmlFor="dmn-admin-activity-filter">Show</label>
+                <select
+                  id="dmn-admin-activity-filter"
+                  value={visibility}
+                  onChange={(e) => setVisibility(e.target.value as VisibilityFilter)}
+                >
+                  <option value="all">All activities</option>
+                  <option value="shown">Shown in widget</option>
+                  <option value="hidden">Hidden from widget</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {err && (
+            <StatusMessage tone="error" block>
+              {err}
+            </StatusMessage>
+          )}
+
+          {loading && <Loading>Loading activities…</Loading>}
+          {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
+          {!loading && !loadErr && rows.length === 0 && (
             <div className="dmn-admin__empty">
-              <p>No activities match your search or filter.</p>
-              <button type="button" className="button button--secondary" onClick={clearFilters}>
-                Clear search and filter
+              <p>
+                No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to
+                bring them in.
+              </p>
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() => openVenue(null)}
+              >
+                Back to venues
               </button>
             </div>
           )}
 
-          <div className="dmn-admin__records">
-            {filtered.map((r) => {
-              const base = `dmn-activity-${r.id}`;
-              const remaining = MAX - (r.description || '').length;
-              const visible = r.visible ?? true;
-              const isOpen = open.has(r.id);
+          {showList && (
+            <>
+              <div className="dmn-admin__list-bar">
+                <p className="dmn-admin__result-count" role="status">
+                  {isFiltered
+                    ? `Showing ${filtered.length} of ${countLabel(rows.length)}`
+                    : countLabel(rows.length)}
+                </p>
+                {filtered.length > 1 && (
+                  <div className="actions dmn-admin__list-bar-actions">
+                    <button
+                      type="button"
+                      className="button button--text"
+                      disabled={filtered.every((r) => open.has(r.id))}
+                      onClick={() =>
+                        setOpen((prev) => new Set([...prev, ...filtered.map((r) => r.id)]))
+                      }
+                    >
+                      Expand all
+                    </button>
+                    <button
+                      type="button"
+                      className="button button--text"
+                      disabled={filtered.every((r) => !open.has(r.id))}
+                      onClick={() => setOpen(new Set())}
+                    >
+                      Collapse all
+                    </button>
+                  </div>
+                )}
+              </div>
 
-              return (
-                <article
-                  className={`dmn-admin__card dmn-admin__record${
-                    isOpen ? ' dmn-admin__record--open' : ''
-                  }`}
-                  key={r.id}
-                  aria-labelledby={`${base}-title`}
-                >
-                  <header className="dmn-admin__record-header">
-                    <ChevronDown className="dmn-admin__record-chevron" aria-hidden="true" />
-                    <div>
-                      <h3 className="dmn-admin__record-title">
-                        {/* The button covers the whole header (see _records.scss), so the header is the click target. */}
-                        <button
-                          type="button"
-                          id={`${base}-title`}
-                          className="dmn-admin__record-toggle"
-                          aria-expanded={isOpen}
-                          aria-controls={`${base}-body`}
-                          onClick={() => toggleOpen(r.id)}
-                        >
-                          {r.name || 'Untitled activity'}
-                        </button>
-                      </h3>
-                      <p className="dmn-admin__record-meta">
-                        Type ID {r.dmn_type_id || 'not set'} · Duration{' '}
-                        {formatDuration(r.duration_minutes)}
-                      </p>
-                    </div>
-                    <div className="dmn-admin__chips">
-                      <span className="dmn-admin__chip">
-                        {visible ? (
-                          <Eye className="dmn-admin__chip-icon--success" aria-hidden="true" />
-                        ) : (
-                          <EyeOff aria-hidden="true" />
-                        )}
-                        {visible ? 'Shown in widget' : 'Hidden from widget'}
-                      </span>
-                      {dirty.has(r.id) && (
-                        <span className="dmn-admin__chip">
-                          <CircleDot className="dmn-admin__chip-icon--warning" aria-hidden="true" />
-                          Unsaved
-                        </span>
-                      )}
-                    </div>
-                  </header>
+              {filtered.length === 0 && (
+                <div className="dmn-admin__empty">
+                  <p>No activities match your search or filter.</p>
+                  <button type="button" className="button button--secondary" onClick={clearFilters}>
+                    Clear search and filter
+                  </button>
+                </div>
+              )}
 
-                  <div id={`${base}-body`} className="dmn-admin__record-body" hidden={!isOpen}>
-                    <div className="dmn-admin__record-fields">
-                      <div className="dmn-admin__field">
-                        <label htmlFor={`${base}-name`}>Name</label>
-                        <input
-                          id={`${base}-name`}
-                          value={r.name || ''}
-                          onChange={(e) => onCell(r.id, 'name', e.target.value)}
-                        />
-                      </div>
-                      <div className="dmn-admin__field">
-                        <label htmlFor={`${base}-desc`}>Description</label>
-                        <textarea
-                          id={`${base}-desc`}
-                          rows={3}
-                          maxLength={MAX}
-                          value={r.description || ''}
-                          aria-describedby={`${base}-desc-count`}
-                          onChange={(e) => onCell(r.id, 'description', e.target.value)}
-                        />
-                        <p id={`${base}-desc-count`} className="dmn-admin__help">
-                          {remaining} of {MAX} characters left
-                        </p>
-                      </div>
-                      <div className="dmn-admin__field-row">
-                        <div className="dmn-admin__field">
-                          <label htmlFor={`${base}-price`}>Price</label>
-                          <input
-                            id={`${base}-price`}
-                            value={r.priceText || ''}
-                            aria-describedby={`${base}-price-help`}
-                            onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
-                          />
-                          <p id={`${base}-price-help`} className="dmn-admin__help">
-                            For example £25. How it is charged is set under Pricing.
+              <div className="dmn-admin__records">
+                {filtered.map((r) => {
+                  const base = `dmn-activity-${r.id}`;
+                  const remaining = MAX - (r.description || '').length;
+                  const visible = r.visible ?? true;
+                  const isOpen = open.has(r.id);
+
+                  return (
+                    <article
+                      className={`dmn-admin__card dmn-admin__record${
+                        isOpen ? ' dmn-admin__record--open' : ''
+                      }`}
+                      key={r.id}
+                      aria-labelledby={`${base}-title`}
+                    >
+                      <header className="dmn-admin__record-header">
+                        <ChevronDown className="dmn-admin__record-chevron" aria-hidden="true" />
+                        <div>
+                          <h3 className="dmn-admin__record-title">
+                            {/* The button covers the whole header (see _records.scss), so the header is the click target. */}
+                            <button
+                              type="button"
+                              id={`${base}-title`}
+                              className="dmn-admin__record-toggle"
+                              aria-expanded={isOpen}
+                              aria-controls={`${base}-body`}
+                              onClick={() => toggleOpen(r.id)}
+                            >
+                              {r.name || 'Untitled activity'}
+                            </button>
+                          </h3>
+                          <p className="dmn-admin__record-meta">
+                            Type ID {r.dmn_type_id || 'not set'} · Duration{' '}
+                            {formatDuration(r.duration_minutes)}
                           </p>
                         </div>
-                      </div>
-                    </div>
+                        <div className="dmn-admin__chips">
+                          <span className="dmn-admin__chip">
+                            {visible ? (
+                              <Eye className="dmn-admin__chip-icon--success" aria-hidden="true" />
+                            ) : (
+                              <EyeOff aria-hidden="true" />
+                            )}
+                            {visible ? 'Shown in widget' : 'Hidden from widget'}
+                          </span>
+                          {dirty.has(r.id) && (
+                            <span className="dmn-admin__chip">
+                              <CircleDot
+                                className="dmn-admin__chip-icon--warning"
+                                aria-hidden="true"
+                              />
+                              Unsaved
+                            </span>
+                          )}
+                        </div>
+                      </header>
 
-                    <div className="dmn-admin__record-side">
-                      <div className="dmn-admin__field">
-                        <span className="dmn-admin__label" id={`${base}-vis-label`}>
-                          Visibility in the widget
-                        </span>
-                        <ToggleButtonGroup
-                          value={visible ? 'enabled' : 'disabled'}
-                          exclusive
-                          onChange={(_, newValue) => {
-                            if (!newValue) return; // one option must stay selected
-                            onCell(r.id, 'visible', newValue === 'enabled');
-                          }}
-                          aria-labelledby={`${base}-vis-label`}
-                        >
-                          <ToggleButton value="enabled">Shown</ToggleButton>
-                          <ToggleButton value="disabled">Hidden</ToggleButton>
-                        </ToggleButtonGroup>
-                      </div>
+                      <div id={`${base}-body`} className="dmn-admin__record-body" hidden={!isOpen}>
+                        <div className="dmn-admin__record-fields">
+                          <div className="dmn-admin__field">
+                            <label htmlFor={`${base}-name`}>Name</label>
+                            <input
+                              id={`${base}-name`}
+                              value={r.name || ''}
+                              onChange={(e) => onCell(r.id, 'name', e.target.value)}
+                            />
+                          </div>
+                          <div className="dmn-admin__field">
+                            <label htmlFor={`${base}-desc`}>Description</label>
+                            <textarea
+                              id={`${base}-desc`}
+                              rows={3}
+                              maxLength={MAX}
+                              value={r.description || ''}
+                              aria-describedby={`${base}-desc-count`}
+                              onChange={(e) => onCell(r.id, 'description', e.target.value)}
+                            />
+                            <p id={`${base}-desc-count`} className="dmn-admin__help">
+                              {remaining} of {MAX} characters left
+                            </p>
+                          </div>
+                          <div className="dmn-admin__field-row">
+                            <div className="dmn-admin__field">
+                              <label htmlFor={`${base}-price`}>Price</label>
+                              <input
+                                id={`${base}-price`}
+                                value={r.priceText || ''}
+                                aria-describedby={`${base}-price-help`}
+                                onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
+                              />
+                              <p id={`${base}-price-help`} className="dmn-admin__help">
+                                For example £25. How it is charged is set under Pricing.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
 
-                      <div className="dmn-admin__field">
-                        <span className="dmn-admin__label" id={`${base}-price-label`}>
-                          Pricing
-                        </span>
-                        <ToggleButtonGroup
-                          value={r.price_mode ?? 'per_person'}
-                          exclusive
-                          onChange={(_, newValue) => {
-                            if (!newValue) return; // one option must stay selected
-                            onCell(r.id, 'price_mode', newValue as PriceMode);
-                          }}
-                          aria-labelledby={`${base}-price-label`}
-                          aria-describedby={`${base}-price-mode-help`}
-                        >
-                          <ToggleButton value="per_person">Per person</ToggleButton>
-                          <ToggleButton value="per_room">Per room</ToggleButton>
-                          <ToggleButton value="display">Text only</ToggleButton>
-                        </ToggleButtonGroup>
-                        <p id={`${base}-price-mode-help`} className="dmn-admin__help">
-                          Text only shows the price text without calculating a total.
-                        </p>
-                      </div>
-
-                      <div className="dmn-admin__field">
-                        <span className="dmn-admin__label">Image</span>
-                        {r.image_url ? (
-                          <img
-                            src={r.image_url}
-                            alt={`Current image for ${r.name}`}
-                            className="dmn-admin__image"
-                          />
-                        ) : (
-                          <div className="dmn-admin__image dmn-admin__image--empty">No image</div>
-                        )}
-                        <div className="actions dmn-admin__image-actions">
-                          <button
-                            className="button button--secondary"
-                            type="button"
-                            onClick={() => openMedia(r.id)}
-                            aria-label={`${r.image_id ? 'Change' : 'Choose'} image for ${r.name}`}
-                          >
-                            {r.image_id ? 'Change image' : 'Choose image'}
-                          </button>
-                          {r.image_id ? (
-                            <button
-                              className="button button--danger"
-                              type="button"
-                              onClick={() => clearImage(r.id)}
-                              aria-label={`Remove image for ${r.name}`}
+                        <div className="dmn-admin__record-side">
+                          <div className="dmn-admin__field">
+                            <span className="dmn-admin__label" id={`${base}-vis-label`}>
+                              Visibility in the widget
+                            </span>
+                            <ToggleButtonGroup
+                              value={visible ? 'enabled' : 'disabled'}
+                              exclusive
+                              onChange={(_, newValue) => {
+                                if (!newValue) return; // one option must stay selected
+                                onCell(r.id, 'visible', newValue === 'enabled');
+                              }}
+                              aria-labelledby={`${base}-vis-label`}
                             >
-                              Remove
-                            </button>
-                          ) : null}
+                              <ToggleButton value="enabled">Shown</ToggleButton>
+                              <ToggleButton value="disabled">Hidden</ToggleButton>
+                            </ToggleButtonGroup>
+                          </div>
+
+                          <div className="dmn-admin__field">
+                            <span className="dmn-admin__label" id={`${base}-price-label`}>
+                              Pricing
+                            </span>
+                            <ToggleButtonGroup
+                              value={r.price_mode ?? 'per_person'}
+                              exclusive
+                              onChange={(_, newValue) => {
+                                if (!newValue) return; // one option must stay selected
+                                onCell(r.id, 'price_mode', newValue as PriceMode);
+                              }}
+                              aria-labelledby={`${base}-price-label`}
+                              aria-describedby={`${base}-price-mode-help`}
+                            >
+                              <ToggleButton value="per_person">Per person</ToggleButton>
+                              <ToggleButton value="per_room">Per room</ToggleButton>
+                              <ToggleButton value="display">Text only</ToggleButton>
+                            </ToggleButtonGroup>
+                            <p id={`${base}-price-mode-help`} className="dmn-admin__help">
+                              Text only shows the price text without calculating a total.
+                            </p>
+                          </div>
+
+                          <div className="dmn-admin__field">
+                            <span className="dmn-admin__label">Image</span>
+                            {r.image_url ? (
+                              <img
+                                src={r.image_url}
+                                alt={`Current image for ${r.name}`}
+                                className="dmn-admin__image"
+                              />
+                            ) : (
+                              <div className="dmn-admin__image dmn-admin__image--empty">
+                                No image
+                              </div>
+                            )}
+                            <div className="actions dmn-admin__image-actions">
+                              <button
+                                className="button button--secondary"
+                                type="button"
+                                onClick={() => openMedia(r.id)}
+                                aria-label={`${r.image_id ? 'Change' : 'Choose'} image for ${r.name}`}
+                              >
+                                {r.image_id ? 'Change image' : 'Choose image'}
+                              </button>
+                              {r.image_id ? (
+                                <button
+                                  className="button button--danger"
+                                  type="button"
+                                  onClick={() => clearImage(r.id)}
+                                  aria-label={`Remove image for ${r.name}`}
+                                >
+                                  Remove
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </>
-      )}
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
