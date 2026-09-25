@@ -1,11 +1,12 @@
 @use '../settings/breakpoints' as breakpoint;
 @use '../settings/mixins' as mixin;
 
-// Error toasts (Base UI Toast, see app/components/Toasts.tsx). They are portalled into their own
-// `.dmn-widget-root--toasts` at the end of the page and pinned to the bottom of the window; the
-// newest sits nearest the edge.
+// Error toasts (Base UI Toast, see app/components/Toasts.tsx). One toast area per page, shared by
+// every widget, in its own `.dmn-widget-root--toasts` at the end of `<body>`, pinned to the bottom of
+// the window; the newest sits nearest the edge. The class names are prefixed because the toasts sit
+// directly in the host page, where themes style common names such as `.toast`.
 
-.toasts {
+.dmn-toasts {
   position: fixed;
   right: var(--universal-space);
   bottom: var(--universal-space);
@@ -28,7 +29,7 @@
   }
 }
 
-.toast {
+.dmn-toast {
   display: flex;
   gap: var(--universal-space);
   align-items: flex-start;
