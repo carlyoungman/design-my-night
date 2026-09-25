@@ -92,16 +92,20 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     onDirty?.(dirty.size > 0);
   }, [dirty, onDirty]);
 
+  // Match on the saved values, so an edit never removes the card being edited from the list.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows.filter(
-      (r) =>
-        (visibility === 'all' || (visibility === 'shown') === (r.visible ?? true)) &&
+    const saved = new Map(orig.map((o) => [o.id, o]));
+    return rows.filter((r) => {
+      const s = saved.get(r.id) ?? r;
+      return (
+        (visibility === 'all' || (visibility === 'shown') === (s.visible ?? true)) &&
         (q === '' ||
-          (r.name || '').toLowerCase().includes(q) ||
-          (r.dmn_type_id || '').toLowerCase().includes(q)),
-    );
-  }, [rows, query, visibility]);
+          (s.name || '').toLowerCase().includes(q) ||
+          (s.dmn_type_id || '').toLowerCase().includes(q))
+      );
+    });
+  }, [rows, orig, query, visibility]);
   const isFiltered = query.trim() !== '' || visibility !== 'all';
   const clearFilters = () => {
     setQuery('');
