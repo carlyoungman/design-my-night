@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Copy, RotateCcw } from 'lucide-react';
 import { adminListActivities, getSettings } from '@admin/api';
 import { useVenues } from '@admin/components/useVenues';
-import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
+import { FieldError, LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 import { useErrorToast } from '@admin/components/Toasts';
 
 type Activity = Awaited<ReturnType<typeof adminListActivities>>['activities'][number];
@@ -20,7 +20,7 @@ const DAYS = [
   'Sunday',
 ] as const;
 
-/** Venue choice: '' lets the customer choose, 'inherit' takes it from the location settings. */
+/** Venue choice: a DesignMyNight venue ID, or '' to let the customer choose. */
 export type ShortcodeState = {
   venueId: string;
   typeIds: string[];
@@ -44,6 +44,19 @@ const EMPTY: ShortcodeState = {
 // Quotes and square brackets would end the attribute or the shortcode early.
 const clean = (v: string) => v.replace(/["[\]]/g, '').trim();
 
+/**
+ * A URL parameter name as the shortcode handler will send it: PHP's parse_str turns spaces and
+ * dots into underscores, then sanitize_key lowercases it and drops anything but a-z, 0-9, _ and -.
+ * Doing it here as well means the shortcode shows what is actually sent, and brackets never reach
+ * parse_str (which would read them as an array).
+ */
+export const paramName = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[ .]/g, '_')
+    .replace(/[^a-z0-9_-]/g, '');
+
 /** The shortcode for a generator state. Only options that change the default are included. */
 export function buildShortcode(s: ShortcodeState): string {
   const attrs: string[] = [];
@@ -54,13 +67,14 @@ export function buildShortcode(s: ShortcodeState): string {
 
   add('venue_group', s.venueGroup);
   add('venue_id', s.venueId);
-  if (s.venueId && s.venueId !== 'inherit') add('type_id', s.typeIds.join(','));
+  if (s.venueId) add('type_id', s.typeIds.join(','));
   // Weekday order, whatever order they were ticked in.
   add('allowed_days', DAYS.filter((d) => s.days.includes(d)).join(','));
 
   const params = new URLSearchParams();
   s.urlParams.forEach((p) => {
-    if (p.name.trim()) params.append(p.name.trim(), p.value.trim());
+    const name = paramName(p.name);
+    if (name) params.append(name, p.value.trim());
   });
   add('url_params', params.toString());
 
@@ -189,7 +203,6 @@ export default function ShortcodeGenerator() {
             onChange={(e) => set({ venueId: e.target.value, typeIds: [] })}
           >
             <option value="">Let the customer choose</option>
-            <option value="inherit">Take it from the location settings (inherit)</option>
             {pickable.map((v) => (
               <option key={v.id} value={v.dmn_id}>
                 {v.title || v.dmn_id}
@@ -330,35 +343,53 @@ export default function ShortcodeGenerator() {
                 Added to the booking URL with the ones set under URL parameters. Rows without a name
                 are ignored.
               </p>
-              {state.urlParams.map((p, i) => (
-                <fieldset key={i} className="dmn-admin__param-row">
-                  <legend className="screen-reader-text">Parameter {i + 1}</legend>
-                  <div className="dmn-admin__field">
-                    <label htmlFor={`dmn-sc-param-name-${i}`}>Name</label>
-                    <input
-                      id={`dmn-sc-param-name-${i}`}
-                      value={p.name}
-                      onChange={(e) => updateParam(i, { name: e.target.value })}
-                    />
-                  </div>
-                  <div className="dmn-admin__field">
-                    <label htmlFor={`dmn-sc-param-value-${i}`}>Value</label>
-                    <input
-                      id={`dmn-sc-param-value-${i}`}
-                      value={p.value}
-                      onChange={(e) => updateParam(i, { value: e.target.value })}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className="button button--danger"
-                    aria-label={`Remove parameter ${p.name || i + 1}`}
-                    onClick={() => set({ urlParams: state.urlParams.filter((_, j) => j !== i) })}
-                  >
-                    Remove
-                  </button>
-                </fieldset>
-              ))}
+              {state.urlParams.map((p, i) => {
+                const sent = paramName(p.name);
+                const changed = p.name.trim() !== '' && sent !== p.name.trim();
+                return (
+                  <fieldset key={i} className="dmn-admin__param-row">
+                    <legend className="screen-reader-text">Parameter {i + 1}</legend>
+                    <div className="dmn-admin__field">
+                      <label htmlFor={`dmn-sc-param-name-${i}`}>Name</label>
+                      <input
+                        id={`dmn-sc-param-name-${i}`}
+                        value={p.name}
+                        aria-invalid={changed}
+                        aria-describedby={changed ? `dmn-sc-param-name-${i}-error` : undefined}
+                        onChange={(e) => updateParam(i, { name: e.target.value })}
+                      />
+                      {changed && (
+                        <FieldError id={`dmn-sc-param-name-${i}-error`}>
+                          {sent ? (
+                            <>
+                              Will be sent as <code>{sent}</code>.
+                            </>
+                          ) : (
+                            'Will be ignored.'
+                          )}{' '}
+                          Use lowercase letters, numbers, _ and -.
+                        </FieldError>
+                      )}
+                    </div>
+                    <div className="dmn-admin__field">
+                      <label htmlFor={`dmn-sc-param-value-${i}`}>Value</label>
+                      <input
+                        id={`dmn-sc-param-value-${i}`}
+                        value={p.value}
+                        onChange={(e) => updateParam(i, { value: e.target.value })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="button button--danger"
+                      aria-label={`Remove parameter ${p.name || i + 1}`}
+                      onClick={() => set({ urlParams: state.urlParams.filter((_, j) => j !== i) })}
+                    >
+                      Remove
+                    </button>
+                  </fieldset>
+                );
+              })}
               <div className="actions">
                 <button
                   type="button"

@@ -5,15 +5,7 @@ import ShortcodeGenerator from '@admin/components/ShortcodeGenerator';
 
 const OPTIONS: Array<{ name: string; description: React.ReactNode }> = [
   { name: 'venue_group', description: 'Overrides the default venue group set under Connection.' },
-  {
-    name: 'venue_id',
-    description: (
-      <>
-        Preselects a venue. Use <code>inherit</code> to take the venue ID from the location
-        settings.
-      </>
-    ),
-  },
+  { name: 'venue_id', description: 'Preselects a venue, by its DesignMyNight venue ID.' },
   {
     name: 'type_id',
     description: (
