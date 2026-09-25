@@ -48,12 +48,15 @@ function dmn_bp_enqueue_widget_assets(): void
     true
   );
 
-  wp_enqueue_style(
-    'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.css',
-    [],
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
-  );
+  // Sites can turn the widget's stylesheet off (Appearance) and style it from their theme.
+  if (Appearance::get_widget_styles()) {
+    wp_enqueue_style(
+      'dmn-widget',
+      DMN_BP_URL . 'dist/frontend/index.css',
+      [],
+      $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
+    );
+  }
 
   wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
     'restUrl' => esc_url_raw(rest_url('dmn/v1/')),
@@ -265,12 +268,15 @@ add_action('wp_enqueue_scripts', function () {
     true
   );
 
-  wp_enqueue_style(
-    'dmn-widget',
-    DMN_BP_URL . 'dist/frontend/index.css',
-    [],
-    $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
-  );
+  // Sites can turn the widget's stylesheet off (Appearance) and style it from their theme.
+  if (Appearance::get_widget_styles()) {
+    wp_enqueue_style(
+      'dmn-widget',
+      DMN_BP_URL . 'dist/frontend/index.css',
+      [],
+      $meta['version'] ?? filemtime(DMN_BP_DIR . 'dist/frontend/index.css')
+    );
+  }
 
   wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
     'restUrl' => esc_url_raw(rest_url('dmn/v1/')),

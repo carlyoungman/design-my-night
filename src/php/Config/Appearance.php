@@ -3,7 +3,8 @@
 namespace DMN\Booking\Config;
 
 /**
- * Theme colour and light/dark mode for the admin app and the booking widget.
+ * Theme colour and light/dark mode for the admin app and the booking widget, and whether the
+ * widget's own stylesheet is loaded.
  *
  * The theme colour replaces the default primary colour on both. It is written as `--theme-*`
  * custom properties on each root element (`.dmn-admin`, `.dmn-widget-root`); the stylesheets read
@@ -16,6 +17,7 @@ class Appearance
   public const OPT_THEME_COLOUR = 'dmn_theme_colour';
   public const OPT_ADMIN_MODE = 'dmn_admin_mode';     // 'light' | 'dark' | 'system'
   public const OPT_WIDGET_MODE = 'dmn_widget_mode';   // 'light' | 'dark' | 'system'
+  public const OPT_WIDGET_STYLES = 'dmn_widget_styles'; // '0' | '1'
 
   public const DEFAULT_THEME_COLOUR = '#6750a4';
   public const MODES = ['light', 'dark', 'system'];
@@ -43,6 +45,15 @@ class Appearance
     return self::valid_mode((string)get_option(self::OPT_WIDGET_MODE, 'light'));
   }
 
+  /**
+   * Whether the widget's stylesheet is loaded. Off lets a site style the widget from its own
+   * theme; the markup and class names stay the same.
+   */
+  public static function get_widget_styles(): bool
+  {
+    return (bool)get_option(self::OPT_WIDGET_STYLES, true);
+  }
+
   public static function valid_mode(string $mode): string
   {
     return in_array($mode, self::MODES, true) ? $mode : 'light';
@@ -55,6 +66,7 @@ class Appearance
       'default_theme_colour' => self::DEFAULT_THEME_COLOUR,
       'admin_mode' => self::get_admin_mode(),
       'widget_mode' => self::get_widget_mode(),
+      'widget_styles' => self::get_widget_styles(),
       'css_vars' => self::css_vars(),
     ];
   }
@@ -76,11 +88,15 @@ class Appearance
         $errors[$key] = __('Choose light, dark or match device.', 'dmn-booking');
       }
     }
+    if (array_key_exists('widget_styles', $data) && !is_bool($data['widget_styles'])) {
+      $errors['widget_styles'] = __('Choose whether to load the widget styles.', 'dmn-booking');
+    }
     if ($errors) return $errors;
 
     if ($colour) update_option(self::OPT_THEME_COLOUR, self::normalise_hex($colour));
     if (isset($data['admin_mode'])) update_option(self::OPT_ADMIN_MODE, $data['admin_mode']);
     if (isset($data['widget_mode'])) update_option(self::OPT_WIDGET_MODE, $data['widget_mode']);
+    if (isset($data['widget_styles'])) update_option(self::OPT_WIDGET_STYLES, $data['widget_styles'] ? '1' : '0');
     return [];
   }
 

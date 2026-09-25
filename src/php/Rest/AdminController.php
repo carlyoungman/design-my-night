@@ -77,7 +77,7 @@ class AdminController
       },
     ]);
 
-    // Appearance: theme colour and light/dark mode for the admin and the widget.
+    // Appearance: theme colour and light/dark mode for the admin and the widget, and the widget styles toggle.
     register_rest_route('dmn/v1/admin', '/appearance', [
       [
         'methods' => WP_REST_Server::READABLE,

@@ -1,5 +1,6 @@
 // src/admin/components/AppearanceCard.tsx
-// Theme colour and light/dark mode for this admin screen and the booking widget.
+// Theme colour and light/dark mode for this admin screen and the booking widget, and whether the
+// widget's stylesheet is loaded.
 import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -13,7 +14,12 @@ import {
   errorMessage,
 } from '@admin/components/ui';
 
-type FormState = { theme_colour: string; admin_mode: ColourMode; widget_mode: ColourMode };
+type FormState = {
+  theme_colour: string;
+  admin_mode: ColourMode;
+  widget_mode: ColourMode;
+  widget_styles: boolean;
+};
 
 const MODES: { value: ColourMode; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -55,6 +61,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
     theme_colour: '#6750a4',
     admin_mode: 'light',
     widget_mode: 'light',
+    widget_styles: true,
   });
 
   const dirty = useMemo(
@@ -62,7 +69,8 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
       !!saved &&
       ((normaliseHex(form.theme_colour) ?? form.theme_colour) !== saved.theme_colour ||
         form.admin_mode !== saved.admin_mode ||
-        form.widget_mode !== saved.widget_mode),
+        form.widget_mode !== saved.widget_mode ||
+        form.widget_styles !== saved.widget_styles),
     [form, saved],
   );
 
@@ -75,6 +83,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
       theme_colour: a.theme_colour,
       admin_mode: a.admin_mode,
       widget_mode: a.widget_mode,
+      widget_styles: a.widget_styles,
     };
     setForm(next);
     setSaved(next);
@@ -211,6 +220,21 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
           <p className="dmn-admin__help dmn-admin__help--flush">
             <strong>Match device</strong> follows the light or dark setting of the device the page
             is viewed on.
+          </p>
+
+          <label className="dmn-admin__checkbox">
+            <input
+              type="checkbox"
+              checked={form.widget_styles}
+              aria-describedby="dmn-appearance-widget-styles-help"
+              onChange={(e) => update({ widget_styles: e.target.checked })}
+            />
+            Load the booking widget styles
+          </label>
+          <p id="dmn-appearance-widget-styles-help" className="dmn-admin__help dmn-admin__help--flush">
+            Turn this off to style the booking widget from your theme instead. The widget keeps its
+            markup and <code>dmn-</code> class names, but the plugin's stylesheet, including the
+            theme colour and widget mode above, is not loaded on your site.
           </p>
 
           <div className="actions dmn-admin__form-footer">
