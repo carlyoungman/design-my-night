@@ -1,0 +1,178 @@
+@use '../settings/breakpoints' as breakpoint;
+
+// Dashboard: setup steps, last import, connection, totals and venues needing attention.
+.dmn-admin {
+  &__dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--universal-space);
+    align-items: start;
+
+    @include breakpoint.large-screen-min {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    h3 {
+      margin-bottom: var(--universal-space);
+    }
+
+    .dmn-admin__stats {
+      margin: 0;
+    }
+  }
+
+  &__dashboard-wide {
+    @include breakpoint.large-screen-min {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__steps {
+    display: grid;
+    gap: var(--universal-space);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    @include breakpoint.large-screen-min {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  &__step {
+    display: flex;
+    gap: var(--universal-space-half);
+    align-items: flex-start;
+    margin: 0;
+
+    > svg {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      margin-top: 1px;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: var(--universal-space-half);
+      align-items: flex-start;
+    }
+
+    .dmn-admin__help {
+      margin: 0;
+    }
+
+    .button--text {
+      margin-left: -12px;
+    }
+  }
+
+  &__step-title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  // Label and value pairs, one per row.
+  &__facts {
+    display: grid;
+    gap: var(--universal-space-half);
+    margin: 0;
+    font-size: 14px;
+
+    .dmn-admin__status + & {
+      margin-top: var(--universal-space);
+    }
+
+    > div {
+      display: grid;
+      grid-template-columns: minmax(0, 11em) minmax(0, 1fr);
+      gap: var(--universal-space);
+      align-items: baseline;
+    }
+
+    dt {
+      font-weight: 600;
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__issues {
+    margin-top: var(--universal-space);
+    font-size: 14px;
+
+    summary {
+      min-height: 24px;
+      font-weight: 600;
+      color: var(--c-purple);
+      cursor: pointer;
+    }
+
+    ul {
+      display: grid;
+      gap: var(--universal-space-half);
+      padding: 0;
+      margin: var(--universal-space-half) 0 0;
+      list-style: none;
+    }
+
+    li {
+      display: flex;
+      gap: var(--universal-space-half);
+      margin: 0;
+    }
+
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      color: var(--c-red);
+    }
+  }
+
+  &__attention {
+    display: grid;
+    gap: var(--universal-space-half);
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    list-style: none;
+
+    li {
+      display: flex;
+      gap: var(--universal-space-half);
+      align-items: flex-start;
+      padding: var(--universal-space-half) 0;
+      margin: 0;
+      border-bottom: 1px solid var(--c-lilac-grey);
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+    }
+
+    a {
+      font-weight: 600;
+    }
+  }
+
+  &__spacer-bottom {
+    margin-bottom: var(--universal-space);
+  }
+
+  &__flush {
+    margin: 0;
+  }
+}

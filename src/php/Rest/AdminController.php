@@ -20,6 +20,14 @@ use function wp_update_post;
 
 class AdminController
 {
+  /** Option holding the outcome of the most recent import, shown on the admin dashboard. */
+  public const OPT_LAST_IMPORT = 'dmn_last_import';
+
+  /** Problems met during the current import, for the dashboard. */
+  private array $import_issues = [];
+
+  /** Set when the venue list itself could not be read during the current import. */
+  private ?string $import_error = null;
 
 
   /**
@@ -179,6 +187,13 @@ class AdminController
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_save_activity'],
       'args' => ['id' => ['type' => 'integer', 'required' => true]],
+    ]);
+
+    // Dashboard: last import and connection summary (no DMN request)
+    register_rest_route('dmn/v1/admin', '/overview', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_overview'],
     ]);
 
     // Sync all
@@ -423,6 +438,7 @@ class AdminController
 
     $resp = $client->request('GET', '/venues', $q);
     if (!$resp['ok']) {
+      $this->import_error = self::describe_dmn_error($resp, 'The venue list could not be read from DesignMyNight');
       return 0;
     }
 
@@ -521,6 +537,10 @@ class AdminController
       );
 
       if (empty($resp['ok'])) {
+        $this->import_issues[] = self::describe_dmn_error(
+          $resp,
+          sprintf('Activities for %s could not be read', get_the_title($venuePostId) ?: "venue $ext_id")
+        );
         continue;
       }
 
@@ -637,22 +657,110 @@ class AdminController
   public function dmn_admin_sync_all(): WP_REST_Response
   {
     $t0 = microtime(true);
+    $this->import_issues = [];
+    $this->import_error = null;
 
-    $venues_count = $this->upsert_venues_from_dmn();
-    $types_count = $this->upsert_types_for_all_venues();
+    if (Settings::get_app_id() === '' || Settings::get_api_key() === '') {
+      $this->import_error = 'Add your App ID and API key under Connection before importing.';
+      $venues_count = 0;
+      $types_count = 0;
+    } else {
+      $venues_count = $this->upsert_venues_from_dmn();
+      // If the venue list failed (bad credentials, rate limit…), per-venue requests would fail the
+      // same way and only use up more of the hourly limit.
+      $types_count = $this->import_error === null ? $this->upsert_types_for_all_venues() : 0;
+    }
 
     $ms = (int)round((microtime(true) - $t0) * 1000);
+    $ok = $this->import_error === null;
+    $previous = get_option(self::OPT_LAST_IMPORT, null);
+    $previous_success = is_array($previous) ? ($previous['last_success_at'] ?? null) : null;
+    $previous_data_env = is_array($previous)
+      ? ($previous['data_environment'] ?? (!empty($previous['ok']) ? ($previous['environment'] ?? null) : null))
+      : null;
 
-    return new WP_REST_Response([
-      'ok' => true,
+    $record = [
+      'finished_at' => time(),
+      // Kept across failed imports, so the dashboard can say how old the imported data is.
+      'last_success_at' => $ok ? time() : $previous_success,
+      'ok' => $ok,
+      // The environment this attempt used, and the one the stored venues came from.
+      'environment' => Settings::get_env(),
+      'data_environment' => $ok ? Settings::get_env() : $previous_data_env,
       'venues_count' => $venues_count,
       'types_count' => $types_count,
       'duration_ms' => $ms,
-      'message' => sprintf(
-        'Imported/updated %d venues and %d activity types.',
-        $venues_count,
-        $types_count
-      ),
+      'error' => $this->import_error,
+      'issues' => array_slice($this->import_issues, 0, 20),
+      'issues_count' => count($this->import_issues),
+    ];
+    update_option(self::OPT_LAST_IMPORT, $record, false);
+
+    if (!$ok) {
+      // A non-2xx status so the admin app shows it as a failure.
+      return new WP_REST_Response(['code' => 'dmn_import_failed', 'message' => $this->import_error] + $record, 502);
+    }
+
+    $message = sprintf(
+      'Imported %d %s and %d %s.',
+      $venues_count,
+      $venues_count === 1 ? 'venue' : 'venues',
+      $types_count,
+      $types_count === 1 ? 'activity' : 'activities'
+    );
+    if ($this->import_issues) {
+      $message .= sprintf(
+        ' %d %s: see the Dashboard for details.',
+        count($this->import_issues),
+        count($this->import_issues) === 1 ? 'problem' : 'problems'
+      );
+    }
+
+    return new WP_REST_Response(['message' => $message] + $record, 200);
+  }
+
+  /**
+   * Summary for the admin dashboard: the last import and the connection settings. Makes no DMN request.
+   *
+   * @return WP_REST_Response
+   */
+  public function dmn_admin_overview(): WP_REST_Response
+  {
+    $last = get_option(self::OPT_LAST_IMPORT, null);
+
+    return new WP_REST_Response([
+      'last_import' => is_array($last) ? $last : null,
+      'connection' => [
+        'has_credentials' => Settings::get_app_id() !== '' && Settings::get_api_key() !== '',
+        'environment' => Settings::get_env(),
+        'venue_group' => Settings::get_vg(),
+      ],
     ], 200);
+  }
+
+  /**
+   * Turn a failed DmnClient response into a message that says what to do, using the error codes in
+   * https://developers.designmynight.com/api/api-basics/.
+   */
+  private static function describe_dmn_error(array $resp, string $context): string
+  {
+    $status = (int)($resp['status'] ?? 0);
+    if ($status === 0) {
+      $hint = 'DesignMyNight could not be reached. Check the site can make outgoing requests, then try again.';
+    } elseif ($status === 401 || $status === 403) {
+      $hint = 'DesignMyNight rejected the API credentials. Check the App ID, API key and environment under Connection.';
+    } elseif ($status === 404) {
+      $hint = 'DesignMyNight could not find it. Check the venue group and environment under Connection.';
+    } elseif ($status === 429) {
+      $hint = 'The hourly DesignMyNight request limit was reached. Try again later.';
+    } elseif ($status === 503) {
+      $hint = 'DesignMyNight is temporarily unavailable. Try again later.';
+    } else {
+      $hint = 'DesignMyNight returned an error.';
+    }
+    $detail = trim((string)($resp['error'] ?? ''));
+
+    return sprintf('%s (%s). %s', $context, $status ? "HTTP $status" : 'no response', $hint)
+      . ($detail !== '' ? " DesignMyNight said: $detail" : '');
   }
 }

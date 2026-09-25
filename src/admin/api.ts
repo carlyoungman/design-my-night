@@ -134,12 +134,32 @@ export async function adminSaveActivity(
 }
 
 /** Sync */
-export async function adminSyncAll(): Promise<{
+export type ImportRecord = {
+  /** Unix timestamps (seconds). */
+  finished_at: number;
+  last_success_at: number | null;
   ok: boolean;
+  /** Environment this import used. */
+  environment: 'prod' | 'qa';
+  /** Environment the stored venues came from: the last successful import's. */
+  data_environment?: 'prod' | 'qa' | null;
   venues_count: number;
   types_count: number;
-  duration_ms?: number;
-  message?: string;
-}> {
+  duration_ms: number;
+  error: string | null;
+  /** Problems that didn't stop the import, such as a venue whose activities couldn't be read. */
+  issues: string[];
+  issues_count: number;
+};
+
+export async function adminSyncAll(): Promise<ImportRecord & { message: string }> {
   return wpFetch('sync/all', { method: 'POST' });
+}
+
+/** Dashboard */
+export async function adminOverview(): Promise<{
+  last_import: ImportRecord | null;
+  connection: { has_credentials: boolean; environment: 'prod' | 'qa'; venue_group: string };
+}> {
+  return wpFetch('overview');
 }

@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { CodeXml, Link2, MapPin, PlugZap, type LucideIcon } from 'lucide-react';
+import { CodeXml, LayoutDashboard, Link2, MapPin, PlugZap, type LucideIcon } from 'lucide-react';
 
 /** Top-level sections of the plugin screen, in navigation order. */
 export const SECTIONS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'venues', label: 'Venues', icon: MapPin },
   { id: 'connection', label: 'Connection', icon: PlugZap },
   { id: 'url-params', label: 'URL parameters', icon: Link2 },
@@ -44,7 +45,8 @@ const hashFor = (r: Route) =>
 function routeFromHash(): Route {
   const [head, sub] = window.location.hash.replace(/^#/, '').split('/');
   // `#activities` is the old name of the Venues section; keep existing links working.
-  const section = SECTIONS.find((s) => s.id === head)?.id ?? 'venues';
+  const section =
+    head === 'activities' ? 'venues' : (SECTIONS.find((s) => s.id === head)?.id ?? 'dashboard');
   const venueId = section === 'venues' && sub && /^\d+$/.test(sub) ? Number(sub) : null;
   return { section, venueId };
 }
