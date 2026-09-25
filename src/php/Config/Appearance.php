@@ -100,6 +100,8 @@ class Appearance
       $vars["--theme-primary$suffix"] = $fill;
       $vars["--theme-primary-text$suffix"] = self::shade($base, $toward, fn($c) => self::min_contrast($c, $surfaces) >= 4.5);
       $vars["--theme-on-primary$suffix"] = self::on_colour($fill);
+      // Hover shading goes away from the text colour on the fill, so that text gains contrast.
+      $vars["--theme-primary-shade$suffix"] = self::on_colour($fill) === '#ffffff' ? '#000000' : '#ffffff';
     }
     return $vars;
   }

@@ -7,24 +7,33 @@
 // The root's `data-mode` attribute picks the mode: light, dark, or system (follow the device).
 // Surface, background and text colours are also used by Appearance.php: keep the two in step.
 
+// Sites may re-theme the widget by setting `--c-*` tokens on `.dmn-widget-root`. The token names
+// used before modes existed (`--c-purple`, `--c-white`, …) still work: `--c-purple` in both modes,
+// the others in light mode only, since light surface and text colours would be unreadable in dark.
+
 @mixin light {
-  --c-primary: var(--theme-primary, #6750a4);
-  --c-primary-text: var(--theme-primary-text, #6750a4);
+  --c-primary: var(--c-purple, var(--theme-primary, #6750a4));
+  --c-primary-text: var(--c-purple, var(--theme-primary-text, #6750a4));
   --c-on-primary: var(--theme-on-primary, #fff);
-  --c-surface: #fff;
-  --c-background: #f8f7fa;
-  --c-divider: #e7e0ec;
+  --c-surface: var(--c-white, #fff);
+  --c-background: var(--c-off-white, #f8f7fa);
+  --c-divider: var(--c-lilac-grey, #e7e0ec);
   --c-outline: #79747e;
-  --c-text: #1d1b20;
-  --c-success: #379f70;
-  --c-error: #bb3d3d;
+  --c-text: var(--c-near-black, #1d1b20);
+  --c-success: var(--c-green, #379f70);
+  --c-error: var(--c-red, #bb3d3d);
+
+  // Mixed into a primary fill on hover. It is the opposite of --c-on-primary, so the text on
+  // the fill gains contrast, and it follows a site's own --c-primary.
+  --c-primary-shade: var(--theme-primary-shade, #000);
+  --c-primary-hover: color-mix(in srgb, var(--c-primary) 88%, var(--c-primary-shade));
 
   color-scheme: light;
 }
 
 @mixin dark {
-  --c-primary: var(--theme-primary-dark, #725dab);
-  --c-primary-text: var(--theme-primary-text-dark, #9180bd);
+  --c-primary: var(--c-purple, var(--theme-primary-dark, #725dab));
+  --c-primary-text: var(--c-purple, var(--theme-primary-text-dark, #9180bd));
   --c-on-primary: var(--theme-on-primary-dark, #fff);
   --c-surface: #211f26;
   --c-background: #141218;
@@ -33,20 +42,25 @@
   --c-text: #e6e0e9;
   --c-success: #6fcf9f;
   --c-error: #f2b8b5;
+  --c-primary-shade: var(--theme-primary-shade-dark, #000);
 
   color-scheme: dark;
 }
 
-// Light by default; dark when `data-mode` asks for it. Include inside the root selector.
-@mixin modes {
-  @include light;
+// Light by default; dark when the root's `data-mode` asks for it. Include at the top level with
+// the root selector. The rules use `:where()` so they have no specificity: a site's own
+// `.dmn-widget-root { --c-primary: … }` wins in every mode, wherever its stylesheet loads.
+@mixin modes($root) {
+  :where(#{$root}) {
+    @include light;
+  }
 
-  &[data-mode='dark'] {
+  :where(#{$root}[data-mode='dark']) {
     @include dark;
   }
 
   @media (prefers-color-scheme: dark) {
-    &[data-mode='system'] {
+    :where(#{$root}[data-mode='system']) {
       @include dark;
     }
   }

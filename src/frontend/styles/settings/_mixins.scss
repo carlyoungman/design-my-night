@@ -39,7 +39,7 @@
   transition: var(--transition);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--c-primary) 88%, var(--c-on-primary));
+    background: var(--c-primary-hover);
   }
 
   &:focus-visible {

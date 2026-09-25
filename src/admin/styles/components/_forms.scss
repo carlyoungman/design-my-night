@@ -200,7 +200,12 @@ input[type='checkbox'] {
       padding: 0;
     }
 
-    &::-webkit-color-swatch,
+    // Separate rules: a browser drops a whole selector list with a pseudo-element it doesn't know.
+    &::-webkit-color-swatch {
+      border: 0;
+      border-radius: 999px;
+    }
+
     &::-moz-color-swatch {
       border: 0;
       border-radius: 999px;

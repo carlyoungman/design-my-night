@@ -5,6 +5,10 @@
 // Design tokens and component styles for the wp-admin app.
 // Everything is scoped under `.dmn-admin` (rendered by dmn-booking-plugin.php) so nothing
 // leaks into the rest of wp-admin. Do not add styles to `:root`, `body` or WordPress's own elements.
+
+// Colour palette and light/dark mode (see CLAUDE.md section 4).
+@include palette.modes('.dmn-admin');
+
 .dmn-admin {
   --box-shadow-1: rgb(29 27 32 / 15%) 0 1px 3px 1px, rgb(29 27 32 / 30%) 0 1px 2px 0;
   --box-shadow-2: rgb(29 27 32 / 15%) 0 2px 6px 2px, rgb(29 27 32 / 30%) 0 1px 2px 0;
@@ -21,8 +25,6 @@
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
 
-  // Colour palette and light/dark mode (see CLAUDE.md section 4).
-  @include palette.modes;
 
   // WordPress exposes the admin bar height; fall back to its desktop height.
   --dmn-sticky-top: var(--wp-admin--admin-bar--height, 32px);

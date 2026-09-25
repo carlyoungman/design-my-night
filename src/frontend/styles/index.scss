@@ -3,6 +3,12 @@
 
 // The widget is embedded in someone else's theme. Everything, including the reset and the design
 // tokens, is scoped under `.dmn-widget-root`. Never add styles to `:root`, `body` or bare elements.
+
+// Colour palette and light/dark mode (see CLAUDE.md section 4). The theme colour and mode are
+// plugin settings. A site can still override the `--c-*` tokens on `.dmn-widget-root`: the
+// palette has no specificity, so the override wins in every mode.
+@include palette.modes('.dmn-widget-root');
+
 .dmn-widget-root {
   @include meta.load-css('css-reset-and-normalize/scss/reset-and-normalize');
 
@@ -15,10 +21,6 @@
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
   --input-height: 52px;
-
-  // Colour palette and light/dark mode (see CLAUDE.md section 4). The theme colour and mode are
-  // plugin settings; a site can still override the `--c-*` tokens on `.dmn-widget-root`.
-  @include palette.modes;
 
   width: 100%;
   max-width: 100%;
