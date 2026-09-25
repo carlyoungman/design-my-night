@@ -3,8 +3,8 @@
 A WordPress plugin that embeds a multi‑step React booking widget and a small WP admin app. It integrates with
 DesignMyNight (DMN) APIs to fetch venues, booking types, availability, and to submit bookings or enquiries.
 
-> Status: actively developed. Front‑end built with TypeScript + React. Admin uses MUI. Plugin ships compiled assets in
-`/dist`.
+> Status: actively developed. Front‑end built with TypeScript + React. Admin uses MUI. The plugin enqueues compiled
+assets from `/dist`, which is not committed: run `npm run build` after cloning or pulling.
 
 ---
 
@@ -191,7 +191,8 @@ Customer fields sent to DMN on submit:
 
 ## Building for release
 
-- Run `npm run build` to produce `/dist/*` assets.
+- Run `npm run build` to produce `/dist/*` assets. `/dist` is git-ignored, so include it in the release package
+  (or build on the server); the plugin does nothing without it.
 - Update plugin version in the file header.
 - Tag a release in Git and deploy to your WP site.
 

@@ -3,6 +3,7 @@
 // Material 3 style buttons.
 // .button              filled: the one primary action in a section
 // .button--secondary   outlined: secondary actions
+// .button--text        text only: low-emphasis actions
 // .button--danger      outlined, red text: destructive actions
 
 .actions {
@@ -49,6 +50,24 @@
       color: var(--c-purple);
       background: color-mix(in srgb, var(--c-purple) 8%, transparent);
       box-shadow: none;
+    }
+  }
+
+  // Text button: low-emphasis actions such as Expand all.
+  &--text {
+    padding-inline: 12px;
+    color: var(--c-purple);
+    background: transparent;
+    border-color: transparent;
+
+    &:hover:not(:disabled) {
+      color: var(--c-purple);
+      background: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      box-shadow: none;
+    }
+
+    &:disabled {
+      background: transparent;
     }
   }
 

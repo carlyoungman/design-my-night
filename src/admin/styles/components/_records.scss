@@ -51,26 +51,92 @@
     gap: var(--universal-space);
   }
 
-  // Header: name and technical metadata on the left, status chips on the right.
+  // Collapsible record. Header: chevron, name and technical metadata, then status chips.
+  // The whole header opens and closes the record.
   &__record-header {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     gap: var(--universal-space-half) var(--universal-space);
     align-items: flex-start;
-    justify-content: space-between;
-    padding-bottom: var(--universal-space);
-    margin-bottom: var(--universal-space);
-    border-bottom: 1px solid var(--c-lilac-grey);
 
-    > :first-child {
+    > div:first-of-type {
       flex: 1 1 240px;
       min-width: 0;
     }
+
+    &:hover .dmn-admin__record-toggle {
+      color: var(--c-purple);
+    }
+  }
+
+  &__record--open &__record-header {
+    padding-bottom: var(--universal-space);
+    margin-bottom: var(--universal-space);
+    border-bottom: 1px solid var(--c-lilac-grey);
+  }
+
+  &__record-chevron {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    transition: var(--transition);
+  }
+
+  &__record--open &__record-chevron {
+    transform: rotate(180deg);
   }
 
   &__record-title {
     margin: 0;
     overflow-wrap: anywhere;
+  }
+
+  &__record-toggle {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    transition: var(--transition);
+
+    // Stretch the click target over the whole header.
+    &::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+    }
+
+    // Draw the focus ring around the header rather than the name alone.
+    &:focus-visible {
+      outline: 0;
+
+      &::after {
+        border-radius: var(--universal-space-half);
+        outline: 2px solid var(--c-purple);
+        outline-offset: 4px;
+      }
+    }
+  }
+
+  &__list-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space-half) var(--universal-space);
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--universal-space);
+
+    .dmn-admin__result-count {
+      margin: 0;
+    }
+  }
+
+  &__list-bar-actions {
+    gap: var(--universal-space-half);
   }
 
   &__record-meta {
@@ -86,6 +152,10 @@
 
     @include breakpoint.large-screen-min {
       grid-template-columns: minmax(0, 1fr) minmax(260px, 34%);
+    }
+
+    &[hidden] {
+      display: none;
     }
   }
 
