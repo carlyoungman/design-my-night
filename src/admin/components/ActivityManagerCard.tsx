@@ -15,8 +15,10 @@ import {
   SaveState,
   StatusMessage,
   errorMessage,
+  errorReason,
   useLatestRequest,
 } from '@admin/components/ui';
+import { useErrorToast } from '@admin/components/Toasts';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
 type VisibilityFilter = 'all' | 'shown' | 'hidden';
@@ -89,7 +91,7 @@ export default function ActivityManagerCard({
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [rows, setRows] = useState<AdminActivity[]>([]);
   const [orig, setOrig] = useState<AdminActivity[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+  const saveError = useErrorToast();
   const [ok, setOk] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   // Activities whose editor is open. All start closed, except when a venue has only one activity.
@@ -97,7 +99,7 @@ export default function ActivityManagerCard({
   // Venue setting, saved as soon as it changes (separately from the activities).
   const [hideUnavailable, setHideUnavailable] = useState(venue.hide_unavailable);
   const [venueSaving, setVenueSaving] = useState(false);
-  const [venueErr, setVenueErr] = useState<string | null>(null);
+  const venueError = useErrorToast();
   const [venueOk, setVenueOk] = useState<string | null>(null);
 
   // The last value the server confirmed, and a change made while a save was running. Arrow keys
@@ -112,14 +114,16 @@ export default function ActivityManagerCard({
     setHideUnavailable(venue.hide_unavailable);
   }, [venue.hide_unavailable]);
 
+  // Toasts about the previous venue no longer apply.
   useEffect(() => {
-    setVenueErr(null);
+    venueError.clear();
+    saveError.clear();
     setVenueOk(null);
-  }, [venueId]);
+  }, [venueId, venueError, saveError]);
 
   const saveHideUnavailable = async (next: boolean) => {
     setHideUnavailable(next);
-    setVenueErr(null);
+    venueError.clear();
     setVenueOk(null);
     if (venueSavingRef.current) {
       venuePendingRef.current = next;
@@ -143,7 +147,9 @@ export default function ActivityManagerCard({
     } catch (e) {
       venuePendingRef.current = null;
       setHideUnavailable(venueSavedRef.current);
-      setVenueErr(errorMessage(e, 'The setting could not be saved. Try again.'));
+      venueError.show('The unavailable activities setting could not be saved. Try again.', {
+        error: e,
+      });
     } finally {
       venueSavingRef.current = false;
       setVenueSaving(false);
@@ -188,7 +194,7 @@ export default function ActivityManagerCard({
     const isCurrent = beginRequest();
     setLoading(true);
     setLoadErr(null);
-    setErr(null);
+    saveError.clear();
     setOk(null);
     try {
       const r = await adminListActivities(venueId);
@@ -205,7 +211,7 @@ export default function ActivityManagerCard({
     } finally {
       if (isCurrent()) setLoading(false);
     }
-  }, [venueId, beginRequest]);
+  }, [venueId, beginRequest, saveError]);
 
   useEffect(() => {
     load();
@@ -226,7 +232,9 @@ export default function ActivityManagerCard({
 
   const openMedia = (id: number) => {
     if (!wp?.media) {
-      setErr('The WordPress media library is not available on this page. Reload and try again.');
+      saveError.show('The WordPress media library is not available on this page.', {
+        description: 'Reload the page and try again.',
+      });
       return;
     }
     const frame = wp.media({
@@ -248,11 +256,13 @@ export default function ActivityManagerCard({
     onCell(id, 'image_url', null);
   };
 
+  // The toast's Try again saves the edits as they are then, not as they were when it failed.
+  const saveAllRef = useRef<() => void>(() => {});
   const saveAll = async () => {
     const changed = rows.filter((r) => dirty.has(r.id));
-    if (changed.length === 0) return;
+    if (saving || changed.length === 0) return;
     setSaving(true);
-    setErr(null);
+    saveError.clear();
     setOk(null);
     try {
       const results = await Promise.allSettled(
@@ -283,13 +293,15 @@ export default function ActivityManagerCard({
         const firstReason = (results.find((x) => x.status === 'rejected') as PromiseRejectedResult)
           ?.reason;
         const names = failed.map((r) => r.name || `#${r.id}`).join(', ');
-        setErr(
-          errorMessage(
-            firstReason,
-            `${failed.length} of ${changed.length} ${
-              changed.length === 1 ? 'activity' : 'activities'
-            } could not be saved: ${names}. Your changes are still here; try saving again.`,
-          ),
+        const reason = errorReason(firstReason);
+        saveError.show(
+          `${failed.length} of ${changed.length} ${
+            changed.length === 1 ? 'activity' : 'activities'
+          } could not be saved.`,
+          {
+            description: `${names}${reason ? ` (${reason})` : ''}. Your changes are still here; try saving again.`,
+            action: { label: 'Try again', onClick: () => saveAllRef.current() },
+          },
         );
       } else {
         setOk(`Saved ${changed.length} ${changed.length === 1 ? 'activity' : 'activities'}.`);
@@ -299,6 +311,8 @@ export default function ActivityManagerCard({
       setSaving(false);
     }
   };
+
+  saveAllRef.current = saveAll;
 
   const showList = !loading && !loadErr && rows.length > 0;
 
@@ -406,7 +420,6 @@ export default function ActivityManagerCard({
               </p>
             )}
             {!venueSaving && venueOk && <StatusMessage tone="success">{venueOk}</StatusMessage>}
-            {venueErr && <StatusMessage tone="error">{venueErr}</StatusMessage>}
           </aside>
         )}
 
@@ -439,12 +452,6 @@ export default function ActivityManagerCard({
                 </select>
               </div>
             </div>
-          )}
-
-          {err && (
-            <StatusMessage tone="error" block>
-              {err}
-            </StatusMessage>
           )}
 
           {loading && <Loading>Loading activities…</Loading>}

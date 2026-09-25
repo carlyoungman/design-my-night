@@ -13,10 +13,13 @@ import ProgressBar from '@app/components/ProgressBar';
 import { useBookingTypes } from '@app/hooks/useBookingTypes';
 import { parseAllowedDays } from '@app/utils/helpers';
 import { STEPS, stepHeadingId, type StepKey } from '@app/utils/steps';
+import { useToasts } from '@app/components/Toasts';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
+  const ref = useRef<HTMLDivElement>(null);
+  useToasts(ref);
   return (
-    <div className="dmn-widget" role="form" aria-label="Make a booking">
+    <div ref={ref} className="dmn-widget" role="form" aria-label="Make a booking">
       <WidgetProvider {...props}>
         <WidgetInner />
       </WidgetProvider>

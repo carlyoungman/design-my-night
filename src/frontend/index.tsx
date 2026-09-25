@@ -40,5 +40,8 @@ function boot(el: HTMLElement) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll<HTMLElement>('.dmn-widget-root').forEach(boot);
+  // `--toasts` roots are the widgets' toast containers (see components/Toasts.tsx), not widgets.
+  document
+    .querySelectorAll<HTMLElement>('.dmn-widget-root:not(.dmn-widget-root--toasts)')
+    .forEach(boot);
 });

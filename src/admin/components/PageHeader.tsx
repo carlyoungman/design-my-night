@@ -1,20 +1,17 @@
 // src/admin/components/PageHeader.tsx
 // Page identity plus the page-level action: importing venues and activities from DesignMyNight.
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { adminOverview, adminSyncAll } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
-import {
-  ProgressPanel,
-  StatusMessage,
-  errorMessage,
-  useElapsedSeconds,
-} from '@admin/components/ui';
+import { ProgressPanel, StatusMessage, useElapsedSeconds } from '@admin/components/ui';
+import { useErrorToast } from '@admin/components/Toasts';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const seconds = (ms: number) => Math.max(1, Math.round(ms / 1000));
 
-type Result = { ok: boolean; message: string; durationMs?: number; issues?: number };
+/** A successful import. A failed one is reported in an error toast with Try again. */
+type Result = { message: string; durationMs?: number; issues?: number };
 
 export default function PageHeader() {
   const { notifyDataChanged, goToSection } = useAdmin();
@@ -23,6 +20,9 @@ export default function PageHeader() {
   // How long the last successful import took, to set expectations for the next one.
   const [typicalMs, setTypicalMs] = useState<number | null>(null);
   const elapsed = useElapsedSeconds(busy);
+  const importError = useErrorToast();
+  // Try again in the toast runs the import as it is then.
+  const runImportRef = useRef<() => void>(() => {});
 
   // Reads the stored import record; makes no DesignMyNight request.
   useEffect(() => {
@@ -46,10 +46,10 @@ export default function PageHeader() {
     if (busy) return;
     setBusy(true);
     setResult(null);
+    importError.clear();
     try {
       const r = await adminSyncAll();
       setResult({
-        ok: true,
         message:
           r.message ||
           `Imported ${plural(r.venues_count ?? 0, 'venue', 'venues')} and ${plural(
@@ -63,13 +63,18 @@ export default function PageHeader() {
       if (r.duration_ms) setTypicalMs(r.duration_ms);
       notifyDataChanged();
     } catch (e) {
-      setResult({ ok: false, message: errorMessage(e, 'Import from DesignMyNight failed') });
+      importError.show('Import from DesignMyNight failed.', {
+        error: e,
+        action: { label: 'Try again', onClick: () => runImportRef.current() },
+      });
       // A failed import is recorded too, so the dashboard shows it.
       notifyDataChanged();
     } finally {
       setBusy(false);
     }
   };
+
+  runImportRef.current = runImport;
 
   let expectation = 'This can take a minute if you have many venues.';
   if (typicalMs != null) {
@@ -123,30 +128,22 @@ export default function PageHeader() {
           ) : (
             result && (
               <ProgressPanel
-                state={result.ok ? 'success' : 'error'}
+                state="success"
                 meta={result.durationMs ? `Took ${seconds(result.durationMs)} s` : undefined}
                 onDismiss={() => setResult(null)}
                 actions={
-                  result.ok ? (
-                    !!result.issues && (
-                      <button
-                        type="button"
-                        className="button button--text"
-                        onClick={() => goToSection('dashboard')}
-                      >
-                        See problems on the Dashboard
-                      </button>
-                    )
-                  ) : (
-                    <button type="button" className="button button--secondary" onClick={runImport}>
-                      Try again
+                  !!result.issues && (
+                    <button
+                      type="button"
+                      className="button button--text"
+                      onClick={() => goToSection('dashboard')}
+                    >
+                      See problems on the Dashboard
                     </button>
                   )
                 }
               >
-                <StatusMessage tone={result.ok ? 'success' : 'error'}>
-                  {result.message}
-                </StatusMessage>
+                <StatusMessage tone="success">{result.message}</StatusMessage>
               </ProgressPanel>
             )
           )}

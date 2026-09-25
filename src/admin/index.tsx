@@ -12,6 +12,7 @@ import SettingsCard from '@admin/components/SettingsCard';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
 import AppearanceCard from '@admin/components/AppearanceCard';
+import { ToastsProvider } from '@admin/components/Toasts';
 
 declare global {
   interface Window {
@@ -57,32 +58,34 @@ function App() {
 
   return (
     <AdminProvider>
-      <PageHeader />
-      <SectionTabs
-        unsaved={{
-          venues: venuesDirty,
-          'url-params': paramsDirty,
-          appearance: appearanceDirty,
-        }}
-      />
-      <Panel id="dashboard">
-        <Dashboard />
-      </Panel>
-      <Panel id="venues">
-        <VenuesPanel onDirty={setVenuesDirty} />
-      </Panel>
-      <Panel id="connection">
-        <SettingsCard />
-      </Panel>
-      <Panel id="url-params">
-        <UrlParamsCard onDirty={setParamsDirty} />
-      </Panel>
-      <Panel id="shortcode">
-        <ShortcodeCard />
-      </Panel>
-      <Panel id="appearance">
-        <AppearanceCard onDirty={setAppearanceDirty} />
-      </Panel>
+      <ToastsProvider>
+        <PageHeader />
+        <SectionTabs
+          unsaved={{
+            venues: venuesDirty,
+            'url-params': paramsDirty,
+            appearance: appearanceDirty,
+          }}
+        />
+        <Panel id="dashboard">
+          <Dashboard />
+        </Panel>
+        <Panel id="venues">
+          <VenuesPanel onDirty={setVenuesDirty} />
+        </Panel>
+        <Panel id="connection">
+          <SettingsCard />
+        </Panel>
+        <Panel id="url-params">
+          <UrlParamsCard onDirty={setParamsDirty} />
+        </Panel>
+        <Panel id="shortcode">
+          <ShortcodeCard />
+        </Panel>
+        <Panel id="appearance">
+          <AppearanceCard onDirty={setAppearanceDirty} />
+        </Panel>
+      </ToastsProvider>
     </AdminProvider>
   );
 }

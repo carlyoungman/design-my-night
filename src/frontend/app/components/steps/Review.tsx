@@ -6,6 +6,7 @@ import { continueCheckout } from '@app/utils/checkout';
 import { isStepDone, STEPS } from '@app/utils/steps';
 import { validateCustomer } from '@app/utils/validation';
 import { StateMessage } from '@app/components/StateMessage';
+import { useErrorToast } from '@app/components/Toasts';
 
 type ReviewStepProps = {
   sections?: { booking?: boolean; details?: boolean; payment?: boolean };
@@ -31,7 +32,9 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submitError = useErrorToast();
+  // Try again in the toast continues with the details as they are then.
+  const continueRef = useRef<() => void>(() => {});
 
   const venueName = useMemo(() => {
     const selected = venues.find((v) => v._id === state.venueId);
@@ -67,7 +70,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
   const handleContinue = useCallback(async () => {
     if (missingSteps.length || submitting || redirecting) return;
-    setSubmitError(null);
+    submitError.clear();
 
     // Validate the details step; show every error and move focus to the first one.
     if (detailErrorCount > 0) {
@@ -85,9 +88,12 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
       // The browser is now navigating to DesignMyNight's checkout.
       setRedirecting(true);
     } catch (e) {
-      setSubmitError(
-        friendly(e instanceof Error ? e.message : 'We couldn’t start your booking.') +
-          ' Your details have been kept.',
+      submitError.show(
+        friendly(e instanceof Error ? e.message : 'We couldn’t start your booking.'),
+        {
+          description: 'Your details have been kept.',
+          action: { label: 'Try again', onClick: () => continueRef.current() },
+        },
       );
     } finally {
       setSubmitting(false);
@@ -97,11 +103,13 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     submitting,
     redirecting,
     detailErrorCount,
+    submitError,
     dispatch,
     state,
     returnUrl,
     urlParams,
   ]);
+  continueRef.current = handleContinue;
 
   const show = {
     booking: sections?.booking ?? true,
@@ -240,8 +248,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
       {show.payment && (
         <div className="review__section">
-          {submitError && <StateMessage kind="error">{submitError}</StateMessage>}
-          {state.detailsAttempted && detailErrorCount > 0 && !submitError && (
+          {state.detailsAttempted && detailErrorCount > 0 && (
             <StateMessage kind="error">
               {detailErrorCount === 1
                 ? '1 field in your details needs attention.'

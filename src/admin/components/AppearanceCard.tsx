@@ -5,14 +5,8 @@ import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'rea
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { getAppearance, saveAppearance, type Appearance, type ColourMode } from '@admin/api';
-import {
-  FieldError,
-  LoadError,
-  Loading,
-  SaveState,
-  StatusMessage,
-  errorMessage,
-} from '@admin/components/ui';
+import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
+import { useErrorToast } from '@admin/components/Toasts';
 
 type FormState = {
   theme_colour: string;
@@ -52,7 +46,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const saveError = useErrorToast();
   const [ok, setOk] = useState<string | null>(null);
   const [colourErr, setColourErr] = useState<string | null>(null);
   const [defaultColour, setDefaultColour] = useState('#6750a4');
@@ -113,7 +107,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setErr(null);
+    saveError.clear();
     setOk(null);
     const colour = normaliseHex(form.theme_colour);
     if (!colour) {
@@ -129,7 +123,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
       applyToAdmin(res);
       setOk('Appearance saved.');
     } catch (e2) {
-      setErr(errorMessage(e2, 'Appearance could not be saved. Try again.'));
+      saveError.show('Appearance could not be saved. Try again.', { error: e2 });
     } finally {
       setSaving(false);
     }
@@ -243,12 +237,6 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
             </button>
           </div>
         </form>
-      )}
-
-      {err && (
-        <StatusMessage tone="error" block>
-          {err}
-        </StatusMessage>
       )}
     </section>
   );
