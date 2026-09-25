@@ -163,6 +163,76 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
+// A fieldset laid out as a field. Floating the legend makes it an ordinary flex item, so it takes
+// the field's gap like a label.
+fieldset.dmn-admin__field > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+}
+
+// Radio options stacked as selectable rows, each with a title and a short description. Suits
+// choices that need explaining or sit in narrow columns, where segmented buttons would wrap.
+.dmn-admin__choices {
+  display: grid;
+  gap: var(--universal-space-half);
+}
+
+.dmn-admin__choice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px var(--universal-space);
+  font-weight: 400;
+  cursor: pointer;
+  border: 1px solid var(--c-outline);
+  border-radius: 12px;
+  transition: var(--transition);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--c-primary) 8%, transparent);
+  }
+
+  &:has(input:checked) {
+    background-color: color-mix(in srgb, var(--c-primary) 12%, transparent);
+    border-color: var(--c-primary);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--c-primary);
+    outline-offset: 2px;
+  }
+
+  &:has(input:disabled) {
+    cursor: not-allowed;
+  }
+
+  // WordPress draws its own radio in a fixed blue. Use the browser's, in the theme colour.
+  input[type='radio'] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    appearance: auto;
+    accent-color: var(--c-primary);
+    box-shadow: none;
+  }
+}
+
+.dmn-admin__choice-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dmn-admin__choice-help {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .dmn-admin__field-error {
   display: flex;
   gap: 6px;

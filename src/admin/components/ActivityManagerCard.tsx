@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { ChevronDown, ChevronLeft, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
@@ -100,7 +100,15 @@ export default function ActivityManagerCard({
   const [venueErr, setVenueErr] = useState<string | null>(null);
   const [venueOk, setVenueOk] = useState<string | null>(null);
 
+  // The last value the server confirmed, and a change made while a save was running. Arrow keys
+  // change the selection one press at a time, so saves run one after another and only the latest
+  // choice is sent next.
+  const venueSavedRef = useRef(venue.hide_unavailable);
+  const venueSavingRef = useRef(false);
+  const venuePendingRef = useRef<boolean | null>(null);
+
   useEffect(() => {
+    venueSavedRef.current = venue.hide_unavailable;
     setHideUnavailable(venue.hide_unavailable);
   }, [venue.hide_unavailable]);
 
@@ -110,20 +118,34 @@ export default function ActivityManagerCard({
   }, [venueId]);
 
   const saveHideUnavailable = async (next: boolean) => {
-    const previous = hideUnavailable;
     setHideUnavailable(next);
-    setVenueSaving(true);
     setVenueErr(null);
     setVenueOk(null);
+    if (venueSavingRef.current) {
+      venuePendingRef.current = next;
+      return;
+    }
+    venueSavingRef.current = true;
+    setVenueSaving(true);
     try {
-      const r = await adminSaveVenue(venueId, { hide_unavailable: next });
-      setHideUnavailable(r.hide_unavailable);
+      let value = next;
+      for (;;) {
+        const r = await adminSaveVenue(venueId, { hide_unavailable: value });
+        venueSavedRef.current = r.hide_unavailable;
+        const pending = venuePendingRef.current;
+        venuePendingRef.current = null;
+        if (pending === null || pending === r.hide_unavailable) break;
+        value = pending;
+      }
+      setHideUnavailable(venueSavedRef.current);
       setVenueOk('Saved.');
       onSaved?.();
     } catch (e) {
-      setHideUnavailable(previous);
+      venuePendingRef.current = null;
+      setHideUnavailable(venueSavedRef.current);
       setVenueErr(errorMessage(e, 'The setting could not be saved. Try again.'));
     } finally {
+      venueSavingRef.current = false;
       setVenueSaving(false);
     }
   };
@@ -338,30 +360,46 @@ export default function ActivityManagerCard({
             aria-labelledby="dmn-admin-venue-options-title"
           >
             <h3 id="dmn-admin-venue-options-title">Venue options</h3>
-            <div className="dmn-admin__field">
-              <span className="dmn-admin__label" id="dmn-admin-venue-unavailable-label">
-                Unavailable activities
-              </span>
-              <ToggleButtonGroup
-                value={hideUnavailable ? 'hide' : 'show'}
-                exclusive
-                disabled={venueSaving}
-                onChange={(_, newValue) => {
-                  if (!newValue) return; // one option must stay selected
-                  saveHideUnavailable(newValue === 'hide');
-                }}
-                aria-labelledby="dmn-admin-venue-unavailable-label"
-                aria-describedby="dmn-admin-venue-unavailable-help"
-              >
-                <ToggleButton value="show">Show as unavailable</ToggleButton>
-                <ToggleButton value="hide">Hide</ToggleButton>
-              </ToggleButtonGroup>
+            <fieldset
+              className="dmn-admin__field"
+              aria-busy={venueSaving}
+              aria-describedby="dmn-admin-venue-unavailable-help"
+            >
+              <legend className="dmn-admin__label">Unavailable activities</legend>
               <p id="dmn-admin-venue-unavailable-help" className="dmn-admin__help">
-                When DesignMyNight can&apos;t take an activity for the chosen date or group size,
-                either show it in the booking widget with its reason or leave it out. Saved straight
-                away.
+                Choose what the booking widget does with an activity DesignMyNight can&apos;t take
+                for the chosen date or group size. Changes save straight away.
               </p>
-            </div>
+              <div className="dmn-admin__choices">
+                {(
+                  [
+                    {
+                      value: false,
+                      title: 'Show as unavailable',
+                      help: 'Customers see it greyed out, with the reason.',
+                    },
+                    {
+                      value: true,
+                      title: 'Hide',
+                      help: 'Left out of the booking widget.',
+                    },
+                  ] as const
+                ).map((option) => (
+                  <label key={option.title} className="dmn-admin__choice">
+                    <input
+                      type="radio"
+                      name="dmn-admin-venue-unavailable"
+                      checked={hideUnavailable === option.value}
+                      onChange={() => saveHideUnavailable(option.value)}
+                    />
+                    <span>
+                      <span className="dmn-admin__choice-title">{option.title}</span>
+                      <span className="dmn-admin__choice-help">{option.help}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             {venueSaving && (
               <p className="dmn-admin__help" role="status">
                 Saving…
