@@ -164,7 +164,7 @@ The booking widget (`src/frontend`) is embedded in pages of someone else's theme
   - show where the user is in the flow (progress bar and step labels),
   - allow going back without losing entered data,
   - validate only the current step, inline, before moving on,
-  - announce step changes and errors to assistive technologies. Because every step stays on the page, focus is not moved automatically when a choice is made (that would pull keyboard users out of radio groups); each step heading is focusable, and when the customer continues with invalid details, focus moves to the first invalid field.
+  - move focus to the next step's heading when a choice completes a step (`goToStep` in `src/frontend/app/utils/scroll.ts`), except while the customer is changing options with the arrow keys, which would pull them out of a radio group. Announce step changes and errors to assistive technologies, and when the customer continues with invalid details, move focus to the first invalid field.
 - **Live data.** Venues, booking types, and availability come from the DMN API. Every step that depends on them needs loading, empty (for example, “no availability on this date”), and error states with a way to retry or pick something else.
 - **Submission.** Prevent double submission, keep the user's details if a booking or enquiry fails, and show a clear confirmation or next step (including the external-booking hand-off) on success.
 - **Performance.** Enqueue widget assets only on pages that render the `dmn_booking` shortcode, as the plugin does now.

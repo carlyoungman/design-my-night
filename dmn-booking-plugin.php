@@ -211,7 +211,10 @@ add_action('admin_menu', function () {
     'manage_options',
     'dmn-booking-admin',
     function () {
+      // WordPress moves admin notices to just after .wp-header-end. It sits outside .dmn-admin so
+      // notices from core and other plugins don't pick up the plugin's scoped styles.
       echo '<div class="wrap">'
+        . '<hr class="wp-header-end">'
         . '<div class="dmn-admin">'
         . '<h1 class="dmn-admin__title">' . esc_html__('DesignMyNight bookings', 'dmn-booking') . '</h1>'
         . '<p class="dmn-admin__intro">' . esc_html__('Connect to DesignMyNight, import your venues and activities, then choose how each venue appears in the booking widget.', 'dmn-booking') . '</p>'

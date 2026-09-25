@@ -3,7 +3,14 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { adminListActivities, adminSaveActivity } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
-import { LoadError, Loading, SaveState, StatusMessage, errorMessage } from '@admin/components/ui';
+import {
+  LoadError,
+  Loading,
+  SaveState,
+  StatusMessage,
+  errorMessage,
+  useLatestRequest,
+} from '@admin/components/ui';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
 
@@ -55,6 +62,7 @@ const isChanged = (r: AdminActivity, o: AdminActivity) =>
 export default function ActivityManagerCard({ onDirty }: Props) {
   const { selectedVenueId, dataVersion } = useAdmin();
   const [loading, setLoading] = useState(false);
+  const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [rows, setRows] = useState<AdminActivity[]>([]);
   const [orig, setOrig] = useState<AdminActivity[]>([]);
@@ -80,9 +88,11 @@ export default function ActivityManagerCard({ onDirty }: Props) {
   // with adminListMenus() and add a select bound to `menu_post_id`.
 
   const load = useCallback(async () => {
+    const isCurrent = beginRequest();
     if (!selectedVenueId) {
       setRows([]);
       setOrig([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -91,15 +101,17 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     setOk(null);
     try {
       const r = await adminListActivities(Number(selectedVenueId));
+      if (!isCurrent()) return;
       const list = r.activities.map(withDefaults);
       setRows(list);
       setOrig(list);
     } catch (e) {
+      if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'Activities could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [selectedVenueId]);
+  }, [selectedVenueId, beginRequest]);
 
   useEffect(() => {
     load();
@@ -192,10 +204,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
           Activities
         </h2>
         <div className="dmn-admin__header__inner">
-          <SaveState
-            dirty={dirty.size > 0}
-            ok={ok}
-          />
+          <SaveState dirty={dirty.size > 0} ok={ok} />
           {selectedVenueId && rows.length > 0 && (
             <button
               type="button"
@@ -214,7 +223,11 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         </div>
       </div>
 
-      {err && <StatusMessage tone="error" block>{err}</StatusMessage>}
+      {err && (
+        <StatusMessage tone="error" block>
+          {err}
+        </StatusMessage>
+      )}
 
       {!selectedVenueId && (
         <p className="dmn-admin__empty">Choose a venue above to edit its activities.</p>

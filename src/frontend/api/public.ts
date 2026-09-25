@@ -1,4 +1,4 @@
-import { j } from './http';
+import { j, restUrl } from './http';
 
 /* ---------- Venues ---------- */
 
@@ -126,9 +126,9 @@ export async function getAddons(venueId: string, activityId?: string, allowDisab
 
 /** Base fetch for public endpoints */
 async function wpPublicFetch<T = any>(slug: string, init: RequestInit = {}): Promise<T> {
-  // Use the REST base WordPress gives us so sites without pretty permalinks or in a subdirectory work.
-  const base = window.DMN_PUBLIC_BOOT?.restUrl || '/wp-json/dmn/v1/';
-  const res = await fetch(`${base}public/${slug}`, {
+  // Built from the REST base WordPress gives us, so subdirectory installs and sites without
+  // pretty permalinks (`?rest_route=`) both work.
+  const res = await fetch(restUrl(`public/${slug}`), {
     method: init.method || 'GET',
     credentials: 'same-origin',
     headers: {

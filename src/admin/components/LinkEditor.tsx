@@ -15,6 +15,7 @@ import {
   StatusMessage,
   errorMessage,
   isValidUrl,
+  useLatestRequest,
 } from '@admin/components/ui';
 
 type Props = { onDirty?: (d: boolean) => void };
@@ -38,6 +39,8 @@ function useLargeGroupEditor(venueId: number | null) {
   const [origMaxPartySize, setOrigMaxPartySize] = useState(String(DEFAULT_MAX_PARTY_SIZE));
 
   const [loading, setLoading] = useState(false);
+
+  const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
@@ -49,13 +52,18 @@ function useLargeGroupEditor(venueId: number | null) {
   const invalid = urlInvalid || maxInvalid || label.length > MAX_LABEL;
 
   const load = useCallback(async () => {
-    if (!venueId) return;
+    const isCurrent = beginRequest();
+    if (!venueId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLoadErr(null);
     setErr(null);
     setOk(null);
     try {
       const r = await adminGetLargeGroupLink(venueId);
+      if (!isCurrent()) return;
       const incomingUrl = typeof r?.url === 'string' ? r.url.slice(0, MAX_URL) : '';
       const incomingLabel = typeof r?.label === 'string' ? r.label.slice(0, MAX_LABEL) : '';
       const incomingMax = String(r?.maxPartySize > 0 ? r.maxPartySize : DEFAULT_MAX_PARTY_SIZE);
@@ -66,11 +74,12 @@ function useLargeGroupEditor(venueId: number | null) {
       setMaxPartySize(incomingMax);
       setOrigMaxPartySize(incomingMax);
     } catch (e) {
+      if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'The large group settings could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [venueId]);
+  }, [venueId, beginRequest]);
 
   useEffect(() => {
     load();
@@ -133,6 +142,7 @@ function useReturnUrl(venueId: number | null) {
   const [url, setUrlState] = useState('');
   const [origUrl, setOrigUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
@@ -142,22 +152,28 @@ function useReturnUrl(venueId: number | null) {
   const invalid = useMemo(() => !isValidUrl(url.trim()) || url.length > MAX_URL, [url]);
 
   const load = useCallback(async () => {
-    if (!venueId) return;
+    const isCurrent = beginRequest();
+    if (!venueId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLoadErr(null);
     setErr(null);
     setOk(null);
     try {
       const r = await adminGetReturnUrl(venueId);
+      if (!isCurrent()) return;
       const incomingUrl = typeof r?.url === 'string' ? r.url.slice(0, MAX_URL) : '';
       setUrlState(incomingUrl);
       setOrigUrl(incomingUrl);
     } catch (e) {
+      if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'The return URL could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [venueId]);
+  }, [venueId, beginRequest]);
 
   useEffect(() => {
     load();

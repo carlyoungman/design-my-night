@@ -6,7 +6,7 @@ import { Check } from 'lucide-react';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { StateMessage } from '@app/components/StateMessage';
-import { scrollToSection } from '@app/utils/scroll';
+import { goToStep } from '@app/utils/scroll';
 
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -167,10 +167,7 @@ export function Type({
             const selected = filteredTypes.find((t) => String(t.id) === next);
 
             dispatch({ type: 'SET_DURATION', value: selected?.duration ?? null });
-            scrollToSection('section[data-step="time"]', {
-              offset: { mobile: 190, desktop: 200 },
-              delay: 400,
-            });
+            goToStep('time');
           }
         }}
         className="type__list"

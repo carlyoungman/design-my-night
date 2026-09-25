@@ -3,6 +3,7 @@ import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import type { VenueStepProps } from '@app/types';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StateMessage } from '@app/components/StateMessage';
+import { goToStep } from '@app/utils/scroll';
 
 type Props = VenueStepProps & { onRetry?: () => void; labelledBy: string };
 
@@ -35,8 +36,8 @@ export function Venue({
     dispatch({ type: 'SET_VENUE_NAME', name: selected.name || selected.title || '' });
   }, [defaultVenueId, defaultExists, state.venueId, venues, dispatch]);
 
-  // Changing venue clears the later steps (see the reducer). No auto-scroll here: a keyboard
-  // user moving through the options with the arrow keys would be scrolled away mid-choice.
+  // Changing venue clears the later steps (see the reducer). goToStep leaves focus alone while
+  // the options are being changed with the arrow keys.
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedId = e.target.value || null;
@@ -44,6 +45,7 @@ export function Venue({
 
       dispatch({ type: 'SET_VENUE', id: selectedId });
       dispatch({ type: 'SET_VENUE_NAME', name: selectedName });
+      if (selectedId) goToStep('party', { from: e.target });
     },
     [dispatch],
   );

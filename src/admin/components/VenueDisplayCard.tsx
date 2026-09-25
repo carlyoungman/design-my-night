@@ -14,6 +14,7 @@ import {
   StatusMessage,
   errorMessage,
   isValidUrl,
+  useLatestRequest,
 } from '@admin/components/ui';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,6 +47,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
   const [current, setCurrent] = useState<VenueDisplaySettings>(EMPTY);
   const [saved, setSaved] = useState<VenueDisplaySettings>(EMPTY);
   const [loading, setLoading] = useState(false);
+  const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
@@ -67,9 +69,11 @@ export default function VenueDisplayCard({ onDirty }: Props) {
   }, [dirty, onDirty]);
 
   const load = useCallback(async () => {
+    const isCurrent = beginRequest();
     if (!selectedVenueId) {
       setCurrent(EMPTY);
       setSaved(EMPTY);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -78,6 +82,7 @@ export default function VenueDisplayCard({ onDirty }: Props) {
     setOk(null);
     try {
       const r = await adminGetVenueDisplay(Number(selectedVenueId));
+      if (!isCurrent()) return;
       const normalised: VenueDisplaySettings = {
         mode: ALLOWED_MODES.includes(r.mode) ? r.mode : 'display',
         inline_message: r.inline_message ?? '',
@@ -91,11 +96,12 @@ export default function VenueDisplayCard({ onDirty }: Props) {
       setCurrent(normalised);
       setSaved(normalised);
     } catch (e) {
+      if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'Display settings could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [selectedVenueId]);
+  }, [selectedVenueId, beginRequest]);
 
   useEffect(() => {
     load();
@@ -214,8 +220,8 @@ export default function VenueDisplayCard({ onDirty }: Props) {
                     widget.
                   </li>
                   <li>
-                    <strong>{MODE_LABELS.hidden}</strong>: not listed. When the shortcode
-                    preselects this venue, nothing is shown.
+                    <strong>{MODE_LABELS.hidden}</strong>: not listed. When the shortcode preselects
+                    this venue, nothing is shown.
                   </li>
                 </ul>
               </div>

@@ -6,7 +6,7 @@ import { checkAvailability } from '@api/public';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
 import { StateMessage } from '@app/components/StateMessage';
-import { scrollToSection } from '@app/utils/scroll';
+import { goToStep } from '@app/utils/scroll';
 
 type SuggestedTime = { iso: string; label: string };
 
@@ -95,10 +95,7 @@ export function Time({ labelledBy }: { labelledBy: string }) {
   const handleChange = useCallback(
     (value: unknown) => {
       dispatch({ type: 'SET_TIME', value: String(value) });
-      scrollToSection('section[data-step="details"]', {
-        offset: { mobile: 190, desktop: 200 },
-        delay: 400,
-      });
+      goToStep('details');
     },
     [dispatch],
   );

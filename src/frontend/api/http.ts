@@ -1,7 +1,19 @@
 const DEBUG = false; // flip to false to disable logging
 
+/**
+ * Join the REST base with a route that may carry a query string. Without pretty permalinks the
+ * base is `…/?rest_route=/dmn/v1/`, so the route's own query must be appended with `&`, not `?`.
+ */
+export function restUrl(path: string): string {
+  const base = window.DMN_PUBLIC_BOOT?.restUrl || '/wp-json/dmn/v1/';
+  const [route, query] = path.split(/\?(.*)/s, 2);
+  const url = base + route;
+  if (!query) return url;
+  return url + (base.includes('?') ? '&' : '?') + query;
+}
+
 export async function j<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = window.DMN_PUBLIC_BOOT.restUrl + path;
+  const url = restUrl(path);
 
   const res = await fetch(url, {
     ...init,

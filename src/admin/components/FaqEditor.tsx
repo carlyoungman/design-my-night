@@ -2,7 +2,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAdmin } from '@admin/AdminContext';
 import { adminListFaqs, adminSaveFaqs } from '@admin/api';
-import { LoadError, Loading, SaveState, StatusMessage, errorMessage } from '@admin/components/ui';
+import {
+  LoadError,
+  Loading,
+  SaveState,
+  StatusMessage,
+  errorMessage,
+  useLatestRequest,
+} from '@admin/components/ui';
 
 type Faq = { question: string; answer: string };
 type Props = { onDirty?: (d: boolean) => void };
@@ -15,6 +22,7 @@ export default function FaqEditor({ onDirty }: Props) {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [orig, setOrig] = useState<Faq[]>([]);
   const [loading, setLoading] = useState(false);
+  const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
@@ -30,22 +38,28 @@ export default function FaqEditor({ onDirty }: Props) {
   useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
 
   const load = useCallback(async () => {
-    if (!selectedVenueId) return;
+    const isCurrent = beginRequest();
+    if (!selectedVenueId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLoadErr(null);
     setErr(null);
     setOk(null);
     try {
       const r = await adminListFaqs(Number(selectedVenueId));
+      if (!isCurrent()) return;
       const list = Array.isArray(r.faqs) ? r.faqs : [];
       setFaqs(list);
       setOrig(list);
     } catch (e) {
+      if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'FAQs could not be loaded.'));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [selectedVenueId]);
+  }, [selectedVenueId, beginRequest]);
 
   useEffect(() => {
     load();
