@@ -22,7 +22,7 @@ DesignMyNight (DMN) APIs to fetch venues, booking types, availability, and to su
 - **WordPress** plugin (PHP) exposing `/wp-json/dmn/v1/*` endpoints and enqueueing compiled assets.
 - **React + TypeScript** widget (Base UI components + Lucide icons).
 - **SCSS** for widget styling.
-- **MUI** for the admin UI with a custom dark theme.
+- **MUI** for the admin UI with a light theme, styled with SCSS.
 
 ## Repository layout
 
@@ -173,8 +173,9 @@ Customer fields sent to DMN on submit:
 
 ## Styling & theming
 
-- Widget styles live under `src/frontend/app/styles` (SCSS). BEM‑style classes with a small design token layer.
-- Admin app uses **MUI** with a custom dark theme; override via `createTheme` in `src/admin/theme.ts`.
+- Widget styles live under `src/frontend/styles` (SCSS). BEM‑style classes with a small design token layer scoped to `.dmn-widget-root`.
+- Admin app uses **MUI** with a light theme; tokens and overrides live in `src/admin/styles` (SCSS).
+- Design rules for both surfaces are in [`CLAUDE.md`](CLAUDE.md).
 
 ## Accessibility
 
