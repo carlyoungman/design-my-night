@@ -199,9 +199,11 @@ class PublicController
     ]);
 
     $configuredById = [];
+    $hideUnavailable = false;
 
     if ($venuePosts) {
       $venuePostId = (int)$venuePosts[0];
+      $hideUnavailable = get_post_meta($venuePostId, 'dmn_hide_unavailable', true) === '1';
 
       $acts = get_posts([
         'post_type' => 'dmn_activity',
@@ -251,6 +253,12 @@ class PublicController
         if ($conf === null) continue;
 
         $valid = array_key_exists('valid', $base) ? $base['valid'] : null;
+
+        // Venue setting: leave out types DMN reports as unavailable for this date and group size.
+        if ($hideUnavailable && $valid === false) {
+          $seen[$id] = true;
+          continue;
+        }
         $msg = array_key_exists('message', $base) ? ($base['message'] ?? '') : '';
 
         // The unavailable reason goes in `message` only; the widget shows it under the description.

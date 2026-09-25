@@ -127,6 +127,17 @@
     font-size: 14px;
   }
 
+  // Venue-level widget settings, above the activity toolbar.
+  &__venue-settings {
+    display: grid;
+    gap: var(--universal-space-half);
+    margin: 0 0 var(--universal-space);
+
+    h3 {
+      margin: 0;
+    }
+  }
+
   &__toolbar--one {
     @include breakpoint.medium-screen-min {
       grid-template-columns: minmax(0, 420px);
