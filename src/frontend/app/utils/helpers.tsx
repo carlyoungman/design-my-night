@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material';
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 import dayjs from 'dayjs';
 import type { DayName, AllowedDaysInput } from '@app/types';
 
@@ -51,67 +52,80 @@ export const todayISO = (): string => dayjs().format('YYYY-MM-DD');
  */
 export const sixMonthsISO = (): string => dayjs().add(6, 'month').format('YYYY-MM-DD');
 
-export const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    background: { default: '#000', paper: '#000' },
-    text: { primary: '#fff', secondary: 'rgba(255,255,255,.7)' },
-    primary: { main: '#fff' },
-  },
+/**
+ * Theme for the MUI DateCalendar. Colours come from the widget's CSS custom properties
+ * (defined on `.dmn-widget-root`), so the calendar follows the palette and any site re-theme.
+ * They are only used in style overrides: MUI's palette needs literal colours to compute contrast.
+ */
+export const calendarTheme = createTheme({
+  typography: { fontFamily: 'inherit' },
   components: {
-    // @ts-ignore
     MuiDateCalendar: {
       styleOverrides: {
         root: {
           width: '100%',
-          backgroundColor: '#000',
-          color: '#fff',
-          '& .MuiDayCalendar-weekContainer': {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-            gap: 7.5,
-            padding: 7.5,
+          maxWidth: 420,
+          height: 'auto',
+          maxHeight: 'none',
+          margin: 0,
+          color: 'var(--c-near-black)',
+          backgroundColor: 'var(--c-white)',
+          border: '1px solid var(--c-lilac-grey)',
+          borderRadius: 'var(--border-radius)',
+          '& .MuiDayCalendar-header, & .MuiDayCalendar-weekContainer': {
+            justifyContent: 'space-around',
           },
-          '& .MuiDayCalendar-weekDayLabel': { color: 'rgba(255,255,255,.7)' },
-          '& .MuiPickersDay-root': { width: '100%', margin: 0 },
-        },
-      },
-    },
-    MuiPickersArrowSwitcher: {
-      styleOverrides: {
-        root: {
-          '& .MuiSvgIcon-root': {
-            '& path': { display: 'none' },
-            backgroundImage:
-              'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jaGV2cm9uLWRvd24taWNvbiBsdWNpZGUtY2hldnJvbi1kb3duIj48cGF0aCBkPSJtNiA5IDYgNiA2LTYiLz48L3N2Zz4=")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundSize: 'contain',
-            width: 24,
-            height: 24,
-          },
-          '& .MuiIconButton-root:first-of-type .MuiSvgIcon-root': { transform: 'rotate(90deg)' },
-          '& .MuiIconButton-root:last-of-type .MuiSvgIcon-root': { transform: 'rotate(-90deg)' },
+          '& .MuiDayCalendar-weekDayLabel': { color: 'var(--c-near-black)', fontWeight: 600 },
+          '& .MuiPickersSlideTransition-root': { minHeight: 260 },
         },
       },
     },
     MuiPickersCalendarHeader: {
-      styleOverrides: { root: { color: '#fff' }, label: { color: '#fff' } },
+      styleOverrides: {
+        root: { color: 'var(--c-near-black)' },
+        label: { fontWeight: 600 },
+      },
+    },
+    MuiPickersArrowSwitcher: {
+      styleOverrides: {
+        button: {
+          color: 'var(--c-near-black)',
+          '&:focus-visible': { outline: '2px solid var(--c-purple)' },
+          '&.Mui-disabled': { color: 'var(--c-outline)' },
+        },
+      },
     },
     MuiPickersDay: {
       styleOverrides: {
         root: {
-          color: '#fff',
-          '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)!important' },
-          '&:hover': { backgroundColor: '#ff00ff', border: '1px solid #ff00ff', color: '#fff' },
-          '&.Mui-selected': {
-            backgroundColor: '#FF00FF',
-            border: '1px solid #FF00FF',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#ff33ff', border: '1px solid #fff' },
+          fontSize: 14,
+          color: 'var(--c-near-black)',
+          fontWeight: 600,
+          '&:hover': { backgroundColor: 'var(--c-lilac-grey)' },
+          '&:focus-visible': {
+            outline: '2px solid var(--c-purple)',
+            outlineOffset: 1,
+            backgroundColor: 'var(--c-lilac-grey)',
           },
-          '&.MuiPickersDay-today': { border: '1px solid #fff', offset: 'none' },
+          // Unavailable days: struck through as well as faded, so it's not colour alone.
+          '&.Mui-disabled:not(.Mui-selected)': {
+            color: 'var(--c-outline)',
+            fontWeight: 400,
+            textDecoration: 'line-through',
+          },
+          '&.MuiPickersDay-today:not(.Mui-selected)': {
+            border: '1px solid var(--c-outline)',
+          },
+          '&.Mui-selected, &.Mui-selected:hover, &.Mui-selected:focus': {
+            color: 'var(--c-white)',
+            backgroundColor: 'var(--c-purple)',
+          },
         },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: { color: 'var(--c-near-black)' },
       },
     },
   },

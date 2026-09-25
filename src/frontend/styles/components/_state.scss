@@ -1,0 +1,123 @@
+@use '../settings/mixins' as mixin;
+
+// Loading, empty, error and prerequisite states shared by every step.
+
+.state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space-half) var(--universal-space);
+  align-items: center;
+  padding: var(--universal-space);
+  margin: 0;
+  font-size: 15px;
+  border-radius: var(--universal-space-half);
+
+  > svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  &__text {
+    flex: 1 1 200px;
+    margin: 0;
+  }
+
+  // Waiting on an earlier step.
+  &--prerequisite {
+    background: var(--c-off-white);
+    border: 1px dashed var(--c-outline);
+
+    > svg {
+      color: var(--c-outline);
+    }
+  }
+
+  // Nothing available.
+  &--empty {
+    background: var(--c-off-white);
+    border: 1px solid var(--c-lilac-grey);
+
+    > svg {
+      color: var(--c-purple);
+    }
+  }
+
+  &--error {
+    color: var(--c-red);
+    background: color-mix(in srgb, var(--c-red) 6%, var(--c-white));
+    border: 1px solid var(--c-red);
+  }
+
+  &--info {
+    background: color-mix(in srgb, var(--c-purple) 6%, var(--c-white));
+    border: 1px solid var(--c-lilac-grey);
+
+    > svg {
+      color: var(--c-purple);
+    }
+  }
+
+  &__action {
+    @include mixin.button-secondary;
+  }
+}
+
+// Skeleton placeholder while live data loads.
+.skeleton {
+  display: grid;
+  gap: var(--universal-space-half);
+
+  &__text {
+    margin: 0 0 var(--universal-space-half);
+    font-size: 15px;
+  }
+
+  &__line {
+    height: var(--universal-space);
+    background: linear-gradient(
+      90deg,
+      var(--c-lilac-grey) 0%,
+      var(--c-off-white) 50%,
+      var(--c-lilac-grey) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 4px;
+    animation: dmn-skeleton 1.4s ease-in-out infinite;
+
+    &--tall {
+      height: var(--universal-space-3);
+    }
+
+    &--short {
+      width: 60%;
+    }
+  }
+}
+
+@keyframes dmn-skeleton {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: dmn-spin 0.8s linear infinite;
+}
+
+@keyframes dmn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

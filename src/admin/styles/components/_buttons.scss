@@ -1,42 +1,79 @@
 @use '../settings/mixins' as mixin;
 
+// Material 3 style buttons.
+// .button              filled: the one primary action in a section
+// .button--secondary   outlined: secondary actions
+// .button--danger      outlined, red text: destructive actions
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--universal-space);
+  align-items: center;
 }
 
 .button {
   @include mixin.button-reset;
 
-  padding: var(--universal-space) var(--universal-space-2);
+  display: inline-flex;
+  gap: var(--universal-space-half);
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
   color: var(--c-white);
-  text-transform: capitalize;
-  background: var(--c-blue);
-  box-shadow: var(--box-shadow-1);
+  background: var(--c-purple);
+  border: 1px solid var(--c-purple);
+  border-radius: 999px;
+  transition: var(--transition);
 
-  &--sub {
-    background: var(--c-off-black);
-  }
-
-  &--action {
-    background: var(--c-green);
-  }
-
-  &--remove {
-    background: var(--c-red);
-  }
-
-  &:hover {
+  &:hover:not(:disabled) {
     color: var(--c-white);
-    background: var(--c-black);
+    box-shadow: var(--box-shadow-1);
   }
 
-  &[disabled] {
-    border: 1px dotted var(--c-black);
+  &:focus-visible {
+    outline: 2px solid var(--c-purple);
+    outline-offset: 2px;
+  }
 
-    &:hover {
-      cursor: not-allowed;
+  &--secondary {
+    color: var(--c-purple);
+    background: transparent;
+    border-color: var(--c-outline);
+
+    &:hover:not(:disabled) {
+      color: var(--c-purple);
+      background: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      box-shadow: none;
     }
+  }
+
+  &--danger {
+    color: var(--c-red);
+    background: transparent;
+    border-color: var(--c-outline);
+
+    &:hover:not(:disabled) {
+      color: var(--c-red);
+      background: color-mix(in srgb, var(--c-red) 8%, transparent);
+      box-shadow: none;
+    }
+  }
+
+  &:disabled {
+    color: color-mix(in srgb, var(--c-near-black) 50%, transparent);
+    cursor: not-allowed;
+    background: color-mix(in srgb, var(--c-near-black) 8%, transparent);
+    border-color: transparent;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
   }
 }

@@ -1,0 +1,95 @@
+// Type hierarchy: page title (28px) > card title (22px) > section title (18px, bold) > body (18px) > help (13px).
+
+.dmn-admin__title {
+  padding: 0;
+  margin: 0 0 var(--universal-space-half);
+  font-family: inherit;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--c-near-black);
+}
+
+.dmn-admin__intro {
+  max-width: 70ch;
+  margin: 0 0 var(--universal-space-2);
+  font-size: 16px;
+}
+
+h2,
+h3 {
+  margin: 0 0 var(--universal-space);
+  font-family: inherit;
+  line-height: 1.3;
+  color: var(--c-near-black);
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 var(--universal-space);
+  font-size: inherit;
+  line-height: inherit;
+}
+
+a {
+  color: var(--c-purple);
+  text-decoration: underline;
+}
+
+ul {
+  padding-left: var(--universal-space-2);
+  margin: 0 0 var(--universal-space);
+  list-style: disc;
+}
+
+code {
+  padding: 2px 6px;
+  font-size: 0.85em;
+  color: var(--c-near-black);
+  overflow-wrap: anywhere;
+  background: var(--c-lilac-grey);
+  border-radius: 4px;
+}
+
+.dmn-admin__code-block {
+  display: block;
+  padding: var(--universal-space);
+  margin: 0 0 var(--universal-space);
+  background: var(--c-off-white);
+  border: 1px solid var(--c-lilac-grey);
+  border-radius: var(--universal-space-half);
+}
+
+.dmn-admin__help {
+  margin: var(--universal-space-half) 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-near-black);
+}
+
+// Visible focus indicator for every interactive element in the app.
+:focus-visible {
+  outline: 2px solid var(--c-purple);
+  outline-offset: 2px;
+}
+
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

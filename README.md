@@ -10,9 +10,9 @@ DesignMyNight (DMN) APIs to fetch venues, booking types, availability, and to su
 
 ## Features
 
-- Multi‑step booking flow: **Party → Venue → Date & Time → Type → Packages → Details → Review**.
+- Multi‑step booking flow: **Venue → Group size → Date → Experience → Time → Details**, with a live booking summary.
 - Live availability and booking‑type retrieval from DMN via WP REST endpoints.
-- Optional packages/add‑ons step.
+- Add‑ons are flagged when available and chosen on DesignMyNight's checkout.
 - Customer details capture with **first_name / last_name / email / phone / notes**.
 - Accessibility‑first UI with keyboard support.
 - Small React admin to sync venues and types and manage settings.
@@ -21,7 +21,7 @@ DesignMyNight (DMN) APIs to fetch venues, booking types, availability, and to su
 
 - **WordPress** plugin (PHP) exposing `/wp-json/dmn/v1/*` endpoints and enqueueing compiled assets.
 - **React + TypeScript** widget (Base UI components + Lucide icons).
-- **SCSS** for widget styling.
+- **SCSS** for widget styling, with a light theme scoped under `.dmn-widget-root`.
 - **MUI** for the admin UI with a light theme, styled with SCSS.
 
 ## Repository layout
@@ -94,12 +94,12 @@ The plugin stores your DMN credentials in WordPress and proxies requests server�
 ### Step order and guards
 
 ```ts
-// state.step progression
-party → venue → date_time → type → packages ? → details → review
+// step order (src/frontend/app/utils/steps.ts)
+venue → party → date → experience → time → details
 ```
 
-- **Type** depends on date+time to ensure correct availability.
-- **Packages** step is skipped when no packages are available.
+- All steps are shown on one page; a step explains what it needs until earlier steps are done.
+- **Experience** depends on venue, group size and date; **Time** depends on the experience.
 
 ### Global state shape (excerpt)
 

@@ -1,17 +1,8 @@
 const DEBUG = false; // flip to false to disable logging
 
-function getHeadersAsRecord(headers: Headers): Record<string, string> {
-  const out: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    out[key] = value;
-  });
-  return out;
-}
-
 export async function j<T>(path: string, init?: RequestInit): Promise<T> {
   const url = window.DMN_PUBLIC_BOOT.restUrl + path;
 
-  const started = performance.now();
   const res = await fetch(url, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },

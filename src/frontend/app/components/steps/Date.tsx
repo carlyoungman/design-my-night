@@ -3,11 +3,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { ThemeProvider } from '@mui/material/styles';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DateProps, DayName } from '@app/types';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import {
-  darkTheme,
+  calendarTheme,
   extractValidationDateBlock,
   parseSuggested,
   sixMonthsISO,
@@ -16,6 +16,7 @@ import {
 import { checkAvailability } from '@api/public';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
+import { StateMessage } from '@app/components/StateMessage';
 import { scrollToSection } from '@app/utils/scroll';
 
 export function Date({ allowedDays }: DateProps) {
@@ -28,14 +29,15 @@ export function Date({ allowedDays }: DateProps) {
   const minDate = useMemo(() => dayjs(minDateISO), [minDateISO]);
   const maxDate = useMemo(() => dayjs(maxDateISO), [maxDateISO]);
 
-  const initialMonth = useMemo(
-    () => (selectedDateISO ? dayjs(selectedDateISO).startOf('month') : dayjs().startOf('month')),
-    [selectedDateISO],
+  // The month shown in the calendar; availability is fetched per month.
+  const [visibleMonth, setVisibleMonth] = useState<Dayjs>(() =>
+    selectedDateISO ? dayjs(selectedDateISO).startOf('month') : dayjs().startOf('month'),
   );
-  const [visibleMonth] = useState<Dayjs>(initialMonth);
 
   const [validDates, setValidDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   const monthKey = useMemo(() => visibleMonth.format('YYYY-MM'), [visibleMonth]);
   const allowedDaySet = useMemo(
@@ -55,6 +57,7 @@ export function Date({ allowedDays }: DateProps) {
     (async () => {
       try {
         setLoading(true);
+        setError(false);
         const res = await checkAvailability(
           {
             venue_id: venueId,
@@ -65,6 +68,7 @@ export function Date({ allowedDays }: DateProps) {
         );
 
         const dateBlock = extractValidationDateBlock(res);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sv: any[] = Array.isArray(dateBlock?.suggestedValues)
           ? dateBlock.suggestedValues
           : [];
@@ -80,7 +84,10 @@ export function Date({ allowedDays }: DateProps) {
 
         if (!cancelled) setValidDates(next);
       } catch {
-        if (!cancelled) setValidDates(new Set());
+        if (!cancelled) {
+          setValidDates(new Set());
+          setError(true);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -89,7 +96,7 @@ export function Date({ allowedDays }: DateProps) {
     return () => {
       cancelled = true;
     };
-  }, [monthKey, venueId, partySize, minDate, maxDate]);
+  }, [monthKey, venueId, partySize, minDate, maxDate, attempt]);
 
   const isSelectable = useCallback(
     (d: Dayjs) => {
@@ -99,22 +106,21 @@ export function Date({ allowedDays }: DateProps) {
         const dayName = d.format('dddd') as DayName;
         if (!allowedDaySet.has(dayName)) return false;
       }
-      const dMonthKey = d.format('YYYY-MM');
-      if (dMonthKey === monthKey) {
-        return validDates.has(d.format('YYYY-MM-DD'));
-      }
-      return true;
+      if (loading || error) return false;
+      if (d.format('YYYY-MM') !== monthKey) return false;
+      return validDates.has(d.format('YYYY-MM-DD'));
     },
-    [minDate, maxDate, monthKey, validDates, allowedDaySet],
+    [minDate, maxDate, monthKey, validDates, allowedDaySet, loading, error],
   );
 
   const pick = useCallback(
     (d: Dayjs) => {
       if (!isSelectable(d)) return;
       dispatch({ type: 'SET_DATE', date: d.format('YYYY-MM-DD') });
-      dispatch({ type: 'SET_TIME', value: '' as any });
-      dispatch({ type: 'SET_TYPE', value: '' as any });
-      scrollToSection('section.type', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
+      scrollToSection('section[data-step="experience"]', {
+        offset: { mobile: 190, desktop: 200 },
+        delay: 400,
+      });
     },
     [dispatch, isSelectable],
   );
@@ -123,52 +129,72 @@ export function Date({ allowedDays }: DateProps) {
   const tomorrow = useMemo(() => dayjs().add(1, 'day'), []);
   const value = selectedDateISO ? dayjs(selectedDateISO) : null;
 
+  if (!venueId || partySize == null) {
+    return <StepPrerequisite requires={['venue', 'partySize']} />;
+  }
+
+  const monthLabel = visibleMonth.format('MMMM YYYY');
+  const showQuickPicks =
+    (!allowedDaySet || allowedDaySet.size === 0) && monthKey === today.format('YYYY-MM');
+
   return (
-    <section className="date">
-      <StepPrerequisite requires={['venue', 'partySize']} />
-      {loading && validDates.size === 0 && (
-        <LoadingAnimation type="loading" text="Checking availability…" />
+    <div className="date">
+      {loading && <LoadingAnimation text={`Checking availability for ${monthLabel}…`} />}
+      {!loading && error && (
+        <StateMessage kind="error" onAction={() => setAttempt((n) => n + 1)}>
+          We couldn’t check availability for {monthLabel}.
+        </StateMessage>
       )}
-      {!loading && validDates.size !== 0 && (
-        <>
-          {(!allowedDaySet || allowedDaySet.size === 0) && (
-            <div className="date__quick-row" aria-label="Quick date picks">
-              <button
-                type="button"
-                className="date__quick-btn"
-                onClick={() => pick(today)}
-                disabled={!isSelectable(today)}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                className="date__quick-btn"
-                onClick={() => pick(tomorrow)}
-                disabled={!isSelectable(tomorrow)}
-              >
-                Tomorrow
-              </button>
-            </div>
-          )}
-          <div className="date__calendar" data-loading={loading ? '' : undefined}>
-            <ThemeProvider theme={darkTheme}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DateCalendar
-                  value={value}
-                  onChange={(newVal) => {
-                    if (newVal) pick(newVal);
-                  }}
-                  views={['day']}
-                  minDate={minDate}
-                  maxDate={maxDate}
-                  shouldDisableDate={(d) => !isSelectable(d)}
-                />
-              </LocalizationProvider>
-            </ThemeProvider>
-          </div>
-        </>
+      {!loading && !error && validDates.size === 0 && (
+        <StateMessage kind="empty">
+          No dates are available in {monthLabel}
+          {partySize ? ` for ${partySize} ${partySize === 1 ? 'person' : 'people'}` : ''}. Try
+          the next month or a different group size.
+        </StateMessage>
       )}
-    </section>
+
+      {showQuickPicks && !loading && !error && validDates.size > 0 && (
+        <div className="date__quick-row" role="group" aria-label="Quick picks">
+          <button
+            type="button"
+            className="date__quick-btn"
+            onClick={() => pick(today)}
+            disabled={!isSelectable(today)}
+            aria-pressed={selectedDateISO === today.format('YYYY-MM-DD')}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            className="date__quick-btn"
+            onClick={() => pick(tomorrow)}
+            disabled={!isSelectable(tomorrow)}
+            aria-pressed={selectedDateISO === tomorrow.format('YYYY-MM-DD')}
+          >
+            Tomorrow
+          </button>
+        </div>
+      )}
+
+      {/* Stays mounted while a month loads so month navigation isn't reset. */}
+      <div className="date__calendar" aria-busy={loading || undefined}>
+        <ThemeProvider theme={calendarTheme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateCalendar
+              value={value}
+              referenceDate={visibleMonth}
+              onChange={(newVal) => {
+                if (newVal) pick(newVal);
+              }}
+              onMonthChange={(m) => setVisibleMonth(m.startOf('month'))}
+              views={['day']}
+              minDate={minDate}
+              maxDate={maxDate}
+              shouldDisableDate={(d) => !isSelectable(d)}
+            />
+          </LocalizationProvider>
+        </ThemeProvider>
+      </div>
+    </div>
   );
 }

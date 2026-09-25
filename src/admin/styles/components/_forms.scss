@@ -1,71 +1,127 @@
+// Form controls. Loaded inside `.dmn-admin`, so these element selectors never reach the rest of wp-admin.
+// Control borders use --c-outline (at least 3:1); --c-lilac-grey is only for decorative dividers.
+
+fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.dmn-admin__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--universal-space);
+}
+
+.dmn-admin__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--universal-space-half);
+  min-width: 0;
+}
+
+label,
+.dmn-admin__label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--c-near-black);
+}
+
+.dmn-admin__label-hint {
+  font-weight: 400;
+}
+
 select,
-input:not([type='checkbox']), input[type='text'], textarea {
-  min-width: 100%;
-  height: 50px;
+textarea,
+input:not([type='checkbox'], [type='radio']) {
+  width: 100%;
+  max-width: none;
+  min-height: 48px;
   padding: 0 var(--universal-space);
-  color: var(--c-black);
-  border: 1px solid var(--c-off-black);
+  margin: 0;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--c-near-black);
+  background-color: var(--c-white);
+  border: 1px solid var(--c-outline);
+  border-radius: 4px;
+  box-shadow: none;
+  transition: var(--transition);
+
+  &:hover:not(:disabled, [readonly]) {
+    border-color: var(--c-near-black);
+  }
+
+  &:focus,
+  &:focus-visible {
+    border-color: var(--c-purple);
+    outline: 2px solid var(--c-purple);
+    outline-offset: 0;
+    box-shadow: none;
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--c-red);
+    outline-color: var(--c-red);
+  }
+
+  &[readonly] {
+    background-color: var(--c-off-white);
+    border-style: dashed;
+  }
 
   &:disabled {
-    color: var(--c-off-black);
+    color: color-mix(in srgb, var(--c-near-black) 60%, transparent);
+    cursor: not-allowed;
     background-color: var(--c-off-white);
-    border: 1px dotted var(--c-black);
-
-    &:hover {
-      cursor: not-allowed;
-    }
   }
 }
 
+select {
+  padding-right: var(--universal-space-2);
+}
 
 textarea {
   display: block;
   min-height: 100px;
-  padding: var(--universal-space);
+  padding: 12px var(--universal-space);
+  resize: vertical;
 }
 
-label {
-  display: block;
-  color: var(--c-off-black);
-
-  > span {
-    display: block;
-    margin-bottom: var(--universal-space-half);
-  }
+input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--c-purple);
+  border-color: var(--c-outline);
 }
 
-form.grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--universal-space);
-
-  > label {
-    flex: 1 1 100%;
-    min-width: 250px;
-  }
-}
-
-code {
-  display: block;
-  padding: var(--universal-space);
-  margin-top: var(--universal-space);
-  border: 1px solid var(--c-off-white);
-}
-
-.ok {
-  margin-top: var(--universal-space-half);
-  font-size: 0.9em;
-  color: var(--c-green);
-}
-
-.err {
-  margin-top: var(--universal-space-half);
-  font-size: 0.9em;
-  color: var(--c-red);
-}
-
-label.label--inline {
+.dmn-admin__checkbox {
   display: inline-flex;
   gap: var(--universal-space-half);
   align-items: center;
+  min-height: 24px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.dmn-admin__field-error {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--c-red);
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+  }
 }

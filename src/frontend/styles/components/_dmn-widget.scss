@@ -1,88 +1,110 @@
 @use '../settings/breakpoints' as breakpoint;
+@use '../settings/mixins' as mixin;
 
-
+// Light surfaces: an off-white widget background with white cards. Cards use a border, not a shadow.
 .dmn-widget {
-  color: var(--c-white);
+  padding: var(--universal-space);
+  color: var(--c-near-black);
+  background: var(--c-off-white);
+  border-radius: var(--border-radius);
+
+  @include breakpoint.medium-screen-min {
+    padding: var(--universal-space-2);
+  }
 
   &__grid {
     position: relative;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--universal-space);
 
     @include breakpoint.medium-screen-min {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     @include breakpoint.large-screen-min {
-      grid-template-columns: 1fr 40%;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 40%);
       gap: var(--universal-space-2);
     }
 
     @include breakpoint.x-large-screen-min {
-      gap: var(--universal-space-4);
+      gap: var(--universal-space-3);
     }
   }
 
-  &__main, &__side {
-    overflow: hidden;
-    color: var(--c-white);
-    background-color: var(--c-black);
-    border: 4px solid var(--c-theme-primary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 0 10px 0 var(--c-theme-primary) inset;
-  }
-
+  &__main,
   &__side {
-    padding: var(--universal-space-2) var(--universal-space);
-
-    @include breakpoint.medium-screen-min {
-      padding: var(--universal-space-2);
-    }
+    min-width: 0;
+    background: var(--c-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: var(--border-radius);
   }
 
   &__main {
-    display: flex;
-    flex-wrap: wrap;
-    padding: var(--universal-space);
+    padding: 0 var(--universal-space);
 
     @include breakpoint.large-screen-min {
       padding: 0 var(--universal-space-2);
     }
-
   }
 
   &__side {
-    position: sticky;
-
-    // top: 132px;
-    top: 30px;
-    align-self: start;
-  }
-
-  &__header {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--universal-space);
-    padding: var(--universal-space-2) 0;
-    margin: 0;
+    flex-direction: column;
+    gap: var(--universal-space-2);
+    padding: var(--universal-space-2) var(--universal-space);
+
+    @include breakpoint.medium-screen-min {
+      position: sticky;
+      top: var(--universal-space-2);
+      align-self: start;
+      padding: var(--universal-space-2);
+    }
   }
 
   &__section {
     width: 100%;
-    margin-bottom: var(--universal-space);
+    padding: var(--universal-space-2) 0;
 
-    &:last-of-type {
-      @include breakpoint.medium-screen-min {
-        margin-bottom: var(--universal-space-2);
-      }
+    + .dmn-widget__section {
+      border-top: 1px solid var(--c-lilac-grey);
     }
   }
 
-  &__error {
-    span {
-      color: var(--c-success);
+  &__header {
+    display: flex;
+    gap: var(--universal-space-half);
+    align-items: center;
+    margin: 0 0 var(--universal-space);
+    font-size: 18px;
+    font-weight: 600;
+    scroll-margin-top: 120px;
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include mixin.focus-ring;
     }
   }
 
+  &__step-number {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    color: var(--c-white);
+    background: var(--c-purple);
+    border-radius: 50%;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
 }

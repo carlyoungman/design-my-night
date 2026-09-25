@@ -1,13 +1,21 @@
-import React, { useCallback, useMemo, useId, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import type { VenueStepProps } from '@app/types';
 import LoadingAnimation from '@app/components/LoadingAnimation';
-import { scrollToSection } from '@app/utils/scroll';
+import { StateMessage } from '@app/components/StateMessage';
 
-export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueStepProps) {
+type Props = VenueStepProps & { onRetry?: () => void; labelledBy: string };
+
+export function Venue({
+  venues,
+  initialLoading,
+  error,
+  defaultVenueId,
+  onRetry,
+  labelledBy,
+}: Props) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
-  const VenueId = useId();
 
   const defaultExists = useMemo(() => {
     if (!defaultVenueId) return false;
@@ -27,6 +35,8 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
     dispatch({ type: 'SET_VENUE_NAME', name: selected.name || selected.title || '' });
   }, [defaultVenueId, defaultExists, state.venueId, venues, dispatch]);
 
+  // Changing venue clears the later steps (see the reducer). No auto-scroll here: a keyboard
+  // user moving through the options with the arrow keys would be scrolled away mid-choice.
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedId = e.target.value || null;
@@ -34,22 +44,8 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
 
       dispatch({ type: 'SET_VENUE', id: selectedId });
       dispatch({ type: 'SET_VENUE_NAME', name: selectedName });
-      dispatch({ type: 'SET_DATE', date: null });
-      dispatch({ type: 'SET_TIME', value: null });
-      dispatch({ type: 'SET_TYPE', value: null });
-      scrollToSection('section.date', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
     },
     [dispatch],
-  );
-
-  const venueOptions = useMemo(
-    () =>
-      venues.map((v) => (
-        <option key={v._id} value={v._id}>
-          {v.name || v.title}
-        </option>
-      )),
-    [venues],
   );
 
   const selectedVenue = useMemo(
@@ -61,33 +57,43 @@ export function Venue({ venues, initialLoading, error, defaultVenueId }: VenueSt
       ? selectedVenue.external_message
       : '';
 
-  const renderSelect = () => (
-    <div className="venues__select-wrapper">
-      <select
-        id={VenueId}
-        className="venues__select"
-        value={state.venueId || ''}
-        onChange={handleChange}
-      >
-        <option value="" disabled>
-          Choose…
-        </option>
-        {venueOptions}
-      </select>
-    </div>
-  );
-
   return (
-    <section className="venues">
-      {initialLoading && <LoadingAnimation type="loading" text="Loading venues…" />}
-      {error && <p className="dmn-widget__error">{error}</p>}
-      {!initialLoading && !error && renderSelect()}
+    <div className="venues">
+      {initialLoading && <LoadingAnimation text="Loading venues…" />}
+      {!initialLoading && error && (
+        <StateMessage kind="error" onAction={onRetry}>
+          {error}
+        </StateMessage>
+      )}
+      {!initialLoading && !error && venues.length === 0 && (
+        <StateMessage kind="empty">No venues are taking bookings right now.</StateMessage>
+      )}
+      {!initialLoading && !error && venues.length > 0 && (
+        <div className="venues__select-wrapper">
+          <select
+            className="venues__select"
+            aria-labelledby={labelledBy}
+            value={state.venueId || ''}
+            onChange={handleChange}
+          >
+            <option value="" disabled>
+              Choose a venue
+            </option>
+            {venues.map((v) => (
+              <option key={v._id} value={v._id}>
+                {v.name || v.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {externalMessage && (
         <div
           className="venues__external-message"
+          role="status"
           dangerouslySetInnerHTML={{ __html: externalMessage }}
         />
       )}
-    </section>
+    </div>
   );
 }

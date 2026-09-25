@@ -1,26 +1,26 @@
 @use '../settings/mixins' as mixin;
 
-
 .venues {
+  display: grid;
+  gap: var(--universal-space);
+
   &__label {
     @include mixin.label;
   }
 
-  &__select-wrappe {
+  &__select-wrapper {
     @include mixin.field-wrapper;
     @include mixin.select-down-arrow;
-  }
-  &__external-message{
-    margin-top: var(--universal-space-2);
   }
 
   &__select {
     @include mixin.select;
+  }
 
-    &:disabled {
-      cursor: not-allowed;
-    }
-
+  &__external-message {
+    padding: var(--universal-space);
+    background: var(--c-off-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: var(--universal-space-half);
   }
 }
-

@@ -191,23 +191,29 @@ export async function continueCheckout(opts: {
     );
 
     const p = (avail?.data?.payload ?? {}) as AvailPayload;
-    if (!p.valid) throw new Error('Selected time is no longer valid. Choose another.');
+    if (!p.valid)
+      throw new Error('That time is no longer available. Choose another time and try again.');
 
     // 3) Resolve single source of truth for return_url
     const ru = await resolveReturnUrl(state.venueId ?? null, returnUrl ?? null, buttonSelector);
 
     // 4) Redirect with full booking params in query
-    if (!p.bookingDetails) throw new Error('Missing booking details for web submission.');
+    if (!p.bookingDetails)
+      throw new Error('We couldn’t confirm this booking with the venue. Please try again.');
     const payload = buildBookingPayload(p.bookingDetails, state.customer, ru, stateDuration);
     const base = p.next?.web;
-    if (!base) throw new Error('Redirect URL not available for this slot.');
+    if (!base) throw new Error('Online checkout isn’t available for this time. Choose another time.');
 
     // IMPORTANT: pass urlParams into the URL builder
     const url = buildRedirectUrl(base, payload, urlParams); // ← use urlParams here
     window.location.assign(url);
     return;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Booking failed. Please try again.';
-    // (log or dispatch msg if needed)
+    // Surface a readable reason to the caller, which shows it next to the button.
+    const msg =
+      err instanceof Error && err.message
+        ? err.message
+        : 'We couldn’t start your booking. Please try again.';
+    throw new Error(msg);
   }
 }

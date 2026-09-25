@@ -1,76 +1,72 @@
 @use '../settings/breakpoints' as breakpoint;
 
 .dmn-admin {
-  &__help {
-    font-size: 13px;
-    opacity: 0.7;
-  }
-
   &__grid {
     display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--universal-space-2);
+    align-items: start;
 
     @include breakpoint.large-screen-min {
-      grid-template-columns: 1fr 30%;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 30%);
     }
 
     @include breakpoint.x-large-screen-min {
       gap: var(--universal-space-3);
     }
-
-    @include breakpoint.xx-large-screen-min {
-      gap: var(--universal-space-4);
-    }
   }
 
-  &__main {
-    > .dmn-admin__card {
-      margin-bottom: var(--universal-space-2);
-    }
+  &__main,
+  &__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space-2);
+    min-width: 0;
   }
 
-
+  // Cards use a border, not a shadow.
   &__card {
     width: 100%;
-    max-width: unset;
-    padding: var(--universal-space) var(--universal-space-2) var(--universal-space-2) var(--universal-space-2);
-    margin-bottom: var(--universal-space);
+    padding: var(--universal-space);
     background: var(--c-white);
-    border: 1px solid var(--c-off-white);
+    border: 1px solid var(--c-lilac-grey);
     border-radius: var(--border-radius);
 
-    @include breakpoint.large-screen-min {
-      margin-bottom: var(--universal-space-2);
+    @include breakpoint.medium-screen-min {
+      padding: var(--universal-space-2);
+    }
+
+    > :last-child {
+      margin-bottom: 0;
     }
   }
 
+  // Card / section header: title on the left, status and save action on the right.
+  // Sticky so the save action stays reachable while editing long lists; it sits below the WP admin bar.
   &__header {
-    position: sticky;
-    top: var(--universal-space-2);
-    z-index: 10;
     display: flex;
-    gap: var(--universal-space-2);
+    flex-wrap: wrap;
+    gap: var(--universal-space);
     align-items: center;
     justify-content: space-between;
-    padding: var(--universal-space) 0;
-    background: var(--c-white);
+    margin-bottom: var(--universal-space);
+
+    &--sticky {
+      position: sticky;
+      top: var(--dmn-sticky-top);
+      z-index: 10;
+      padding: var(--universal-space) 0;
+      margin-top: calc(var(--universal-space) * -1);
+      background: var(--c-white);
+      border-bottom: 1px solid var(--c-lilac-grey);
+    }
 
     &__inner {
       display: flex;
-      gap: var(--universal-space-2);
+      flex-wrap: wrap;
+      gap: var(--universal-space);
       align-items: center;
       justify-content: flex-end;
-    }
-
-    &__dirty {
-      margin: 0;
-      color: var(--c-red);
-    }
-
-    &__ok {
-      margin: 0;
-      color: var(--c-green);
     }
 
     &__headline {
@@ -78,68 +74,110 @@
     }
   }
 
-  &__button-wrapper {
+  // Status messages: always text plus an icon, never colour alone.
+  &__status {
+    display: inline-flex;
+    gap: var(--universal-space-half);
+    align-items: flex-start;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--c-near-black);
+
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+    }
+
+    &--success svg {
+      color: var(--c-green);
+    }
+
+    &--error {
+      color: var(--c-red);
+    }
+
+    &--warning svg {
+      color: var(--c-red);
+    }
+
+    &--block {
+      display: flex;
+      margin-top: var(--universal-space);
+    }
+  }
+
+  &__loading {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--universal-space);
     align-items: center;
-    justify-content: flex-end;
-    margin-top: var(--universal-space-2);
+    margin: 0;
+    font-size: 14px;
+
+    .MuiCircularProgress-root {
+      color: var(--c-purple);
+    }
   }
-}
 
-
-.faqs {
-  .table__row {
-    align-items: flex-end;
+  &__empty {
+    padding: var(--universal-space-2);
+    margin: 0;
+    font-size: 16px;
+    text-align: center;
+    background: var(--c-off-white);
+    border: 1px dashed var(--c-outline);
+    border-radius: var(--border-radius);
   }
-}
 
-.dmn-admin__spacer-top {
-  margin-top: var(--universal-space);
-}
+  &__sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space-3);
+  }
 
-.dmn-admin__sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--universal-space-2);
-}
+  &__subsection + &__subsection {
+    padding-top: var(--universal-space-2);
+    border-top: 1px solid var(--c-lilac-grey);
+  }
 
-.dmn-admin__spacer-bottom {
-  margin-bottom: var(--universal-space);
-}
-
-.dmn-admin__tabs-wrapper {
-  width: 100%;
-}
-
-.dmn-admin__tabs-border {
-  border-bottom: 1px solid var(--c-off-white);
-}
-
-.dmn-admin__tab-panel {
-  padding: var(--universal-space-2);
-}
-
-.dmn-admin-urlparams {
-  &__row {
+  &__tabs-border {
     margin-bottom: var(--universal-space-2);
+    border-bottom: 1px solid var(--c-lilac-grey);
+  }
+
+  &__list {
+    li + li {
+      margin-top: var(--universal-space-half);
+    }
+  }
+
+  &__spacer-top {
+    margin-top: var(--universal-space);
+  }
+
+  &__urlparams-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--universal-space);
+    padding-bottom: var(--universal-space);
+    margin-bottom: var(--universal-space);
+    border-bottom: 1px solid var(--c-lilac-grey);
+
+    .button {
+      justify-self: start;
+    }
+  }
+
+  &__debug-dump {
+    max-height: 320px;
+    padding: var(--universal-space);
+    margin-top: var(--universal-space);
+    overflow: auto;
+    font-size: 13px;
+    background: var(--c-off-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: var(--universal-space-half);
   }
 }
-
-.dmn-admin__list {
-  li + li {
-    margin-top: var(--universal-space-half);
-  }
-}
-
-.debug-dump {
-  max-height: 320px;
-  padding: var(--universal-space);
-  margin-top: var(--universal-space-half);
-  overflow: auto;
-  background: var(--c-off-white);
-  border-radius: var(--border-radius);
-}
-
-

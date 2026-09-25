@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export type ExternalBookingPanelProps = {
   title?: string;
@@ -8,6 +8,7 @@ export type ExternalBookingPanelProps = {
   buttonUrl?: string;
 };
 
+/** Shown instead of the widget when the shortcode preselects a venue that books elsewhere. */
 export function ExternalBookingPanel({
   title,
   imageUrl,
@@ -15,20 +16,23 @@ export function ExternalBookingPanel({
   buttonText,
   buttonUrl,
 }: ExternalBookingPanelProps) {
+  const headingId = useId();
+  const external = !!buttonUrl && /^https?:\/\//.test(buttonUrl);
+
   return (
-    <div className="dmn-ext-panel">
-      {title && (
-        <div className="dmn-ext-panel__header">
-          <p className="dmn-ext-panel__title font-pi txt-40">{title}</p>
-        </div>
-      )}
+    <section className="dmn-ext-panel" aria-labelledby={title ? headingId : undefined}>
       <div className="dmn-ext-panel__body">
         {imageUrl && (
           <div className="dmn-ext-panel__image-wrapper">
-            <img src={imageUrl} alt={title || ''} />
+            <img src={imageUrl} alt="" />
           </div>
         )}
         <div className="dmn-ext-panel__content">
+          {title && (
+            <h2 id={headingId} className="dmn-ext-panel__title">
+              {title}
+            </h2>
+          )}
           {content && (
             <div className="dmn-ext-panel__copy" dangerouslySetInnerHTML={{ __html: content }} />
           )}
@@ -36,14 +40,15 @@ export function ExternalBookingPanel({
             <a
               className="dmn-ext-panel__button"
               href={buttonUrl}
-              target={buttonUrl.startsWith('http') ? '_blank' : undefined}
-              rel={buttonUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
             >
               {buttonText}
+              {external && <span className="screen-reader-text"> (opens in a new tab)</span>}
             </a>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

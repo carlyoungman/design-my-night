@@ -1,12 +1,21 @@
 @use '../settings/mixins' as mixin;
 
 .details {
+  &__group {
+    display: grid;
+    gap: var(--universal-space);
+  }
+
   &__field-wrapper {
     @include mixin.field-wrapper;
   }
 
-  &__group {
-    @include mixin.group;
+  &__label {
+    @include mixin.label;
+  }
+
+  &__label-hint {
+    font-weight: 400;
   }
 
   &__input {
@@ -19,26 +28,23 @@
 
   &__hint {
     @include mixin.hint;
+
+    margin: 0;
   }
 
-  &__label-hint {
-    @include mixin.label-hint;
-  }
-
-  &__checkbox {
+  &__error {
     display: flex;
-    gap: var(--universal-space);
+    gap: 6px;
+    align-items: flex-start;
+    margin: 0;
+    font-size: 14px;
+    color: var(--c-red);
 
-    > span {
-      transform: scale(1.2);
-    }
-
-    > div {
-      max-width: 60%;
-
-      > span {
-        text-wrap: balance;
-      }
+    svg {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
     }
   }
 }

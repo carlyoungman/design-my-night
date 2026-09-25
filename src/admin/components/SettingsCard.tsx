@@ -1,6 +1,7 @@
 // src/admin/components/SettingsCard.tsx
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useState } from 'react';
 import { getSettings, saveSettings, testConnection } from '@admin/api';
+import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -13,11 +14,12 @@ type FormState = {
 
 export default function SettingsCard() {
   const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-  const [details, setDetails] = useState<any | null>(null);
+  const [details, setDetails] = useState<unknown | null>(null);
 
   const [form, setForm] = useState<FormState>({
     app_id: '',
@@ -28,9 +30,9 @@ export default function SettingsCard() {
   });
   const [mask, setMask] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    setErr(null);
+    setLoadErr(null);
     try {
       const s = await getSettings();
       setForm({
@@ -41,16 +43,16 @@ export default function SettingsCard() {
         debug_mode: !!s.debug_mode,
       });
       setMask(s.api_key_mask || '');
-    } catch (e: any) {
-      setErr(e.message || 'Failed to load');
+    } catch (e) {
+      setLoadErr(errorMessage(e, 'Settings could not be loaded.'));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const onSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -66,11 +68,15 @@ export default function SettingsCard() {
         debug_mode: form.debug_mode,
       };
       await saveSettings(payload);
+      if (form.api_key) {
+        // Refresh the key mask; the write-only key field is cleared by the reload.
+        const s = await getSettings();
+        setMask(s.api_key_mask || '');
+      }
+      setForm((f) => ({ ...f, api_key: '' }));
       setOk('Settings saved.');
-      if (form.api_key) await load(); // refresh mask if key changed
-      setForm((f) => ({ ...f, api_key: '' })); // clear write-only field
-    } catch (e: any) {
-      setErr(e.message || 'Save failed');
+    } catch (e) {
+      setErr(errorMessage(e, 'Settings could not be saved. Check your connection and try again.'));
     } finally {
       setSaving(false);
     }
@@ -84,90 +90,125 @@ export default function SettingsCard() {
     try {
       const r = await testConnection(form.debug_mode);
       if (r.debug) setDetails(r.debug);
-      if (r.ok) setOk(`Test OK. Status ${r.status}.`);
-      else setErr(`Test failed (${r.status}). ${r.error || ''}`);
-    } catch (e: any) {
-      setErr(e.message || 'Test failed');
+      if (r.ok) setOk(`Connection works (status ${r.status}).`);
+      else
+        setErr(
+          `Connection failed (status ${r.status}). ${r.error || 'Check the App ID, API key and environment.'}`,
+        );
+    } catch (e) {
+      setErr(errorMessage(e, 'The connection test could not run.'));
     } finally {
       setTesting(false);
     }
   };
 
-  if (loading) return <p>Loading…</p>;
-
   return (
-    <section className="dmn-admin__card">
-      <h2>API Credentials</h2>
-      <form onSubmit={onSave} className="grid">
-        <label>
-          <span>App ID</span>
-          <input
-            value={form.app_id}
-            onChange={(e) => setForm({ ...form, app_id: e.target.value })}
-            required
-          />
-        </label>
+    <section className="dmn-admin__card" aria-labelledby="dmn-admin-settings-title">
+      <h2 id="dmn-admin-settings-title">API credentials</h2>
 
-        <label>
-          <span>API Key</span>
-          <input
-            value={form.api_key}
-            autoComplete="new-password"
-            placeholder={mask ? `${mask}` : 'your_api_key'}
-            onChange={(e) => setForm({ ...form, api_key: e.target.value })}
-          />
-        </label>
+      {loading && <Loading>Loading settings…</Loading>}
+      {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
 
-        <label>
-          <span>Environment</span>
-          <select
-            value={form.environment}
-            onChange={(e) => setForm({ ...form, environment: e.target.value as Env })}
-          >
-            <option value="prod">Production</option>
-            <option value="qa">QA / Sandbox</option>
-          </select>
-        </label>
+      {!loading && !loadErr && (
+        <>
+          <form onSubmit={onSave} className="dmn-admin__form">
+            <div className="dmn-admin__field">
+              <label htmlFor="dmn-settings-app-id">App ID</label>
+              <input
+                id="dmn-settings-app-id"
+                value={form.app_id}
+                onChange={(e) => setForm({ ...form, app_id: e.target.value })}
+                autoComplete="off"
+                required
+              />
+            </div>
 
-        <label>
-          <span>Default Venue Group (optional)</span>
-          <input
-            value={form.venue_group}
-            onChange={(e) => setForm({ ...form, venue_group: e.target.value })}
-          />
-        </label>
+            <div className="dmn-admin__field">
+              <label htmlFor="dmn-settings-api-key">API key</label>
+              <input
+                id="dmn-settings-api-key"
+                type="password"
+                value={form.api_key}
+                autoComplete="new-password"
+                placeholder={mask || ''}
+                aria-describedby="dmn-settings-api-key-help"
+                onChange={(e) => setForm({ ...form, api_key: e.target.value })}
+              />
+              <p id="dmn-settings-api-key-help" className="dmn-admin__help">
+                {mask
+                  ? 'A key is saved. Leave this blank to keep it, or enter a new key to replace it.'
+                  : 'Enter the API key from your DesignMyNight account.'}
+              </p>
+            </div>
 
-        <label className="label--inline">
-          <input
-            type="checkbox"
-            checked={form.debug_mode}
-            onChange={(e) => setForm({ ...form, debug_mode: e.target.checked })}
-          />
-          Debug mode (saved with settings)
-        </label>
+            <div className="dmn-admin__field">
+              <label htmlFor="dmn-settings-env">Environment</label>
+              <select
+                id="dmn-settings-env"
+                value={form.environment}
+                onChange={(e) => setForm({ ...form, environment: e.target.value as Env })}
+              >
+                <option value="prod">Production</option>
+                <option value="qa">QA / Sandbox</option>
+              </select>
+            </div>
 
-        <div className="actions">
-          <button className="button button--action" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save Settings'}
-          </button>
-          <button className="button button--sub" type="button" onClick={onTest} disabled={testing}>
-            {testing ? 'Testing…' : 'Test Connection'}
-          </button>
-        </div>
-      </form>
+            <div className="dmn-admin__field">
+              <label htmlFor="dmn-settings-vg">
+                Default venue group <span className="dmn-admin__label-hint">(optional)</span>
+              </label>
+              <input
+                id="dmn-settings-vg"
+                value={form.venue_group}
+                onChange={(e) => setForm({ ...form, venue_group: e.target.value })}
+              />
+            </div>
 
-      {ok && <p className="ok">{ok}</p>}
-      {err && <p className="err">{err}</p>}
-      {details && (
-        <pre className="debug-dump">
-          {JSON.stringify(details, null, 2)}
-        </pre>
+            <label className="dmn-admin__checkbox">
+              <input
+                type="checkbox"
+                checked={form.debug_mode}
+                onChange={(e) => setForm({ ...form, debug_mode: e.target.checked })}
+              />
+              Debug mode
+            </label>
+
+            <div className="actions">
+              <button className="button" type="submit" disabled={saving} aria-busy={saving}>
+                {saving ? 'Saving…' : 'Save settings'}
+              </button>
+              <button
+                className="button button--secondary"
+                type="button"
+                onClick={onTest}
+                disabled={testing}
+                aria-busy={testing}
+              >
+                {testing ? 'Testing…' : 'Test connection'}
+              </button>
+            </div>
+          </form>
+
+          {ok && (
+            <StatusMessage tone="success" block>
+              {ok}
+            </StatusMessage>
+          )}
+          {err && (
+            <StatusMessage tone="error" block>
+              {err}
+            </StatusMessage>
+          )}
+          {details != null && (
+            <pre className="dmn-admin__debug-dump">{JSON.stringify(details, null, 2)}</pre>
+          )}
+
+          <p className="dmn-admin__help">
+            Test connection uses the last <em>saved</em> credentials and environment, so save any
+            changes first.
+          </p>
+        </>
       )}
-
-      <p className="dmn-admin__help">
-        Note: Test Connection uses the last <em>saved</em> credentials & environment. Click{' '}
-        <strong>Save Settings</strong> after any changes.
-      </p>
     </section>
   );
 }

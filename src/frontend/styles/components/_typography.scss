@@ -1,15 +1,25 @@
+@use '../settings/mixins' as mixin;
+
 p {
-  margin: var(--universal-space) 0;
+  margin: 0 0 var(--universal-space);
 
-  a {
-    text-decoration: underline;
-
-    &:hover {
-      color: var(--c-theme-primary);
-    }
+  &:last-child {
+    margin-bottom: 0;
   }
 }
 
+a {
+  color: var(--c-purple);
+  text-decoration: underline;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus-visible {
+    @include mixin.focus-ring;
+  }
+}
 
 h1,
 h2,
@@ -17,6 +27,16 @@ h3,
 h4,
 h5,
 h6 {
-  // @include headline-settings;
-  margin: var(--universal-space-2) 0 var(--universal-space) 0;
+  margin: 0 0 var(--universal-space);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--c-near-black);
+}
+
+strong {
+  font-weight: 600;
+}
+
+.screen-reader-text {
+  @include mixin.visually-hidden;
 }

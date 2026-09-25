@@ -2,41 +2,75 @@
 
 .progress-bar {
   display: grid;
-  gap: var(--universal-space);
+  gap: var(--universal-space-half);
 
   &__bar {
-    height: var(--universal-space);
+    height: 8px;
     overflow: hidden;
-    background: var(--c-off-black);
-    border-radius: var(--border-radius);
+    background: var(--c-lilac-grey);
+    border-radius: 999px;
   }
 
   &__fill {
     width: 0;
     height: 100%;
-    background: var(--c-success);
+    background: var(--c-purple);
+    border-radius: inherit;
     transition: var(--transition);
   }
 
   &__text {
-    font-size: 16px;
-    text-align: center;
+    margin: 0;
+    font-size: 14px;
+  }
+
+  // Step labels: status is shown by text (visually hidden) and an icon, not colour alone.
+  &__steps {
+    display: grid;
+    gap: 6px;
+    padding: 0;
+    margin: var(--universal-space-half) 0 0;
+    list-style: none;
+  }
+
+  &__step {
+    display: flex;
+    gap: var(--universal-space-half);
+    align-items: center;
+    font-size: 14px;
+
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+    }
+
+    &--done svg {
+      color: var(--c-purple);
+    }
+
+    &--current {
+      font-weight: 600;
+
+      svg {
+        color: var(--c-purple);
+      }
+    }
+
+    &--todo svg {
+      color: var(--c-outline);
+    }
   }
 }
 
-
+// Compact bar pinned to the top on small screens, where the side panel sits below the steps.
 .dmn-widget > .progress-bar {
   position: sticky;
-  top: 5px;
+  top: 0;
   z-index: 2;
-  margin-right: var(--universal-space);
-  margin-bottom: var(--universal-space-2);
-  margin-left: var(--universal-space);
-  
-
-  .progress-bar__text {
-    display: none;
-  }
+  padding: var(--universal-space-half) 0;
+  margin-bottom: var(--universal-space);
+  background: var(--c-off-white);
 
   @include breakpoint.medium-screen-min {
     display: none;

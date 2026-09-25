@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect } from 'react';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
-import LoadingAnimation from '@app/components/LoadingAnimation';
-import { useAddons } from '@app/hooks/useAddons';
+import { useAddons, type AddonItem } from '@app/hooks/useAddons';
 import { AddonLine } from '@app/state';
-import { Notice } from '@app/components/Notice';
+import { StateMessage } from '@app/components/StateMessage';
 
+/**
+ * Loads add-ons for the chosen experience. Add-ons are picked on DesignMyNight's checkout,
+ * so this only tells the customer they're available.
+ */
 export default function AddonsNew() {
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
@@ -12,7 +15,7 @@ export default function AddonsNew() {
   const enabled = !!state.venueId && !!state.date && !!state.time && !!state.bookingType;
 
   const handleLoad = useCallback(
-    (list: any[]) => {
+    (list: AddonItem[]) => {
       const lines: AddonLine[] = (list || []).map((p) => {
         const dmnId = String(p.dmn_package_id);
         return {
@@ -44,16 +47,13 @@ export default function AddonsNew() {
     dispatch({ type: 'SET_ADDONS_SELECTED', value: [] });
   }, [dispatch, state.venueId, state.bookingType, state.date, state.time]);
 
+  if (!enabled || loading || error || addons.length === 0) return null;
+
   return (
-    <>
-      {!loading && !error && addons.length > 0 && (
-        <Notice
-          message="Add-ons are available for this experience when you check out!"
-          severity="success"
-          inlineId="no-addons"
-          invalid={true}
-        />
-      )}
-    </>
+    <div className="addons-note" role="status">
+      <StateMessage kind="info">
+        Add-ons are available for this experience. You can choose them at checkout.
+      </StateMessage>
+    </div>
   );
 }

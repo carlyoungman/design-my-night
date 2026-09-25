@@ -1,22 +1,37 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useId, useMemo, useState, useCallback, useRef } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
 import { fmt, fmtDate, toNum } from '@app/utils/helpers';
 import { continueCheckout } from '@app/utils/checkout';
-import CircularProgress from '@mui/material/CircularProgress';
+import { isStepDone, STEPS } from '@app/utils/steps';
+import { validateCustomer } from '@app/utils/validation';
+import { StateMessage } from '@app/components/StateMessage';
 
 type ReviewStepProps = {
   sections?: { booking?: boolean; details?: boolean; payment?: boolean };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   venues: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   types?: any[];
 };
+
+const friendly = (msg: string) =>
+  /^HTTP \d+/.test(msg) || /fetch|network/i.test(msg)
+    ? 'We couldn’t reach the booking service. Check your connection and try again.'
+    : msg;
 
 export function Review({ sections, venues, types = [] }: ReviewStepProps) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
   const { returnUrl, urlParams } = useWidgetConfig();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const uid = useId();
+  const headingId = `${uid}-heading`;
+  const missingId = `${uid}-missing`;
 
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const venueName = useMemo(() => {
     const selected = venues.find((v) => v._id === state.venueId);
@@ -54,29 +69,51 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
   const grandTotal = useMemo(() => basePrice + addonsTotal, [basePrice, addonsTotal]);
 
-  const isDisabled = useMemo(() => {
-    return (
-      !state.venueId ||
-      !state.partySize ||
-      !state.date ||
-      !state.time ||
-      !state.bookingType ||
-      !state.customer.first_name ||
-      !state.customer.last_name ||
-      !state.customer.email ||
-      !state.customer.phone
-    );
-  }, [state]);
+  // Booking steps (everything except details) that still need doing.
+  const missingSteps = useMemo(
+    () => STEPS.filter((s) => s.key !== 'details' && !isStepDone(s.key, state)),
+    [state],
+  );
+  const detailErrors = useMemo(() => validateCustomer(state.customer), [state.customer]);
+  const detailErrorCount = Object.keys(detailErrors).length;
 
   const handleContinue = useCallback(async () => {
-    if (isDisabled || submitting) return;
+    if (missingSteps.length || submitting || redirecting) return;
+    setSubmitError(null);
+
+    // Validate the details step; show every error and move focus to the first one.
+    if (detailErrorCount > 0) {
+      dispatch({ type: 'ATTEMPT_DETAILS' });
+      requestAnimationFrame(() => {
+        const root = buttonRef.current?.closest('.dmn-widget');
+        root?.querySelector<HTMLElement>('[data-step="details"] [aria-invalid="true"]')?.focus();
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
       await continueCheckout({ state, returnUrl, urlParams });
+      // The browser is now navigating to DesignMyNight's checkout.
+      setRedirecting(true);
+    } catch (e) {
+      setSubmitError(
+        friendly(e instanceof Error ? e.message : 'We couldn’t start your booking.') +
+          ' Your details have been kept.',
+      );
     } finally {
       setSubmitting(false);
     }
-  }, [isDisabled, submitting, state, returnUrl, urlParams]);
+  }, [
+    missingSteps.length,
+    submitting,
+    redirecting,
+    detailErrorCount,
+    dispatch,
+    state,
+    returnUrl,
+    urlParams,
+  ]);
 
   const show = {
     booking: sections?.booking ?? true,
@@ -104,131 +141,172 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     return `${pad(startH)}:${pad(startM)} to ${pad(endH)}:${pad(endM)}`;
   }, [state.time, state.duration]);
 
+  const notChosen = 'Not chosen';
+
   return (
-    <section className="review">
+    <section className="review" aria-labelledby={headingId}>
+      <h2 id={headingId} className="screen-reader-text">
+        Booking summary
+      </h2>
       {show.booking && (
         <section className="review__section">
-          <h4 className="review__heading">Your booking</h4>
-          <ul className="review__list">
-            <li>
-              <span>
+          <h3 className="review__heading">Your booking</h3>
+          <dl className="review__list">
+            <div>
+              <dt>
                 <Building />
                 Venue
-              </span>
-              <strong>{venueName}</strong>
-            </li>
-            <li>
-              <span>
+              </dt>
+              <dd>{venueName || notChosen}</dd>
+            </div>
+            <div>
+              <dt>
                 <User />
                 Group
-              </span>
-              <strong>{state.partySize}</strong>
-            </li>
-            <li>
-              <span>
+              </dt>
+              <dd>
+                {state.partySize
+                  ? `${state.partySize} ${state.partySize === 1 ? 'person' : 'people'}`
+                  : notChosen}
+              </dd>
+            </div>
+            <div>
+              <dt>
                 <Calendar />
                 Date
-              </span>
-              <strong>{fmtDate(state.date)}</strong>
-            </li>
-            <li>
-              <span>
+              </dt>
+              <dd>{state.date ? fmtDate(state.date) : notChosen}</dd>
+            </div>
+            <div>
+              <dt>
                 <Rocket />
                 Experience
-              </span>
-              <strong dangerouslySetInnerHTML={{ __html: selectedType?.name || '' }} />
-            </li>
-            <li>
-              <span>
+              </dt>
+              {selectedType?.name ? (
+                <dd dangerouslySetInnerHTML={{ __html: selectedType.name }} />
+              ) : (
+                <dd>{notChosen}</dd>
+              )}
+            </div>
+            <div>
+              <dt>
                 <Clock4 />
                 Time
-              </span>
-              <strong>{timeRange || state.time}</strong>
-            </li>
-          </ul>
+              </dt>
+              <dd>{timeRange || state.time || notChosen}</dd>
+            </div>
+          </dl>
         </section>
       )}
 
       {show.details && (
         <section className="review__section">
-          <h4 className="review__heading">Your details</h4>
-          <ul className="review__list">
-            <li>
-              <span>Name</span>
-              <strong>
+          <h3 className="review__heading">Your details</h3>
+          <dl className="review__list">
+            <div>
+              <dt>Name</dt>
+              <dd>
                 {state.customer.first_name} {state.customer.last_name}
-              </strong>
-            </li>
-            <li>
-              <span>Email</span>
-              <strong>{state.customer.email}</strong>
-            </li>
+              </dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd>{state.customer.email}</dd>
+            </div>
             {state.customer.phone && (
-              <li>
-                <span>Phone</span>
-                <strong>{state.customer.phone}</strong>
-              </li>
+              <div>
+                <dt>Phone</dt>
+                <dd>{state.customer.phone}</dd>
+              </div>
             )}
             {state.customer.message && (
-              <li>
-                <span>Notes</span>
-                <strong>{state.customer.message}</strong>
-              </li>
+              <div>
+                <dt>Notes</dt>
+                <dd>{state.customer.message}</dd>
+              </div>
             )}
-          </ul>
+          </dl>
         </section>
       )}
 
       <section className="review__section">
-        <h4 className="review__heading">Summary</h4>
-        <div className="review__price">
-          {selectedAddons.length > 0 && (
-            <div className="review__addons">
-              {selectedAddons.map((a) => (
-                <div key={a.id} className="review__row">
+        <h3 className="review__heading">Price</h3>
+        {selectedAddons.length > 0 && (
+          <dl className="review__list">
+            {selectedAddons.map((a) => (
+              <div key={a.id}>
+                <dt>
                   <MicVocal />
-                  <span>{a.name}</span>
-                  <strong>{fmt(toNum(a.priceText))}</strong>
-                </div>
-              ))}
-              <div className="review__row review__row--subtotal">
-                <span>Add-ons</span>
-                <strong>{fmt(addonsTotal)}</strong>
+                  {a.name}
+                </dt>
+                <dd>{fmt(toNum(a.priceText))}</dd>
               </div>
+            ))}
+            <div>
+              <dt>Add-ons</dt>
+              <dd>{fmt(addonsTotal)}</dd>
             </div>
-          )}
-          {selectedType?.price_mode === 'display' ? (
-            <div className="review__row review__row--display">
-              <span>{selectedType.priceText}</span>
-            </div>
-          ) : (
-            <h6 className="review__row review__row--total">
+          </dl>
+        )}
+        {!selectedType ? (
+          <p className="review__note">Choose an experience to see the price.</p>
+        ) : selectedType.price_mode === 'display' ? (
+          <p className="review__total review__total--display">{selectedType.priceText}</p>
+        ) : (
+          <>
+            <p className="review__total">
               <span>Total</span>
-              <strong>{fmt(grandTotal)}</strong>
-            </h6>
-          )}
-        </div>
+              <span>{fmt(grandTotal)}</span>
+            </p>
+            <p className="review__note">
+              {selectedType.price_mode === 'per_room'
+                ? 'Price per room.'
+                : `${fmt(unitPrice)} per person × ${state.partySize ?? 0}.`}
+            </p>
+          </>
+        )}
       </section>
 
       {show.payment && (
-        <button
-          type="button"
-          className="review__button"
-          onClick={handleContinue}
-          disabled={isDisabled || submitting}
-          aria-busy={submitting}
-          data-return-url={returnUrl || undefined}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          {submitting ? (
-            <>
-              <CircularProgress size={18} thickness={5} />
-              <span>Processing…</span>
-            </>
-          ) : (
-            <span>Continue to payment</span>
+        <div className="review__section">
+          {submitError && <StateMessage kind="error">{submitError}</StateMessage>}
+          {state.detailsAttempted && detailErrorCount > 0 && !submitError && (
+            <StateMessage kind="error">
+              {detailErrorCount === 1
+                ? '1 field in your details needs attention.'
+                : `${detailErrorCount} fields in your details need attention.`}
+            </StateMessage>
           )}
-        </button>
+          <button
+            ref={buttonRef}
+            type="button"
+            className="review__button"
+            onClick={handleContinue}
+            disabled={missingSteps.length > 0 || submitting || redirecting}
+            aria-busy={submitting || redirecting}
+            aria-describedby={missingSteps.length > 0 ? missingId : undefined}
+            data-return-url={returnUrl || undefined}
+          >
+            {submitting || redirecting ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                <span>{redirecting ? 'Going to checkout…' : 'Checking availability…'}</span>
+              </>
+            ) : (
+              <span>Continue to payment</span>
+            )}
+          </button>
+          {missingSteps.length > 0 && (
+            <p id={missingId} className="review__missing">
+              To continue, choose: {missingSteps.map((s) => s.label.toLowerCase()).join(', ')}.
+            </p>
+          )}
+          {redirecting && (
+            <p className="review__missing" role="status">
+              Taking you to DesignMyNight’s secure checkout.
+            </p>
+          )}
+        </div>
       )}
     </section>
   );

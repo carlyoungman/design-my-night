@@ -39,6 +39,8 @@ export type State = {
   addons: AddonLine[];
   addonsSelected: string[];
   addonsResolved: boolean;
+  /** Set when the customer tries to continue, so every Details error is shown at once. */
+  detailsAttempted: boolean;
 };
 
 /**
@@ -57,6 +59,7 @@ export const initialState: State = {
   addons: [],
   addonsSelected: [],
   addonsResolved: false,
+  detailsAttempted: false,
 };
 
 /**
@@ -72,7 +75,8 @@ export type Action =
   | { type: 'SET_TIME'; value: string | null }
   | { type: 'SET_CUSTOMER'; value: Partial<Customer> }
   | { type: 'SET_ADDONS'; value: AddonLine[] }
-  | { type: 'SET_ADDONS_SELECTED'; value: string[] };
+  | { type: 'SET_ADDONS_SELECTED'; value: string[] }
+  | { type: 'ATTEMPT_DETAILS' };
 
 /**
  * Reducer function that applies actions to the booking state and returns the new state.
@@ -131,6 +135,8 @@ export function reducer(s: State, a: Action): State {
       return { ...s, addons: a.value };
     case 'SET_ADDONS_SELECTED':
       return { ...s, addonsSelected: a.value };
+    case 'ATTEMPT_DETAILS':
+      return { ...s, detailsAttempted: true };
     default:
       return s;
   }

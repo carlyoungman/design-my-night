@@ -1,5 +1,13 @@
 type Offset = number | { mobile?: number; desktop?: number };
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * Scroll the next step into view. Focus is left where it is so keyboard users (for example,
+ * arrowing through a radio group) are not pulled away; step changes are announced instead.
+ */
 export function scrollToSection(
   target: string,
   opts?: { offset?: Offset; delay?: number; breakpointPx?: number },
@@ -13,7 +21,7 @@ export function scrollToSection(
   } = opts || {};
 
   // If it looks like a selector, use it directly; otherwise assume data-step
-  const isSelector = /[#.\[\s>:+~]|^section\b/.test(target);
+  const isSelector = /[#.[\s>:+~]|^section\b/.test(target);
   const selector = isSelector ? target : `section[data-step="${target}"]`;
 
   const el = document.querySelector<HTMLElement>(selector);
@@ -25,7 +33,7 @@ export function scrollToSection(
 
   const doScroll = () => {
     const y = window.scrollY + el.getBoundingClientRect().top - effectiveOffset;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    window.scrollTo({ top: Math.max(0, y), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   };
 
   if (delay > 0) setTimeout(() => requestAnimationFrame(doScroll), delay);

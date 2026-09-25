@@ -1,29 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useWidgetState } from '@app/WidgetProvider';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
+import React, { useEffect, useId, useState } from 'react';
+import { Accordion } from '@base-ui-components/react/accordion';
 import { ChevronDown } from 'lucide-react';
-import { Notice } from '@app/components/Notice';
+import { useWidgetState } from '@app/WidgetProvider';
+import { getFaqs } from '@api/public';
+import LoadingAnimation from '@app/components/LoadingAnimation';
+import { StateMessage } from '@app/components/StateMessage';
 
 type Faq = { question: string; answer: string };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Props = { faqs?: Faq[]; title?: string; venues: any[] };
 
 export function Faqs({ faqs: initial, title = 'FAQs', venues = [] }: Props) {
   const { venueId } = useWidgetState();
+  const headingId = useId();
 
-  const venueName = React.useMemo(
-    () =>
-      venues.find((v: any) => v._id === venueId)?.name ??
-      venues.find((v: any) => v._id === venueId)?.title ??
-      '',
-    [venues, venueId],
-  );
+  const venueName = React.useMemo(() => {
+    const v = venues.find((x) => x._id === venueId);
+    return v?.name ?? v?.title ?? '';
+  }, [venues, venueId]);
 
   const [faqs, setFaqs] = useState<Faq[] | null>(initial ?? null);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (initial) return;
@@ -34,16 +33,12 @@ export function Faqs({ faqs: initial, title = 'FAQs', venues = [] }: Props) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      setErr(null);
+      setErr(false);
       try {
-        const res = await fetch(
-          `/wp-json/dmn/v1/public/faqs?venue_id=${encodeURIComponent(venueId)}`,
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await getFaqs(venueId);
         if (!cancelled) setFaqs(Array.isArray(json?.faqs) ? json.faqs : []);
       } catch {
-        if (!cancelled) setErr('Failed to load FAQs.');
+        if (!cancelled) setErr(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -51,51 +46,38 @@ export function Faqs({ faqs: initial, title = 'FAQs', venues = [] }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [venueId, initial]);
+  }, [venueId, initial, attempt]);
 
-  if (loading)
-    return (
-      <section className="faqs">
-        <p>Loading FAQs…</p>
-      </section>
-    );
-  if (err)
-    return (
-      <section className="faqs">
-        <p className="err">{err}</p>
-      </section>
-    );
-  if (!faqs || faqs.length === 0) return null;
+  // FAQs are optional content: nothing to show until a venue with FAQs is chosen.
+  if (!loading && !err && (!faqs || faqs.length === 0)) return null;
+
   return (
-    <section className="faqs">
-      <Notice
-        message={`${title} for ${venueName} have loaded`}
-        severity="success"
-        inlineId="faqs-loaded"
-        invalid={true}
-      />
-      <h4 className="faqs__title">
-        {title} for {venueName}
-      </h4>
-      <div className="faqs__list">
-        {faqs.map((f, i) => (
-          <Accordion key={i} className="faq" disableGutters>
-            <AccordionSummary
-              className="faq__q"
-              expandIcon={<ChevronDown color="var(--c-white)" />}
-              aria-controls={`faq-panel-${i}-content`}
-              id={`faq-panel-${i}-header`}
-            >
-              <Typography variant="h6" component="h6">
-                {f.question}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails className="faq__a">
-              <div>{f.answer}</div>
-            </AccordionDetails>
-          </Accordion>
-        ))}
-      </div>
+    <section className="faqs" aria-labelledby={headingId}>
+      <h2 id={headingId} className="faqs__title">
+        {title}
+        {venueName ? ` for ${venueName}` : ''}
+      </h2>
+      {loading && <LoadingAnimation text="Loading FAQs…" />}
+      {!loading && err && (
+        <StateMessage kind="error" onAction={() => setAttempt((n) => n + 1)}>
+          We couldn’t load the FAQs.
+        </StateMessage>
+      )}
+      {!loading && !err && faqs && (
+        <Accordion.Root className="faqs__list" openMultiple>
+          {faqs.map((f, i) => (
+            <Accordion.Item key={i} className="faqs__item">
+              <Accordion.Header className="faqs__header">
+                <Accordion.Trigger className="faqs__trigger">
+                  <span>{f.question}</span>
+                  <ChevronDown />
+                </Accordion.Trigger>
+              </Accordion.Header>
+              <Accordion.Panel className="faqs__panel">{f.answer}</Accordion.Panel>
+            </Accordion.Item>
+          ))}
+        </Accordion.Root>
+      )}
     </section>
   );
 }

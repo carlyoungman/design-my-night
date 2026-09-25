@@ -1,156 +1,119 @@
 import React, { useId, useMemo, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
-import { Notice } from '@app/components/Notice';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
+import { MAX_MESSAGE, validateCustomer, type CustomerField } from '@app/utils/validation';
+
+type FieldDef = {
+  key: CustomerField;
+  label: string;
+  required: boolean;
+  type?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  autoComplete: string;
+};
+
+const FIELDS: FieldDef[] = [
+  { key: 'first_name', label: 'First name', required: true, autoComplete: 'given-name' },
+  { key: 'last_name', label: 'Last name', required: true, autoComplete: 'family-name' },
+  { key: 'email', label: 'Email', required: true, type: 'email', autoComplete: 'email' },
+  {
+    key: 'phone',
+    label: 'Phone',
+    required: true,
+    type: 'tel',
+    inputMode: 'tel',
+    autoComplete: 'tel',
+  },
+];
 
 export function Details() {
   const state = useWidgetState();
-  const { customer } = state;
+  const { customer, detailsAttempted } = state;
   const dispatch = useWidgetDispatch();
+  const uid = useId();
 
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  const firstId = useId();
-  const lastId = useId();
-  const emailId = useId();
-  const phoneId = useId();
-  const msgId = useId();
+  // Errors show after a field loses focus, or for every field once the customer tries to continue.
+  const [touched, setTouched] = useState<Partial<Record<CustomerField, boolean>>>({});
+  const errors = useMemo(() => validateCustomer(customer), [customer]);
+  const visibleError = (k: CustomerField) =>
+    touched[k] || detailsAttempted || k === 'message' ? errors[k] : undefined;
 
   const set = (patch: Partial<typeof customer>) => dispatch({ type: 'SET_CUSTOMER', value: patch });
 
-  const firstNameInvalid = useMemo(
-    () => touched.first && (customer.first_name || '').trim().length < 2,
-    [touched.first, customer.first_name],
-  );
-  const lastNameInvalid = useMemo(
-    () => touched.last && (customer.last_name || '').trim().length < 2,
-    [touched.last, customer.last_name],
-  );
-  const emailInvalid = useMemo(
-    () => touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((customer.email || '').trim()),
-    [touched.email, customer.email],
-  );
-  const phoneInvalid = useMemo(
-    () =>
-      touched.phone &&
-      !(
-        (customer.phone || '').trim() === '' ||
-        /^[\d\s()+-]{6,20}$/.test((customer.phone || '').trim())
-      ),
-    [touched.phone, customer.phone],
-  );
-  const msgTooLong = useMemo(() => (customer.message || '').length > 500, [customer.message]);
-
-  const enabled = useMemo(
-    () =>
-      !!state.venueId &&
-      state.partySize != null &&
-      !!state.date &&
-      !!state.time &&
-      !!state.bookingType,
-    [state],
-  );
-
-  const ERR_MSG = {
-    firstName: 'Enter your first name.',
-    lastName: 'Enter your last name',
-    email: 'Enter a valid email, e.g. name@example.com.',
-    phone: 'Enter a phone number using digits, spaces, +, ( ) or - only.',
-    message: 'Special requests must be 500 characters or fewer.',
-  } as const;
+  const enabled =
+    !!state.venueId &&
+    state.partySize != null &&
+    !!state.date &&
+    !!state.time &&
+    !!state.bookingType;
 
   if (!enabled) {
-    return (
-      <section className="details">
-        <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience', 'time']} />
-      </section>
-    );
+    return <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience', 'time']} />;
   }
 
+  const msgId = `${uid}-message`;
+  const msgError = visibleError('message');
+
   return (
-    <section className="details">
+    <div className="details">
+      <p className="details__hint">All fields are required unless marked optional.</p>
       <div className="details__group">
-        <div className="details__field-wrapper">
-          <label className="details__label" htmlFor={firstId}>
-            First name <span className="details__label-hint">*</span>
-          </label>
-          <input
-            id={firstId}
-            className="details__input"
-            value={customer.first_name}
-            onChange={(e) => set({ first_name: e.target.value })}
-            onBlur={() => setTouched((t) => ({ ...t, first: true }))}
-            aria-invalid={firstNameInvalid}
-          />
-          <Notice
-            invalid={firstNameInvalid}
-            message={ERR_MSG.firstName}
-            inlineId={`${firstId}-err`}
-          />
-        </div>
-
-        <div className="details__field-wrapper">
-          <label className="details__label" htmlFor={lastId}>
-            Last name <span className="details__label-hint">*</span>
-          </label>
-          <input
-            id={lastId}
-            className="details__input"
-            value={customer.last_name}
-            onChange={(e) => set({ last_name: e.target.value })}
-            onBlur={() => setTouched((t) => ({ ...t, last: true }))}
-            aria-invalid={lastNameInvalid}
-          />
-          <Notice invalid={lastNameInvalid} message={ERR_MSG.lastName} inlineId={`${lastId}-err`} />
-        </div>
-
-        <div className="details__field-wrapper">
-          <label className="details__label" htmlFor={emailId}>
-            Email <span className="details__label-hint">*</span>
-          </label>
-          <input
-            id={emailId}
-            className="details__input"
-            type="email"
-            value={customer.email}
-            onChange={(e) => set({ email: e.target.value })}
-            onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-            aria-invalid={emailInvalid}
-          />
-          <Notice invalid={emailInvalid} message={ERR_MSG.email} inlineId={`${emailId}-err`} />
-        </div>
-
-        <div className="details__field-wrapper">
-          <label className="details__label" htmlFor={phoneId}>
-            Phone <span className="details__label-hint">*</span>
-          </label>
-          <input
-            id={phoneId}
-            className="details__input"
-            inputMode="tel"
-            value={customer.phone || ''}
-            onChange={(e) => set({ phone: e.target.value })}
-            onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
-            aria-invalid={phoneInvalid}
-          />
-          <Notice invalid={phoneInvalid} message={ERR_MSG.phone} inlineId={`${phoneId}-err`} />
-        </div>
+        {FIELDS.map((f) => {
+          const id = `${uid}-${f.key}`;
+          const err = visibleError(f.key);
+          return (
+            <div key={f.key} className="details__field-wrapper">
+              <label className="details__label" htmlFor={id}>
+                {f.label}
+              </label>
+              <input
+                id={id}
+                className="details__input"
+                type={f.type || 'text'}
+                inputMode={f.inputMode}
+                autoComplete={f.autoComplete}
+                required={f.required}
+                value={(customer[f.key] as string) || ''}
+                onChange={(e) => set({ [f.key]: e.target.value })}
+                onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
+                aria-invalid={err ? true : undefined}
+                aria-describedby={err ? `${id}-err` : undefined}
+              />
+              {err && (
+                <p id={`${id}-err`} className="details__error">
+                  <AlertCircle aria-hidden="true" />
+                  {err}
+                </p>
+              )}
+            </div>
+          );
+        })}
 
         <div className="details__field-wrapper">
           <label className="details__label" htmlFor={msgId}>
-            Special requests <span className="details__label-hint">( optional )</span>
+            Special requests <span className="details__label-hint">(optional)</span>
           </label>
           <textarea
             id={msgId}
             className="details__textarea"
-            maxLength={500}
+            maxLength={MAX_MESSAGE}
             value={customer.message || ''}
             onChange={(e) => set({ message: e.target.value })}
+            aria-invalid={msgError ? true : undefined}
+            aria-describedby={`${msgId}-count${msgError ? ` ${msgId}-err` : ''}`}
           />
-          <div className="details__hint">{(customer.message || '').length}/500</div>
-          <Notice invalid={msgTooLong} message={ERR_MSG.message} inlineId={`${msgId}-err`} />
+          <p id={`${msgId}-count`} className="details__hint">
+            {(customer.message || '').length} of {MAX_MESSAGE} characters
+          </p>
+          {msgError && (
+            <p id={`${msgId}-err`} className="details__error">
+              <AlertCircle aria-hidden="true" />
+              {msgError}
+            </p>
+          )}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

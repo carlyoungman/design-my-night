@@ -5,11 +5,12 @@ import { Minus, Plus } from 'lucide-react';
 import { useBookingLink } from '@app/hooks/useBookingLink';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
 
-export function PartySize() {
+export function PartySize({ labelledBy }: { labelledBy: string }) {
   const { partySize, venueId } = useWidgetState();
   const dispatch = useWidgetDispatch();
   const { disableGroupLimit } = useWidgetConfig();
   const id = useId();
+  const hintId = `${id}-hint`;
   const hasVenue = Boolean(venueId);
 
   const { data: groupLink } = useBookingLink(venueId);
@@ -49,17 +50,13 @@ export function PartySize() {
   );
 
   if (!hasVenue) {
-    return (
-      <section className="party-size">
-        <StepPrerequisite requires={['venue']} />
-      </section>
-    );
+    return <StepPrerequisite requires={['venue']} />;
   }
 
   const isGroupEligible = !disableGroupLimit && groupLink?.enabled && groupLink.url;
 
   return (
-    <section className="party-size">
+    <div className="party-size">
       <NumberField.Root
         id={id}
         value={localSize}
@@ -70,15 +67,25 @@ export function PartySize() {
         onValueChange={handleValueChange}
       >
         <NumberField.Group className="party-size__group">
-          <NumberField.Decrement className="party-size__decrement">
+          <NumberField.Decrement className="party-size__decrement" aria-label="Fewer people">
             <Minus />
           </NumberField.Decrement>
-          <NumberField.Input className="party-size__input" />
-          <NumberField.Increment className="party-size__increment">
+          <NumberField.Input
+            className="party-size__input"
+            aria-labelledby={labelledBy}
+            aria-describedby={max != null ? hintId : undefined}
+          />
+          <NumberField.Increment className="party-size__increment" aria-label="More people">
             <Plus />
           </NumberField.Increment>
         </NumberField.Group>
       </NumberField.Root>
+
+      {max != null && (
+        <p id={hintId} className="party-size__hint">
+          Up to {max} people can book online.
+        </p>
+      )}
 
       {isGroupEligible && (
         <a
@@ -88,8 +95,9 @@ export function PartySize() {
           href={groupLink.url}
         >
           {groupLink.label}
+          <span className="screen-reader-text"> (opens in a new tab)</span>
         </a>
       )}
-    </section>
+    </div>
   );
 }

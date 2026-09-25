@@ -1,53 +1,49 @@
 export default function InfoCard() {
   return (
-    <section className="dmn-admin__card">
-      <h2>Information</h2>
+    <section className="dmn-admin__card" aria-labelledby="dmn-admin-info-title">
+      <h2 id="dmn-admin-info-title">Shortcode</h2>
       <p>
-        Use the shortcode below to embed the booking widget on any page or post. You can optionally
-        pass parameters to preselect venues, activities, or limit available booking days.
+        Add the shortcode to any page or post to show the booking widget. Options can preselect a
+        venue or activity, or limit which days can be booked.
       </p>
-      <p><b>Shortcode options</b></p>
+      <code className="dmn-admin__code-block">[dmn_booking]</code>
+
+      <h3>Options</h3>
       <ul className="dmn-admin__list">
         <li>
-          <b>venue_group</b> – Override the default venue group set in the plugin settings. Defaults
-          to the venue group configured on the Settings page if omitted.
+          <code>venue_group</code>: overrides the default venue group from API credentials.
         </li>
-
         <li>
-          <b>venue_id</b> – Preselect a specific venue. You can use "inherit" to inherit the venue
-          id from the location settings
+          <code>venue_id</code>: preselects a venue. Use <code>inherit</code> to take the venue ID
+          from the location settings.
         </li>
-
         <li>
-          <b>type_id</b> – Preselect one or more activity types. Use a comma-separated list for
-          multiple types.
-          <br />
-          <i>Note: venue_id is required when using type_id.</i>
+          <code>type_id</code>: preselects one or more activities (comma-separated). Needs{' '}
+          <code>venue_id</code>.
         </li>
-
         <li>
-          <b>allow_disabled</b> – Adding allow_disabled to the shortcode will show activities that
-          are marked as disabled.
+          <code>allow_disabled</code>: also shows activities marked as disabled.
         </li>
-
         <li>
-          <b>disable_group_limit</b> – Adding disable_group_limit removes the maximum group size
-          cap on the party-size stepper and hides the group enquiry link.
+          <code>disable_group_limit</code>: removes the maximum group size and hides the group
+          enquiry link.
         </li>
-
         <li>
-          <b>allowed_days</b> – Restrict bookings to specific days of the week. Use a
-          comma-separated list (e.g. Monday,Friday,Saturday).
+          <code>allowed_days</code>: limits bookings to certain weekdays, e.g.{' '}
+          <code>Monday,Friday,Saturday</code>.
         </li>
-
         <li>
-          <b>url_params</b> – Pass additional query string parameters to the booking widget (e.g.{' '})
-          <code>key=value&amp;key2=value2</code><br></br> These are merged with any global URL parameters
-          configured in the plugin settings.
+          <code>url_params</code>: extra query parameters for the booking URL, e.g.{' '}
+          <code>key=value&amp;key2=value2</code>. These are merged with the URL parameters set
+          above.
         </li>
       </ul>
-      <p><b>Example shortcode:</b></p>
-      <code>[dmn_booking venue_group="" venue_id="" type_id="" allowed_days="" url_params="" allow_disabled disable_group_limit]</code>
+
+      <h3>Example</h3>
+      <code className="dmn-admin__code-block">
+        [dmn_booking venue_id=&quot;&quot; type_id=&quot;&quot; allowed_days=&quot;&quot;
+        allow_disabled]
+      </code>
     </section>
   );
 }
