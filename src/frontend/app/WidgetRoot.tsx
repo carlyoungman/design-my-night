@@ -148,7 +148,7 @@ function WidgetInner() {
         </div>
 
         <aside className="dmn-widget__side" aria-label="Booking summary">
-          <ProgressBar showSteps />
+          <ProgressBar />
           <Review sections={{ details: false }} venues={venues} types={types} />
         </aside>
       </div>

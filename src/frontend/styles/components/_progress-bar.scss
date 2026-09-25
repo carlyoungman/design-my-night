@@ -23,44 +23,6 @@
     margin: 0;
     font-size: 14px;
   }
-
-  // Step labels: status is shown by text (visually hidden) and an icon, not colour alone.
-  &__steps {
-    display: grid;
-    gap: 6px;
-    padding: 0;
-    margin: var(--universal-space-half) 0 0;
-    list-style: none;
-  }
-
-  &__step {
-    display: flex;
-    gap: var(--universal-space-half);
-    align-items: center;
-    font-size: 14px;
-
-    svg {
-      flex-shrink: 0;
-      width: 18px;
-      height: 18px;
-    }
-
-    &--done svg {
-      color: var(--c-purple);
-    }
-
-    &--current {
-      font-weight: 600;
-
-      svg {
-        color: var(--c-purple);
-      }
-    }
-
-    &--todo svg {
-      color: var(--c-outline);
-    }
-  }
 }
 
 // Compact bar pinned to the top on small screens, where the side panel sits below the steps.

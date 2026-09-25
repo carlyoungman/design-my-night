@@ -93,10 +93,19 @@ export type AdminVenue = {
   activities_count: number;
   visible_count: number;
   without_image_count: number;
+  /** Leave activities DesignMyNight reports as unavailable out of the widget, instead of showing them disabled. */
+  hide_unavailable: boolean;
 };
 
 export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
   return wpFetch('venues');
+}
+
+export async function adminSaveVenue(
+  id: number,
+  body: { hide_unavailable?: boolean },
+): Promise<{ ok: boolean; hide_unavailable: boolean }> {
+  return wpFetch(`venues/${id}`, { method: 'POST', body });
 }
 
 /** Activities */

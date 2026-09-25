@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { ChevronDown, ChevronLeft, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
-import { type AdminVenue, adminListActivities, adminSaveActivity } from '@admin/api';
+import {
+  type AdminVenue,
+  adminListActivities,
+  adminSaveActivity,
+  adminSaveVenue,
+} from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
 import {
   LoadError,
@@ -89,6 +94,39 @@ export default function ActivityManagerCard({
   const [saving, setSaving] = useState(false);
   // Activities whose editor is open. All start closed, except when a venue has only one activity.
   const [open, setOpen] = useState<Set<number>>(() => new Set());
+  // Venue setting, saved as soon as it changes (separately from the activities).
+  const [hideUnavailable, setHideUnavailable] = useState(venue.hide_unavailable);
+  const [venueSaving, setVenueSaving] = useState(false);
+  const [venueErr, setVenueErr] = useState<string | null>(null);
+  const [venueOk, setVenueOk] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHideUnavailable(venue.hide_unavailable);
+  }, [venue.hide_unavailable]);
+
+  useEffect(() => {
+    setVenueErr(null);
+    setVenueOk(null);
+  }, [venueId]);
+
+  const saveHideUnavailable = async (next: boolean) => {
+    const previous = hideUnavailable;
+    setHideUnavailable(next);
+    setVenueSaving(true);
+    setVenueErr(null);
+    setVenueOk(null);
+    try {
+      const r = await adminSaveVenue(venueId, { hide_unavailable: next });
+      setHideUnavailable(r.hide_unavailable);
+      setVenueOk('Saved.');
+      onSaved?.();
+    } catch (e) {
+      setHideUnavailable(previous);
+      setVenueErr(errorMessage(e, 'The setting could not be saved. Try again.'));
+    } finally {
+      setVenueSaving(false);
+    }
+  };
 
   const dirty = useMemo(() => {
     const d = new Set<number>();
@@ -290,6 +328,42 @@ export default function ActivityManagerCard({
           )}
         </div>
       </div>
+
+      {showList && (
+        <div className="dmn-admin__card dmn-admin__venue-settings">
+          <h3>Booking widget</h3>
+          <div className="dmn-admin__field">
+            <span className="dmn-admin__label" id="dmn-admin-venue-unavailable-label">
+              Unavailable activities
+            </span>
+            <ToggleButtonGroup
+              value={hideUnavailable ? 'hide' : 'show'}
+              exclusive
+              disabled={venueSaving}
+              onChange={(_, newValue) => {
+                if (!newValue) return; // one option must stay selected
+                saveHideUnavailable(newValue === 'hide');
+              }}
+              aria-labelledby="dmn-admin-venue-unavailable-label"
+              aria-describedby="dmn-admin-venue-unavailable-help"
+            >
+              <ToggleButton value="show">Show as unavailable</ToggleButton>
+              <ToggleButton value="hide">Hide</ToggleButton>
+            </ToggleButtonGroup>
+            <p id="dmn-admin-venue-unavailable-help" className="dmn-admin__help">
+              When DesignMyNight can&apos;t take an activity for the chosen date or group size,
+              either show it with its reason or leave it out of the widget. Saved straight away.
+            </p>
+          </div>
+          {venueSaving && (
+            <p className="dmn-admin__help" role="status">
+              Saving…
+            </p>
+          )}
+          {!venueSaving && venueOk && <StatusMessage tone="success">{venueOk}</StatusMessage>}
+          {venueErr && <StatusMessage tone="error">{venueErr}</StatusMessage>}
+        </div>
+      )}
 
       {showList && (
         <div className="dmn-admin__toolbar dmn-admin__toolbar--two">

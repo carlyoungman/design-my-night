@@ -166,6 +166,17 @@ class AdminController
       'callback' => [$this, 'dmn_admin_sync_venues'],
     ]);
 
+    // Venues: update widget settings
+    register_rest_route('dmn/v1/admin', '/venues/(?P<id>\d+)', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_save_venue'],
+      'args' => [
+        'id' => ['type' => 'integer', 'required' => true],
+        'hide_unavailable' => ['type' => 'boolean', 'required' => false],
+      ],
+    ]);
+
     // Types: sync for all venues
     register_rest_route('dmn/v1/admin', '/sync/types', [
       'methods' => WP_REST_Server::CREATABLE,
@@ -316,10 +327,38 @@ class AdminController
         'activities_count' => $s['total'],
         'visible_count' => $s['visible'],
         'without_image_count' => $s['without_image'],
+        'hide_unavailable' => get_post_meta($p->ID, 'dmn_hide_unavailable', true) === '1',
       ];
     }, $posts);
 
     return new WP_REST_Response(['venues' => $venues], 200);
+  }
+
+  /**
+   * Update a dmn_venue's widget settings.
+   *
+   * @param WP_REST_Request $r Request with route 'id' and JSON body.
+   * @return WP_REST_Response 200 on success, 404 on missing post.
+   */
+  public function dmn_admin_save_venue(WP_REST_Request $r): WP_REST_Response
+  {
+    $id = (int)$r['id'];
+    $p = get_post($id);
+    if (!$p || $p->post_type !== 'dmn_venue') {
+      return new WP_REST_Response(['message' => 'Venue not found. Reload the page and try again.'], 404);
+    }
+
+    // Read through the request so the 'boolean' arg schema applies; rest_sanitize_boolean
+    // treats strings such as "false" and "0" as false, which a plain truthiness check would not.
+    if ($r->has_param('hide_unavailable')) {
+      $hide = rest_sanitize_boolean($r->get_param('hide_unavailable'));
+      update_post_meta($id, 'dmn_hide_unavailable', $hide ? '1' : '0');
+    }
+
+    return new WP_REST_Response([
+      'ok' => true,
+      'hide_unavailable' => get_post_meta($id, 'dmn_hide_unavailable', true) === '1',
+    ], 200);
   }
 
   /**

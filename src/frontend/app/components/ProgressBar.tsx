@@ -1,22 +1,12 @@
 import React, { useMemo } from 'react';
-import { CheckCircle2, Circle, CircleDot } from 'lucide-react';
 import { useWidgetState } from '@app/WidgetProvider';
 import { stepStatuses } from '@app/utils/steps';
 
-const STATUS_TEXT = { done: 'complete', current: 'current step', todo: 'not started' } as const;
-
 /**
- * Booking progress. `showSteps` adds the list of step labels with their status; the compact
- * version (bar only) is used for the sticky bar on small screens and is hidden from assistive
- * technology, which gets the full version in the side panel instead.
+ * Booking progress. The compact version is used for the sticky bar on small screens and is
+ * hidden from assistive technology, which gets the full version in the side panel instead.
  */
-export default function ProgressBar({
-  showSteps = false,
-  compact = false,
-}: {
-  showSteps?: boolean;
-  compact?: boolean;
-}) {
+export default function ProgressBar({ compact = false }: { compact?: boolean }) {
   const state = useWidgetState();
 
   const steps = useMemo(() => stepStatuses(state), [state]);
@@ -44,29 +34,6 @@ export default function ProgressBar({
       >
         <div className="progress-bar__fill" style={{ width: `${percent}%` }} />
       </div>
-      {showSteps && (
-        <ol className="progress-bar__steps">
-          {steps.map((s) => (
-            <li
-              key={s.key}
-              className={`progress-bar__step progress-bar__step--${s.status}`}
-              aria-current={s.status === 'current' ? 'step' : undefined}
-            >
-              {s.status === 'done' ? (
-                <CheckCircle2 />
-              ) : s.status === 'current' ? (
-                <CircleDot />
-              ) : (
-                <Circle />
-              )}
-              <span>
-                {s.label}
-                <span className="screen-reader-text">, {STATUS_TEXT[s.status]}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
     </section>
   );
 }
