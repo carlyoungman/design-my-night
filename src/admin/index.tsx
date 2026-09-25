@@ -7,6 +7,7 @@ import { AdminProvider, type SectionId, useAdmin } from '@admin/AdminContext';
 import PageHeader from '@admin/components/PageHeader';
 import SectionTabs, { panelId, tabId } from '@admin/components/SectionTabs';
 import VenuesPanel from '@admin/components/VenuesPanel';
+import Dashboard from '@admin/components/Dashboard';
 import SettingsCard from '@admin/components/SettingsCard';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
@@ -56,6 +57,9 @@ function App() {
     <AdminProvider>
       <PageHeader />
       <SectionTabs unsaved={{ venues: venuesDirty, 'url-params': paramsDirty }} />
+      <Panel id="dashboard">
+        <Dashboard />
+      </Panel>
       <Panel id="venues">
         <VenuesPanel onDirty={setVenuesDirty} />
       </Panel>

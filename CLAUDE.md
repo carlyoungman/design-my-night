@@ -37,9 +37,11 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 3. Navigation
 
-The admin screen is one WordPress menu page with a page header (title, intro, and the page-level **Import from DesignMyNight** action) followed by section tabs, each with an icon and a text label: Venues, Connection, URL parameters, and Shortcode (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
+The admin screen is one WordPress menu page with a page header (title, intro, and the page-level **Import from DesignMyNight** action) followed by section tabs, each with an icon and a text label: Dashboard, Venues, Connection, URL parameters, and Shortcode (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
 
-Venues is the landing view: an overview of every imported venue with a summary of its activities (`VenuesOverview`). Opening a venue shows its activities (`#venues/<id>`, `ActivityManagerCard`), with a breadcrumb back to the overview. The activity editor stays mounted behind the overview, so going back keeps unsaved edits (the venue's card shows them), and opening a different venue asks before discarding them (`VenuesPanel`).
+Dashboard is the landing view (`Dashboard.tsx`): setup steps until the plugin is connected and imported, the outcome of the last import (recorded by `dmn_admin_sync_all` in the `dmn_last_import` option and read from `GET dmn/v1/admin/overview`), the connection settings, totals, and venues that need attention. It makes no DesignMyNight request when opened.
+
+The Venues section starts with an overview of every imported venue with a summary of its activities (`VenuesOverview`). Opening a venue shows its activities (`#venues/<id>`, `ActivityManagerCard`), with a breadcrumb back to the overview. The activity editor stays mounted behind the overview, so going back keeps unsaved edits (the venue's card shows them), and opening a different venue asks before discarding them (`VenuesPanel`).
 
 - Keep the existing WordPress admin navigation for plugins that run inside wp-admin.
 - Place plugin screens and subsections in a logical, stable hierarchy; avoid duplicating the whole WordPress sidebar inside a plugin.

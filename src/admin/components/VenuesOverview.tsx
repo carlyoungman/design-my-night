@@ -1,7 +1,7 @@
 // src/admin/components/VenuesOverview.tsx
 // The plugin's landing view: every imported venue with a summary of its activities. Opening a venue
 // shows its activities (see VenuesPanel).
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronRight, CircleDot, ImageOff, Search } from 'lucide-react';
 import { type AdminVenue } from '@admin/api';
 import { useAdmin, venueHref } from '@admin/AdminContext';
@@ -35,18 +35,6 @@ export default function VenuesOverview({
 }: Props) {
   const { goToSection, openVenue } = useAdmin();
   const [query, setQuery] = useState('');
-
-  const totals = useMemo(
-    () =>
-      venues.reduce(
-        (t, v) => ({
-          activities: t.activities + v.activities_count,
-          visible: t.visible + v.visible_count,
-        }),
-        { activities: 0, visible: 0 },
-      ),
-    [venues],
-  );
 
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -90,24 +78,6 @@ export default function VenuesOverview({
 
       {!loading && venues.length > 0 && (
         <>
-          <dl className="dmn-admin__stats">
-            <div className="dmn-admin__stat">
-              <dt>Venues</dt>
-              <dd>{venues.length}</dd>
-            </div>
-            <div className="dmn-admin__stat">
-              <dt>Activities</dt>
-              <dd>{totals.activities}</dd>
-            </div>
-            <div className="dmn-admin__stat">
-              <dt>Shown in widget</dt>
-              <dd>
-                {totals.visible}
-                <span className="dmn-admin__stat-of"> of {totals.activities}</span>
-              </dd>
-            </div>
-          </dl>
-
           {venues.length >= SEARCH_FROM && (
             <div className="dmn-admin__toolbar dmn-admin__toolbar--one">
               <div className="dmn-admin__field">

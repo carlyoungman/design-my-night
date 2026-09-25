@@ -30,12 +30,9 @@ export default function PageHeader() {
       );
       notifyDataChanged();
     } catch (e) {
-      setErr(
-        errorMessage(
-          e,
-          'Import failed. Check your API credentials under Connection with Test connection, then try again.',
-        ),
-      );
+      setErr(errorMessage(e, 'Import from DesignMyNight failed'));
+      // A failed import is recorded too, so the dashboard shows it.
+      notifyDataChanged();
     } finally {
       setBusy(false);
     }
