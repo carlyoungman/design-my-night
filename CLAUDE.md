@@ -46,7 +46,7 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 4. Typography, spacing, colour, and elevation
 
-Use the shared design tokens instead of ad-hoc values. The values below are this plugin's admin tokens, defined in `src/admin/styles/styles.scss`. They are the source of truth; update this table if you change the tokens.
+Use the shared design tokens instead of ad-hoc values. The values below are this plugin's admin tokens, defined in `src/admin/styles/styles.scss`. They are the source of truth, except for colour: the colour palette below is the target, and the code still needs to move to it. Update this section if you change the tokens.
 
 | Token or element | Value |
 | --- | --- |
@@ -56,14 +56,48 @@ Use the shared design tokens instead of ad-hoc values. The values below are this
 | Page heading | 24–32 px |
 | Spacing scale | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px |
 | Card corner radius | 15 px (`--border-radius`) |
-| Borders | 1 px `--c-off-white` |
+| Borders | 1 px `--c-lilac-grey` |
 | Shadows | `--box-shadow-1` (resting), `--box-shadow-2` (raised), `--box-shadow-3` (overlay) |
 | Transition | `--transition`: `all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1)` |
-| Colour | Named palette: `--c-white`, `--c-off-white`, `--c-black`, `--c-off-black`, `--c-blue`, `--c-green`, `--c-red` |
+| Colour | See the colour palette below |
 | Breakpoints | 320, 576, 768, 992, 1200, 1440 px, used through the mixins in `settings/_breakpoints.scss` |
 
+### Colour palette
+
+This palette applies to both the admin app and the booking widget. Variables are named by appearance; the table shows what each one is for.
+
+| Variable | Value | Use |
+| --- | --- | --- |
+| `--c-purple` | `#6750A4` | Primary buttons, selection, and active navigation |
+| `--c-white` | `#FFFFFF` | Cards, panels, and primary content surfaces |
+| `--c-off-white` | `#F8F7FA` | Main application background |
+| `--c-lilac-grey` | `#E7E0EC` | Borders, dividers, and secondary surfaces |
+| `--c-near-black` | `#1D1B20` | Main headings and body text |
+| `--c-green` | `#379f70` | Success and saved states |
+| `--c-red` | `#bb3d3d` | Errors and unsaved changes |
+
+Contrast limits (checked against `--c-white` and `--c-off-white`):
+
+- `--c-green` is only about 3.1–3.3:1, so it fails the 4.5:1 minimum for normal text. Use it for icons, fills, and borders, or for text of at least 24 px (19 px bold). Always pair it with a readable text label in `--c-near-black`.
+- `--c-lilac-grey` is about 1.3:1, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use a darker outline for those.
+- `--c-purple`, `--c-red`, and `--c-near-black` pass 4.5:1 on both surfaces.
+
+#### Migrating from the old palette
+
+The code still uses the old colours. Move them to the palette above when working nearby:
+
+| Old | Replace with |
+| --- | --- |
+| `--c-blue` `#3a5683` | `--c-purple` |
+| `--c-off-white` `#d9d9d9` (borders) | `--c-lilac-grey`. Note that `--c-off-white` now means the page background. |
+| `--c-off-black` `#25251e`, `--c-black` `#000` (text) | `--c-near-black` |
+| `#ececec` page background | `--c-off-white` |
+| Widget `--c-theme-primary` `#f0f`, `--c-dark-blue`, `--c-light-blue` | `--c-purple` |
+| Widget black surfaces and white text | `--c-white` / `--c-off-white` surfaces with `--c-near-black` text |
+| Widget `--c-error` `#F00`, `--c-success` `#0F0` | `--c-red`, `--c-green` |
+
 - Distinguish page, section, label, metric, and supporting-text hierarchy through typography before adding decorative elements.
-- Use the named palette variables for every colour. Do not add ad-hoc hex values; if a new colour is needed, add it to the palette first. Use one colour consistently for each meaning (for example, `--c-red` for errors and unsaved changes, `--c-green` for success).
+- Use the named palette variables for every colour. Do not add ad-hoc hex values; if a new colour is needed, add it to the palette first. Use each colour only for the purpose listed in the palette.
 - Never use colour alone to convey status: pair it with readable text and, where useful, an icon.
 - Check contrast in real rendered states, especially supporting text that is dimmed with opacity.
 - Cards use a border, not a shadow. Use the three shadow levels only for real layering: raised buttons, menus, popovers, dialogs, and sticky elements over content. Avoid multiple competing accent colours and low-contrast grey text.
@@ -138,6 +172,7 @@ These exist in the current code and break the scoping rule above. Do not copy th
 
 - `src/admin/styles/styles.scss` defines the design tokens on `:root` instead of `.dmn-admin`.
 - `src/admin/styles/styles.scss` overrides `#wpcontent` and `#wpfooter` (`margin-left: 160px` and a background colour). The fixed margin also breaks the folded and mobile WordPress sidebars.
+- Admin and widget colours don't yet match the target palette (see "Migrating from the old palette" in section 4).
 - `dmn-booking-plugin.php` renders the admin page heading with an inline `style` attribute instead of a scoped class.
 
 ## 11. Front-end booking widget
@@ -145,8 +180,8 @@ These exist in the current code and break the scoping rule above. Do not copy th
 The booking widget (`src/frontend`) is embedded in pages of someone else's theme. It is not a wp-admin dashboard, but sections 4–9 apply to it too, with these differences.
 
 - **Isolation first.** Everything, including the CSS reset and design tokens, is scoped under `.dmn-widget-root` (see `src/frontend/styles/index.scss`). Never add styles or custom properties on `:root`, `body`, or bare element selectors: the widget must not change the host theme, and the host theme should affect the widget as little as possible.
-- **Own tokens.** The widget has its own token set, separate from the admin's. The base font size is 16 px; spacing, radius, and transition values match the admin (15 px base, 15 px radius). The palette also includes `--c-theme-primary`, `--c-dark-blue`, `--c-light-blue`, `--c-error`, and `--c-success`. Only use tokens that are defined inside `.dmn-widget-root`; admin tokens (such as `--box-shadow-1`) are not loaded on the front end.
-- **Visual style.** The widget follows the host brand (currently dark surfaces with a `--c-theme-primary` accent), not the admin's light Material theme. Keep brand colours in tokens so each site can re-theme it.
+- **Own tokens.** The widget has its own token set, separate from the admin's. The base font size is 16 px; spacing, radius, and transition values match the admin (15 px base, 15 px radius). It uses the same colour palette as the admin (section 4), defined again inside `.dmn-widget-root`. Only use tokens that are defined inside `.dmn-widget-root`; admin tokens (such as `--box-shadow-1`) are not loaded on the front end.
+- **Visual style.** The widget uses the same light palette as the admin: light surfaces, `--c-near-black` text, and `--c-purple` for primary actions and selection. It currently uses dark surfaces with a `#f0f` accent; see the migration table in section 4. Keep colours in tokens so a site can re-theme it if needed.
 - **Step flow.** The booking flow is a linear sequence of steps (Party → Venue → Date & Time → Type → Packages → Details → Review). Each step must:
   - show where the user is in the flow (progress bar and step labels),
   - allow going back without losing entered data,
