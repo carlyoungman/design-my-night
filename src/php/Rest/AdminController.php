@@ -315,7 +315,6 @@ class AdminController
         'gallery_ids' => array_values(array_filter(array_map('intval', (array)get_post_meta($p->ID, 'gallery', true)))),
         'visible' => get_post_meta($p->ID, 'visible', true) !== '0',
         'duration_minutes' => (int)get_post_meta($p->ID, '_dmn_duration_minutes', true),
-        'type_text' => (string)get_post_meta($p->ID, 'type_text', true),
         'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true))
         && in_array($m, ['per_person', 'per_room', 'display'], true) ? $m : 'per_person',
       ];
@@ -362,14 +361,6 @@ class AdminController
     }
     if (array_key_exists('visible', $b)) {
       update_post_meta($id, 'visible', $b['visible'] ? '1' : '0');
-    }
-
-    if (array_key_exists('type_text', $b)) {
-      update_post_meta(
-        $id,
-        'type_text',
-        wp_kses_post($b['type_text'] ?? '')
-      );
     }
 
     if (array_key_exists('price_mode', $b)) {

@@ -104,7 +104,6 @@ export async function adminListActivities(venuePostId: number): Promise<{
     image_url?: string | null;
     gallery_ids?: number[];
     visible?: boolean;
-    type_text?: string;
     price_mode?: 'per_person' | 'per_room' | 'display';
   }[];
 }> {
@@ -120,7 +119,6 @@ export async function adminSaveActivity(
     image_id?: number | null;
     gallery_ids?: number[];
     visible?: boolean;
-    type_text?: string;
     price_mode?: 'per_person' | 'per_room' | 'display';
   },
 ): Promise<{ ok: boolean }> {

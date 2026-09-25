@@ -220,8 +220,6 @@ class PublicController
         $typeId = (string)get_post_meta($p->ID, 'dmn_type_id', true);
         if (!$typeId) continue;
 
-        $type_text_raw = get_post_meta($p->ID, 'type_text', true);
-
         $imgId = (int)get_post_thumbnail_id($p->ID);
         $duration = (int)get_post_meta($p->ID, '_dmn_duration_minutes', true);
 
@@ -233,7 +231,6 @@ class PublicController
           'image_id' => $imgId ?: null,
           'image_url' => $imgId ? wp_get_attachment_image_url($imgId, 'large') : null,
           'duration' => $duration > 0 ? $duration : null,
-          'type_text' => is_string($type_text_raw) ? $type_text_raw : '',
           'price_mode' => ($m = (string)get_post_meta($p->ID, 'dmn_price_mode', true)) && in_array($m, ['per_person', 'per_room', 'display'], true)
             ? $m
             : 'per_person',
@@ -268,7 +265,6 @@ class PublicController
           'valid' => $valid,
           'message' => $msg ?: null,
           'duration' => $conf['duration'] ?? null,
-          'type_text' => $conf['type_text'] ?? '',
           'price_mode' => $conf['price_mode'] ?? 'per_person',
           'visible' => $conf['visible'] ?? true,
         ];
@@ -291,7 +287,6 @@ class PublicController
         'valid' => null,
         'message' => null,
         'duration' => $conf['duration'] ?? null,
-        'type_text' => $conf['type_text'] ?? '',
         'price_mode' => $conf['price_mode'] ?? 'per_person',
         'visible' => $conf['visible'] ?? true,
       ];
