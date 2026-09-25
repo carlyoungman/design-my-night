@@ -1,0 +1,292 @@
+@use '../settings/breakpoints' as breakpoint;
+
+// Progress feedback for actions that talk to DesignMyNight: importing and testing the connection.
+// The server doesn't report progress, so the bar is indeterminate. Text always carries the state.
+.dmn-admin {
+  &__progress {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space);
+    padding: var(--universal-space);
+    padding-bottom: calc(var(--universal-space) + 4px);
+    overflow: hidden;
+    background: var(--c-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: var(--border-radius);
+    animation: dmn-admin-progress-in 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  &__progress-body {
+    display: flex;
+    gap: var(--universal-space);
+    align-items: flex-start;
+  }
+
+  &__progress-text {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    .dmn-admin__help {
+      margin-top: 2px;
+    }
+
+    .actions {
+      gap: var(--universal-space-half);
+      margin-top: var(--universal-space-half);
+    }
+
+    // Line text buttons up with the message text rather than their padding.
+    .button--text {
+      margin-left: -12px;
+    }
+  }
+
+  &__progress-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  &__progress-meta {
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  &__progress-timer {
+    font-variant-numeric: tabular-nums;
+  }
+
+  // Thin bar along the bottom edge, as in Material 3's linear progress indicator.
+  &__progress-bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--c-purple) 16%, transparent);
+
+    span {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 40%;
+      background: var(--c-purple);
+      border-radius: 4px;
+    }
+  }
+
+  &__progress--running &__progress-bar span {
+    animation: dmn-admin-progress-slide 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  // Finished: the bar fills and settles to the outcome colour.
+  &__progress--success &__progress-bar {
+    background: transparent;
+
+    span {
+      width: 100%;
+      background: var(--c-green);
+      animation: dmn-admin-progress-fill 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+  }
+
+  &__progress--error &__progress-bar {
+    background: transparent;
+
+    span {
+      width: 100%;
+      background: var(--c-red);
+    }
+  }
+
+  &__progress--success .dmn-admin__status svg {
+    animation: dmn-admin-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  // Icon-only text button, such as Dismiss.
+  .button--icon {
+    flex-shrink: 0;
+    width: 32px;
+    min-height: 32px;
+    padding: 0;
+    margin: -6px -6px -6px 0;
+  }
+
+  &__spin {
+    animation: dmn-admin-spin 1s linear infinite;
+  }
+
+  &__pulse {
+    animation: dmn-admin-pulse 1.2s ease-in-out infinite;
+  }
+
+  // Connection test: this site and DesignMyNight joined by a line.
+  &__link-visual {
+    display: flex;
+    gap: var(--universal-space-half);
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__link-node {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 8px;
+    font-size: 0; // Icons only on phones; the labels don't fit side by side.
+    background: var(--c-off-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: 999px;
+
+    @include breakpoint.small-screen-min {
+      padding-right: 12px;
+      font-size: 13px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: var(--c-purple);
+    }
+  }
+
+  &__link-line {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 40px;
+    height: 2px;
+    background-image: linear-gradient(90deg, var(--c-outline) 50%, transparent 50%);
+    background-size: 8px 2px;
+    transition: var(--transition);
+  }
+
+  &__link-signal {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    background: var(--c-purple);
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  &__progress--running &__link-signal {
+    animation: dmn-admin-signal 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  &__progress--success &__link-line {
+    background: var(--c-green);
+  }
+
+  &__progress--success &__link-node svg {
+    color: var(--c-green);
+  }
+
+  // A break in the middle of the line.
+  &__progress--error &__link-line {
+    background-image: linear-gradient(
+      90deg,
+      var(--c-red) 0 46%,
+      transparent 46% 54%,
+      var(--c-red) 54% 100%
+    );
+    background-size: 100% 2px;
+  }
+
+  // Replaces motion with a still equivalent: the text and timer still show progress.
+  @media (prefers-reduced-motion: reduce) {
+    &__progress--running &__progress-bar span {
+      width: 100%;
+      opacity: 0.4;
+      animation: none;
+    }
+
+    &__progress--running &__link-signal {
+      left: 50%;
+      opacity: 1;
+      animation: none;
+    }
+
+    &__spin,
+    &__pulse {
+      animation: none;
+    }
+  }
+}
+
+.button[aria-disabled='true'] {
+  cursor: progress;
+}
+
+@keyframes dmn-admin-progress-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes dmn-admin-progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes dmn-admin-progress-fill {
+  from {
+    transform: scaleX(0.4);
+    transform-origin: left;
+  }
+}
+
+@keyframes dmn-admin-pop {
+  0% {
+    transform: scale(0.4);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes dmn-admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dmn-admin-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes dmn-admin-signal {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+
+  15%,
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}

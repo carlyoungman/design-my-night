@@ -1,8 +1,8 @@
 // src/admin/components/ui.tsx
 // Small shared pieces for consistent status, loading and error feedback.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
-import { AlertCircle, CheckCircle2, CircleDot } from 'lucide-react';
+import { AlertCircle, CheckCircle2, CircleDot, X } from 'lucide-react';
 
 type Tone = 'success' | 'error' | 'warning';
 
@@ -75,6 +75,71 @@ export function SaveState({ dirty, ok }: { dirty: boolean; ok?: string | null })
   if (dirty) return <StatusMessage tone="warning">Unsaved changes</StatusMessage>;
   if (ok) return <StatusMessage tone="success">{ok}</StatusMessage>;
   return null;
+}
+
+export type ProgressState = 'running' | 'success' | 'error';
+
+/**
+ * Panel for an action that talks to DesignMyNight and can take a while. While running it shows a
+ * moving progress bar (indeterminate: the server doesn't report progress), then the outcome.
+ * `visual` is an optional illustration above the text, hidden from assistive technologies; the
+ * text always says what is happening.
+ */
+export function ProgressPanel({
+  state,
+  visual,
+  children,
+  meta,
+  actions,
+  onDismiss,
+}: {
+  state: ProgressState;
+  visual?: React.ReactNode;
+  /** Running: what is happening. Finished: a StatusMessage with the outcome. */
+  children: React.ReactNode;
+  /** Short supporting text on the right, such as the time taken. */
+  meta?: React.ReactNode;
+  actions?: React.ReactNode;
+  onDismiss?: () => void;
+}) {
+  return (
+    <div className={`dmn-admin__progress dmn-admin__progress--${state}`}>
+      {visual}
+      <div className="dmn-admin__progress-body">
+        <div className="dmn-admin__progress-text">
+          {children}
+          {actions && state !== 'running' && <div className="actions">{actions}</div>}
+        </div>
+        {meta && <span className="dmn-admin__progress-meta">{meta}</span>}
+        {state !== 'running' && onDismiss && (
+          <button
+            type="button"
+            className="button button--text button--icon"
+            onClick={onDismiss}
+            aria-label="Dismiss"
+          >
+            <X aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <div className="dmn-admin__progress-bar" aria-hidden="true">
+        <span />
+      </div>
+    </div>
+  );
+}
+
+/** Whole seconds since `running` turned true; resets each time it does. */
+export function useElapsedSeconds(running: boolean) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!running) return;
+    const start = Date.now();
+    setSeconds(0);
+    const id = window.setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => window.clearInterval(id);
+  }, [running]);
+  return seconds;
 }
 
 /** Says what failed in plain words, then adds the server's reason when there is one. */
