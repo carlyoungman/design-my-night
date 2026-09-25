@@ -55,7 +55,7 @@ function formatDuration(ms: number) {
 }
 
 export default function Dashboard() {
-  const { section, dataVersion, settingsVersion, goToSection, openVenue } = useAdmin();
+  const { section, dataVersion, overviewVersion, goToSection, openVenue } = useAdmin();
   const active = section === 'dashboard';
   const [overview, setOverview] = useState<Overview | null>(null);
   const [venues, setVenues] = useState<AdminVenue[]>([]);
@@ -82,7 +82,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (active) load(loaded);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `loaded` only picks quiet vs full.
-  }, [active, dataVersion, settingsVersion, load]);
+  }, [active, dataVersion, overviewVersion, load]);
 
   if (!active && !loaded) return null;
 

@@ -21,7 +21,8 @@ const seconds = (ms: number) => Math.max(1, Math.round(ms / 1000));
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 export default function ImportDataCard() {
-  const { dataVersion, settingsVersion, notifyDataChanged, goToSection } = useAdmin();
+  const { dataVersion, overviewVersion, notifyDataChanged, notifyOverviewChanged, goToSection } =
+    useAdmin();
   const [busy, setBusy] = useState(false);
   // Null until the overview loads; the button works meanwhile, and the server checks anyway.
   const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);
@@ -32,25 +33,30 @@ export default function ImportDataCard() {
   const importToast = useToast();
   // Try again in the toast runs the import as it is then.
   const runImportRef = useRef<() => void>(() => {});
+  // Only the newest overview request may update the card.
+  const overviewRequest = useRef(0);
 
   // Reads the stored import record and whether credentials are saved; reloads after settings are
-  // saved (settingsVersion) or data changes (dataVersion). Later loads keep the last result on
-  // screen while they run.
+  // saved or an import fails (overviewVersion) or data changes (dataVersion). Later loads keep
+  // the last result on screen while they run.
   const loadOverview = useCallback(async () => {
+    const request = ++overviewRequest.current;
     setOverviewError(null);
     try {
       const o = await adminOverview();
+      if (request !== overviewRequest.current) return;
       setHasCredentials(o.connection.has_credentials);
       setLast(o.last_import);
     } catch (e) {
+      if (request !== overviewRequest.current) return;
       setOverviewError(errorMessage(e, 'The last import could not be loaded.'));
     } finally {
-      setOverviewLoading(false);
+      if (request === overviewRequest.current) setOverviewLoading(false);
     }
   }, []);
   useEffect(() => {
     loadOverview();
-  }, [loadOverview, dataVersion, settingsVersion]);
+  }, [loadOverview, dataVersion, overviewVersion]);
 
   // Leaving the page would lose the outcome of the import, so ask first.
   useEffect(() => {
@@ -90,8 +96,9 @@ export default function ImportDataCard() {
         error: e,
         action: { label: 'Try again', onClick: () => runImportRef.current() },
       });
-      // A failed import is recorded too, so the dashboard shows it.
-      notifyDataChanged();
+      // A failed import changes only its record, not the imported data, so refresh the overview
+      // without reloading the activity editor (which would discard its unsaved edits).
+      notifyOverviewChanged();
     } finally {
       setBusy(false);
     }
