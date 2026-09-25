@@ -53,8 +53,6 @@
   @include meta.load-css('components/time');
   @include meta.load-css('components/details');
   @include meta.load-css('components/review');
-  @include meta.load-css('components/faqs');
-  @include meta.load-css('components/external-booking-panel');
 
   @media (prefers-reduced-motion: reduce) {
     *,

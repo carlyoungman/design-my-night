@@ -93,16 +93,7 @@ class PostTypes
     // Venues
     self::meta('dmn_venue', 'dmn_id', 'integer');
     self::meta('dmn_venue', 'dmn_path', 'string');
-    self::meta('dmn_venue', 'dmn_return_url', 'string');
     self::meta('dmn_venue', 'is_active', 'boolean');
-
-    // Venue display mode
-    self::meta('dmn_venue', 'dmn_display_mode', 'string');
-    self::meta('dmn_venue', 'dmn_ext_title', 'string');
-    self::meta('dmn_venue', 'dmn_ext_image_id', 'integer');
-    self::meta('dmn_venue', 'dmn_ext_content', 'string');
-    self::meta('dmn_venue', 'dmn_ext_button_text', 'string');
-    self::meta('dmn_venue', 'dmn_ext_button_url', 'string');
 
     // Activities
     self::meta('dmn_activity', 'venue_id', 'integer');

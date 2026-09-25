@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useWidgetDispatch, useWidgetState, useWidgetConfig } from '@app/WidgetProvider';
 import { NumberField } from '@base-ui-components/react/number-field';
 import { Minus, Plus } from 'lucide-react';
-import { useBookingLink } from '@app/hooks/useBookingLink';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
+
+const DEFAULT_MAX_PARTY_SIZE = 12;
 
 export function PartySize({ labelledBy }: { labelledBy: string }) {
   const { partySize, venueId } = useWidgetState();
@@ -13,9 +14,7 @@ export function PartySize({ labelledBy }: { labelledBy: string }) {
   const hintId = `${id}-hint`;
   const hasVenue = Boolean(venueId);
 
-  const { data: groupLink } = useBookingLink(venueId);
-
-  const max = disableGroupLimit ? undefined : (groupLink?.maxPartySize ?? 12);
+  const max = disableGroupLimit ? undefined : DEFAULT_MAX_PARTY_SIZE;
 
   // Local state drives the NumberField for immediate UI feedback.
   // The global dispatch (which triggers API calls) is debounced.
@@ -53,8 +52,6 @@ export function PartySize({ labelledBy }: { labelledBy: string }) {
     return <StepPrerequisite requires={['venue']} />;
   }
 
-  const isGroupEligible = !disableGroupLimit && groupLink?.enabled && groupLink.url;
-
   return (
     <div className="party-size">
       <NumberField.Root
@@ -85,18 +82,6 @@ export function PartySize({ labelledBy }: { labelledBy: string }) {
         <p id={hintId} className="party-size__hint">
           Up to {max} people can book online.
         </p>
-      )}
-
-      {isGroupEligible && (
-        <a
-          className="party-size__group-link"
-          target="_blank"
-          rel="noopener noreferrer"
-          href={groupLink.url}
-        >
-          {groupLink.label}
-          <span className="screen-reader-text"> (opens in a new tab)</span>
-        </a>
       )}
     </div>
   );

@@ -6,8 +6,6 @@ type Venue = {
   _id: string;
   name?: string;
   path: string;
-  is_external?: boolean;
-  external_message?: string;
 };
 
 export function useVenues(venueGroup?: string, skip = false) {

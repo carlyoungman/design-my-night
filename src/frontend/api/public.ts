@@ -1,4 +1,4 @@
-import { j, restUrl } from './http';
+import { j } from './http';
 
 /* ---------- Venues ---------- */
 
@@ -120,56 +120,4 @@ export async function getAddons(venueId: string, activityId?: string, allowDisab
 
   const jj = await r.json();
   return { data: jj?.data ?? [] };
-}
-
-// public.ts
-
-/** Base fetch for public endpoints */
-async function wpPublicFetch<T = any>(slug: string, init: RequestInit = {}): Promise<T> {
-  // Built from the REST base WordPress gives us, so subdirectory installs and sites without
-  // pretty permalinks (`?rest_route=`) both work.
-  const res = await fetch(restUrl(`public/${slug}`), {
-    method: init.method || 'GET',
-    credentials: 'same-origin',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(init.headers || {}),
-    },
-    body: init.body,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-
-  return (await res.json()) as T;
-}
-
-/** Get FAQs for a venue */
-export async function getFaqs(
-  venue_id: number | string,
-): Promise<{ faqs: Array<{ question: string; answer: string }> }> {
-  return wpPublicFetch(`faqs?venue_id=${encodeURIComponent(String(venue_id))}`);
-}
-
-/** Get Large Group link config for a venue */
-export async function getLargeGroupLink(
-  venue_id: number | string,
-): Promise<{ enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number }> {
-  return wpPublicFetch(`large-group-link?venue_id=${encodeURIComponent(String(venue_id))}`);
-}
-
-/** Convenience: fetch both in parallel */
-export async function getFaqsAndLink(venue_id: number | string): Promise<{
-  faqs: Array<{ question: string; answer: string }>;
-  largeGroup: { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number };
-}> {
-  const [faqsRes, linkRes] = await Promise.all([getFaqs(venue_id), getLargeGroupLink(venue_id)]);
-  return { faqs: faqsRes.faqs ?? [], largeGroup: linkRes };
-}
-
-export function getReturnUrl(venue_id: string | number): Promise<{ url?: string }> {
-  return wpPublicFetch(`return-url?venue_id=${encodeURIComponent(String(venue_id))}`);
 }

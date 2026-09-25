@@ -48,9 +48,7 @@ export default function VenuePickerCard() {
       <h2 id="dmn-admin-venue-title">Venue</h2>
 
       {loading && <Loading>Loading venues…</Loading>}
-      {!loading && err && (
-        <LoadError message={err} onRetry={() => setAttempt((n) => n + 1)} />
-      )}
+      {!loading && err && <LoadError message={err} onRetry={() => setAttempt((n) => n + 1)} />}
       {!loading && !err && venues.length === 0 && (
         <p className="dmn-admin__empty">
           No venues yet. Save your API credentials, then use <strong>Import data</strong> to bring
@@ -74,7 +72,7 @@ export default function VenuePickerCard() {
             ))}
           </select>
           <p id="dmn-admin-venue-help" className="dmn-admin__help">
-            The activities, venue display, links and FAQs below are edited for this venue.
+            The activities below are edited for this venue.
           </p>
         </div>
       )}

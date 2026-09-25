@@ -50,15 +50,6 @@ export function Venue({
     [dispatch],
   );
 
-  const selectedVenue = useMemo(
-    () => venues.find((v) => String(v._id) === String(state.venueId)),
-    [venues, state.venueId],
-  );
-  const externalMessage =
-    selectedVenue?.is_external && selectedVenue.external_message
-      ? selectedVenue.external_message
-      : '';
-
   return (
     <div className="venues">
       {initialLoading && <LoadingAnimation text="Loading venues…" />}
@@ -88,13 +79,6 @@ export function Venue({
             ))}
           </select>
         </div>
-      )}
-      {externalMessage && (
-        <div
-          className="venues__external-message"
-          role="status"
-          dangerouslySetInnerHTML={{ __html: externalMessage }}
-        />
       )}
     </div>
   );
