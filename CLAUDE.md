@@ -37,6 +37,8 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 3. Navigation
 
+The admin screen is one WordPress menu page with a page header (title, intro, and the page-level **Import from DesignMyNight** action) followed by section tabs: Activities, Connection, URL parameters, and Shortcode (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
+
 - Keep the existing WordPress admin navigation for plugins that run inside wp-admin.
 - Place plugin screens and subsections in a logical, stable hierarchy; avoid duplicating the whole WordPress sidebar inside a plugin.
 - Use descriptive labels and indicate the active page clearly.
@@ -51,9 +53,10 @@ Use the shared design tokens instead of ad-hoc values. The values below are this
 | Token or element | Value |
 | --- | --- |
 | Font | Michroma (`--font-family`), falling back to the system sans-serif stack |
-| Body text | 18 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`) |
-| Supporting / help text | 13 px (`.dmn-admin__help`) |
-| Page heading | 28 px (`.dmn-admin__title`); card titles 22 px, section titles 18 px |
+| Body text | 16 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`) |
+| Labels, status text, tabs | 14 px, weight 600 for labels and tabs |
+| Supporting / help text and metadata | 13 px (`.dmn-admin__help`) |
+| Page heading | 28 px (`.dmn-admin__title`); section headings (`h2`) 22 px, card titles (`h3`) 18 px |
 | Spacing scale | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px |
 | Card corner radius | 15 px (`--border-radius`) |
 | Borders | 1 px `--c-lilac-grey` |

@@ -1,4 +1,5 @@
-// Type hierarchy: page title (28px) > card title (22px) > section title (18px, bold) > body (18px) > help (13px).
+// Type hierarchy: page title (28px) > section heading (22px) > card title (18px) > body (16px) >
+// labels and status (14px) > help and metadata (13px).
 
 .dmn-admin__title {
   padding: 0;
@@ -12,8 +13,7 @@
 
 .dmn-admin__intro {
   max-width: 70ch;
-  margin: 0 0 var(--universal-space-2);
-  font-size: 16px;
+  margin: 0;
 }
 
 h2,
@@ -45,12 +45,6 @@ a {
   text-decoration: underline;
 }
 
-ul {
-  padding-left: var(--universal-space-2);
-  margin: 0 0 var(--universal-space);
-  list-style: disc;
-}
-
 code {
   padding: 2px 6px;
   font-size: 0.85em;
@@ -74,6 +68,50 @@ code {
   font-size: 13px;
   line-height: 1.5;
   color: var(--c-near-black);
+
+  // Inside a flex/grid field the gap already provides the spacing.
+  .dmn-admin__field > & {
+    margin-top: 0;
+  }
+
+  &--flush {
+    margin-top: calc(var(--universal-space-half) * -1);
+  }
+}
+
+// Reference tables (for example the shortcode options).
+.dmn-admin__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--c-lilac-grey);
+  border-radius: var(--universal-space-half);
+}
+
+.dmn-admin__table {
+  width: 100%;
+  font-size: 14px;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 12px var(--universal-space);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--c-lilac-grey);
+  }
+
+  thead th {
+    font-weight: 600;
+    background: var(--c-off-white);
+  }
+
+  tbody th {
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
 }
 
 // Visible focus indicator for every interactive element in the app.

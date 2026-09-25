@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { CircleDot, Eye, EyeOff, Search } from 'lucide-react';
 import { adminListActivities, adminSaveActivity } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
+import { useVenues } from '@admin/components/useVenues';
 import {
   LoadError,
   Loading,
@@ -13,6 +15,7 @@ import {
 } from '@admin/components/ui';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
+type VisibilityFilter = 'all' | 'shown' | 'hidden';
 
 type AdminActivity = {
   id: number;
@@ -36,8 +39,10 @@ type Props = { onDirty?: (d: boolean) => void };
 
 const MAX = 200;
 
+const countLabel = (n: number) => `${n} ${n === 1 ? 'activity' : 'activities'}`;
+
 function formatDuration(minutes?: number | null): string {
-  if (!minutes || minutes <= 0) return 'Not set';
+  if (!minutes || minutes <= 0) return 'not set';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return [h ? `${h} h` : '', m ? `${m} min` : ''].filter(Boolean).join(' ');
@@ -60,7 +65,10 @@ const isChanged = (r: AdminActivity, o: AdminActivity) =>
   (r.price_mode || 'per_person') !== (o.price_mode || 'per_person');
 
 export default function ActivityManagerCard({ onDirty }: Props) {
-  const { selectedVenueId, dataVersion } = useAdmin();
+  const { selectedVenueId, setSelectedVenueId, dataVersion, goToSection } = useAdmin();
+  const venues = useVenues();
+  const [query, setQuery] = useState('');
+  const [visibility, setVisibility] = useState<VisibilityFilter>('all');
   const [loading, setLoading] = useState(false);
   const beginRequest = useLatestRequest();
   const [loadErr, setLoadErr] = useState<string | null>(null);
@@ -83,6 +91,26 @@ export default function ActivityManagerCard({ onDirty }: Props) {
   useEffect(() => {
     onDirty?.(dirty.size > 0);
   }, [dirty, onDirty]);
+
+  // Match on the saved values, so an edit never removes the card being edited from the list.
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const saved = new Map(orig.map((o) => [o.id, o]));
+    return rows.filter((r) => {
+      const s = saved.get(r.id) ?? r;
+      return (
+        (visibility === 'all' || (visibility === 'shown') === (s.visible ?? true)) &&
+        (q === '' ||
+          (s.name || '').toLowerCase().includes(q) ||
+          (s.dmn_type_id || '').toLowerCase().includes(q))
+      );
+    });
+  }, [rows, orig, query, visibility]);
+  const isFiltered = query.trim() !== '' || visibility !== 'all';
+  const clearFilters = () => {
+    setQuery('');
+    setVisibility('all');
+  };
 
   // Pre-order menus are not in use. To bring back the per-activity menu picker, load the options
   // with adminListMenus() and add a select bound to `menu_post_id`.
@@ -197,15 +225,21 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     }
   };
 
+  const hasVenues = !venues.loading && !venues.error && venues.venues.length > 0;
+  const showList = !!selectedVenueId && !loading && !loadErr && rows.length > 0;
+
   return (
-    <div>
-      <div className="dmn-admin__header dmn-admin__header--sticky">
-        <h2 id="dmn-admin-activities-title" className="dmn-admin__header__headline">
-          Activities
-        </h2>
-        <div className="dmn-admin__header__inner">
+    <section className="dmn-admin__section" aria-labelledby="dmn-admin-activities-title">
+      <div className="dmn-admin__section-header dmn-admin__section-header--sticky">
+        <div>
+          <h2 id="dmn-admin-activities-title">Activities</h2>
+          <p className="dmn-admin__help">
+            Edit how each of a venue&apos;s activities appears in the booking widget.
+          </p>
+        </div>
+        <div className="dmn-admin__section-actions">
           <SaveState dirty={dirty.size > 0} ok={ok} />
-          {selectedVenueId && rows.length > 0 && (
+          {showList && (
             <button
               type="button"
               className="button"
@@ -216,12 +250,79 @@ export default function ActivityManagerCard({ onDirty }: Props) {
               {saving
                 ? 'Saving…'
                 : dirty.size > 0
-                  ? `Save ${dirty.size} ${dirty.size === 1 ? 'activity' : 'activities'}`
+                  ? `Save ${countLabel(dirty.size)}`
                   : 'Save activities'}
             </button>
           )}
         </div>
       </div>
+
+      {venues.loading && <Loading>Loading venues…</Loading>}
+      {!venues.loading && venues.error && (
+        <LoadError message={venues.error} onRetry={venues.retry} />
+      )}
+      {!venues.loading && !venues.error && venues.venues.length === 0 && (
+        <div className="dmn-admin__empty">
+          <p>
+            No venues yet. Save your API credentials under Connection, then use{' '}
+            <strong>Import from DesignMyNight</strong> to bring in your venues and activities.
+          </p>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() => goToSection('connection')}
+          >
+            Go to Connection
+          </button>
+        </div>
+      )}
+
+      {hasVenues && (
+        <div className="dmn-admin__toolbar">
+          <div className="dmn-admin__field dmn-admin__toolbar-venue">
+            <label htmlFor="dmn-admin-venue-picker">Venue</label>
+            <select
+              id="dmn-admin-venue-picker"
+              value={selectedVenueId ?? ''}
+              onChange={(e) => setSelectedVenueId(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">Choose a venue</option>
+              {venues.venues.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.title} {v.dmn_id ? `(DMN ${v.dmn_id})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="dmn-admin__field dmn-admin__toolbar-search">
+            <label htmlFor="dmn-admin-activity-search">Search activities</label>
+            <div className="dmn-admin__search">
+              <Search aria-hidden="true" />
+              <input
+                id="dmn-admin-activity-search"
+                type="search"
+                value={query}
+                placeholder="Name or type ID"
+                disabled={!showList}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="dmn-admin__field dmn-admin__toolbar-filter">
+            <label htmlFor="dmn-admin-activity-filter">Show</label>
+            <select
+              id="dmn-admin-activity-filter"
+              value={visibility}
+              disabled={!showList}
+              onChange={(e) => setVisibility(e.target.value as VisibilityFilter)}
+            >
+              <option value="all">All activities</option>
+              <option value="shown">Shown in widget</option>
+              <option value="hidden">Hidden from widget</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {err && (
         <StatusMessage tone="error" block>
@@ -229,173 +330,213 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         </StatusMessage>
       )}
 
-      {!selectedVenueId && (
-        <p className="dmn-admin__empty">Choose a venue above to edit its activities.</p>
+      {hasVenues && !selectedVenueId && (
+        <p className="dmn-admin__empty">Choose a venue to edit its activities.</p>
       )}
-      {selectedVenueId && loading && <Loading>Loading activities…</Loading>}
-      {selectedVenueId && !loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
-      {selectedVenueId && !loading && !loadErr && rows.length === 0 && (
+      {hasVenues && selectedVenueId && loading && <Loading>Loading activities…</Loading>}
+      {hasVenues && selectedVenueId && !loading && loadErr && (
+        <LoadError message={loadErr} onRetry={load} />
+      )}
+      {hasVenues && selectedVenueId && !loading && !loadErr && rows.length === 0 && (
         <p className="dmn-admin__empty">
-          No activities for this venue yet. Use <strong>Import data</strong> to bring them in from
-          DesignMyNight.
+          No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to bring
+          them in.
         </p>
       )}
 
-      {selectedVenueId && !loading && !loadErr && rows.length > 0 && (
-        <div className="table dmn-admin__spacer-top">
-          {rows.map((r) => {
-            const base = `dmn-activity-${r.id}`;
-            const remaining = MAX - (r.description || '').length;
+      {hasVenues && showList && (
+        <>
+          <p className="dmn-admin__result-count" role="status">
+            {isFiltered
+              ? `Showing ${filtered.length} of ${countLabel(rows.length)}`
+              : countLabel(rows.length)}
+          </p>
 
-            return (
-              <article className="table__row" key={r.id} aria-labelledby={`${base}-title`}>
-                <h3 id={`${base}-title`} className="table__row-title">
-                  {r.name || 'Untitled activity'}
-                  {dirty.has(r.id) && <span className="screen-reader-text"> (unsaved)</span>}
-                </h3>
-                <div className="table__left">
-                  <dl className="table__meta">
+          {filtered.length === 0 && (
+            <div className="dmn-admin__empty">
+              <p>No activities match your search or filter.</p>
+              <button type="button" className="button button--secondary" onClick={clearFilters}>
+                Clear search and filter
+              </button>
+            </div>
+          )}
+
+          <div className="dmn-admin__records">
+            {filtered.map((r) => {
+              const base = `dmn-activity-${r.id}`;
+              const remaining = MAX - (r.description || '').length;
+              const visible = r.visible ?? true;
+
+              return (
+                <article
+                  className="dmn-admin__card dmn-admin__record"
+                  key={r.id}
+                  aria-labelledby={`${base}-title`}
+                >
+                  <header className="dmn-admin__record-header">
                     <div>
-                      <dt>Type ID</dt>
-                      <dd>{r.dmn_type_id || 'Not set'}</dd>
+                      <h3 id={`${base}-title`} className="dmn-admin__record-title">
+                        {r.name || 'Untitled activity'}
+                      </h3>
+                      <p className="dmn-admin__record-meta">
+                        Type ID {r.dmn_type_id || 'not set'} · Duration{' '}
+                        {formatDuration(r.duration_minutes)}
+                      </p>
                     </div>
-                    <div>
-                      <dt>Duration</dt>
-                      <dd>{formatDuration(r.duration_minutes)}</dd>
+                    <div className="dmn-admin__chips">
+                      <span className="dmn-admin__chip">
+                        {visible ? (
+                          <Eye className="dmn-admin__chip-icon--success" aria-hidden="true" />
+                        ) : (
+                          <EyeOff aria-hidden="true" />
+                        )}
+                        {visible ? 'Shown in widget' : 'Hidden from widget'}
+                      </span>
+                      {dirty.has(r.id) && (
+                        <span className="dmn-admin__chip">
+                          <CircleDot className="dmn-admin__chip-icon--warning" aria-hidden="true" />
+                          Unsaved
+                        </span>
+                      )}
                     </div>
-                  </dl>
+                  </header>
 
-                  <div className="table__cell">
-                    <label htmlFor={`${base}-name`}>Name</label>
-                    <input
-                      id={`${base}-name`}
-                      value={r.name || ''}
-                      onChange={(e) => onCell(r.id, 'name', e.target.value)}
-                    />
-                  </div>
-                  <div className="table__cell">
-                    <label htmlFor={`${base}-desc`}>Description</label>
-                    <textarea
-                      id={`${base}-desc`}
-                      rows={3}
-                      maxLength={MAX}
-                      value={r.description || ''}
-                      aria-describedby={`${base}-desc-count`}
-                      onChange={(e) => onCell(r.id, 'description', e.target.value)}
-                    />
-                    <p id={`${base}-desc-count`} className="dmn-admin__help">
-                      {remaining} of {MAX} characters left
-                    </p>
-                  </div>
-                  <div className="table__cell">
-                    <label htmlFor={`${base}-price`}>Price</label>
-                    <input
-                      id={`${base}-price`}
-                      value={r.priceText || ''}
-                      aria-describedby={`${base}-price-help`}
-                      onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
-                    />
-                    <p id={`${base}-price-help`} className="dmn-admin__help">
-                      For example £25. How it is charged is set under Pricing.
-                    </p>
-                  </div>
+                  <div className="dmn-admin__record-body">
+                    <div className="dmn-admin__record-fields">
+                      <div className="dmn-admin__field">
+                        <label htmlFor={`${base}-name`}>Name</label>
+                        <input
+                          id={`${base}-name`}
+                          value={r.name || ''}
+                          onChange={(e) => onCell(r.id, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="dmn-admin__field">
+                        <label htmlFor={`${base}-desc`}>Description</label>
+                        <textarea
+                          id={`${base}-desc`}
+                          rows={3}
+                          maxLength={MAX}
+                          value={r.description || ''}
+                          aria-describedby={`${base}-desc-count`}
+                          onChange={(e) => onCell(r.id, 'description', e.target.value)}
+                        />
+                        <p id={`${base}-desc-count`} className="dmn-admin__help">
+                          {remaining} of {MAX} characters left
+                        </p>
+                      </div>
+                      <div className="dmn-admin__field-row">
+                        <div className="dmn-admin__field">
+                          <label htmlFor={`${base}-price`}>Price</label>
+                          <input
+                            id={`${base}-price`}
+                            value={r.priceText || ''}
+                            aria-describedby={`${base}-price-help`}
+                            onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
+                          />
+                          <p id={`${base}-price-help`} className="dmn-admin__help">
+                            For example £25. How it is charged is set under Pricing.
+                          </p>
+                        </div>
+                        <div className="dmn-admin__field">
+                          <label htmlFor={`${base}-typetext`}>Shortcode text</label>
+                          <input
+                            id={`${base}-typetext`}
+                            type="text"
+                            value={r.type_text || ''}
+                            aria-describedby={`${base}-typetext-help`}
+                            onChange={(e) => onCell(r.id, 'type_text', e.target.value)}
+                          />
+                          <p id={`${base}-typetext-help`} className="dmn-admin__help">
+                            Shown only when the shortcode preselects this activity with{' '}
+                            <code>type_id</code>. HTML is allowed.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div className="table__cell">
-                    <label htmlFor={`${base}-typetext`}>Shortcode text</label>
-                    <input
-                      id={`${base}-typetext`}
-                      type="text"
-                      value={r.type_text || ''}
-                      aria-describedby={`${base}-typetext-help`}
-                      onChange={(e) => onCell(r.id, 'type_text', e.target.value)}
-                    />
-                    <p id={`${base}-typetext-help`} className="dmn-admin__help">
-                      Shown only when the shortcode preselects this activity with{' '}
-                      <code>type_id</code>. HTML is allowed.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="table__right">
-                  <div className="table__image-picker">
-                    <span className="dmn-admin__label">Image</span>
-                    {r.image_url ? (
-                      <img
-                        src={r.image_url}
-                        alt={`Current image for ${r.name}`}
-                        className="table__image-picker__image"
-                      />
-                    ) : (
-                      <div className="table__image-picker__image-preview">No image</div>
-                    )}
-                    <div className="table__image-picker__button-wrap">
-                      <button
-                        className="table__image-picker__btn button button--secondary"
-                        type="button"
-                        onClick={() => openMedia(r.id)}
-                        aria-label={`${r.image_id ? 'Change' : 'Choose'} image for ${r.name}`}
-                      >
-                        {r.image_id ? 'Change image' : 'Choose image'}
-                      </button>
-                      {r.image_id ? (
-                        <button
-                          className="table__image-picker__btn button button--danger"
-                          type="button"
-                          onClick={() => clearImage(r.id)}
-                          aria-label={`Remove image for ${r.name}`}
+                    <div className="dmn-admin__record-side">
+                      <div className="dmn-admin__field">
+                        <span className="dmn-admin__label" id={`${base}-vis-label`}>
+                          Visibility in the widget
+                        </span>
+                        <ToggleButtonGroup
+                          value={visible ? 'enabled' : 'disabled'}
+                          exclusive
+                          onChange={(_, newValue) => {
+                            if (!newValue) return; // one option must stay selected
+                            onCell(r.id, 'visible', newValue === 'enabled');
+                          }}
+                          aria-labelledby={`${base}-vis-label`}
                         >
-                          Remove image
-                        </button>
-                      ) : null}
+                          <ToggleButton value="enabled">Shown</ToggleButton>
+                          <ToggleButton value="disabled">Hidden</ToggleButton>
+                        </ToggleButtonGroup>
+                      </div>
+
+                      <div className="dmn-admin__field">
+                        <span className="dmn-admin__label" id={`${base}-price-label`}>
+                          Pricing
+                        </span>
+                        <ToggleButtonGroup
+                          value={r.price_mode ?? 'per_person'}
+                          exclusive
+                          onChange={(_, newValue) => {
+                            if (!newValue) return; // one option must stay selected
+                            onCell(r.id, 'price_mode', newValue as PriceMode);
+                          }}
+                          aria-labelledby={`${base}-price-label`}
+                          aria-describedby={`${base}-price-mode-help`}
+                        >
+                          <ToggleButton value="per_person">Per person</ToggleButton>
+                          <ToggleButton value="per_room">Per room</ToggleButton>
+                          <ToggleButton value="display">Text only</ToggleButton>
+                        </ToggleButtonGroup>
+                        <p id={`${base}-price-mode-help`} className="dmn-admin__help">
+                          Text only shows the price text without calculating a total.
+                        </p>
+                      </div>
+
+                      <div className="dmn-admin__field">
+                        <span className="dmn-admin__label">Image</span>
+                        {r.image_url ? (
+                          <img
+                            src={r.image_url}
+                            alt={`Current image for ${r.name}`}
+                            className="dmn-admin__image"
+                          />
+                        ) : (
+                          <div className="dmn-admin__image dmn-admin__image--empty">No image</div>
+                        )}
+                        <div className="actions dmn-admin__image-actions">
+                          <button
+                            className="button button--secondary"
+                            type="button"
+                            onClick={() => openMedia(r.id)}
+                            aria-label={`${r.image_id ? 'Change' : 'Choose'} image for ${r.name}`}
+                          >
+                            {r.image_id ? 'Change image' : 'Choose image'}
+                          </button>
+                          {r.image_id ? (
+                            <button
+                              className="button button--danger"
+                              type="button"
+                              onClick={() => clearImage(r.id)}
+                              aria-label={`Remove image for ${r.name}`}
+                            >
+                              Remove
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="table__cell">
-                    <span className="dmn-admin__label" id={`${base}-vis-label`}>
-                      Visibility in the widget
-                    </span>
-                    <ToggleButtonGroup
-                      value={r.visible ? 'enabled' : 'disabled'}
-                      exclusive
-                      onChange={(_, newValue) => {
-                        if (!newValue) return; // one option must stay selected
-                        onCell(r.id, 'visible', newValue === 'enabled');
-                      }}
-                      aria-labelledby={`${base}-vis-label`}
-                    >
-                      <ToggleButton value="enabled">Shown</ToggleButton>
-                      <ToggleButton value="disabled">Hidden</ToggleButton>
-                    </ToggleButtonGroup>
-                  </div>
-
-                  <div className="table__cell">
-                    <span className="dmn-admin__label" id={`${base}-price-label`}>
-                      Pricing
-                    </span>
-                    <ToggleButtonGroup
-                      value={r.price_mode ?? 'per_person'}
-                      exclusive
-                      onChange={(_, newValue) => {
-                        if (!newValue) return; // one option must stay selected
-                        onCell(r.id, 'price_mode', newValue as PriceMode);
-                      }}
-                      aria-labelledby={`${base}-price-label`}
-                      aria-describedby={`${base}-price-mode-help`}
-                    >
-                      <ToggleButton value="per_person">Per person</ToggleButton>
-                      <ToggleButton value="per_room">Per room</ToggleButton>
-                      <ToggleButton value="display">Text only</ToggleButton>
-                    </ToggleButtonGroup>
-                    <p id={`${base}-price-mode-help`} className="dmn-admin__help">
-                      Text only shows the price text without calculating a total.
-                    </p>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                </article>
+              );
+            })}
+          </div>
+        </>
       )}
-    </div>
+    </section>
   );
 }

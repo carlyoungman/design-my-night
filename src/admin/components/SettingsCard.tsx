@@ -104,7 +104,14 @@ export default function SettingsCard() {
 
   return (
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-settings-title">
-      <h2 id="dmn-admin-settings-title">API credentials</h2>
+      <div className="dmn-admin__card-header">
+        <h2 id="dmn-admin-settings-title">API credentials</h2>
+        <p className="dmn-admin__help">
+          Connects the plugin to your DesignMyNight account. After saving, use{' '}
+          <strong>Import from DesignMyNight</strong> at the top of the page to bring in your venues
+          and activities.
+        </p>
+      </div>
 
       {loading && <Loading>Loading settings…</Loading>}
       {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
@@ -112,80 +119,93 @@ export default function SettingsCard() {
       {!loading && !loadErr && (
         <>
           <form onSubmit={onSave} className="dmn-admin__form">
-            <div className="dmn-admin__field">
-              <label htmlFor="dmn-settings-app-id">App ID</label>
-              <input
-                id="dmn-settings-app-id"
-                value={form.app_id}
-                onChange={(e) => setForm({ ...form, app_id: e.target.value })}
-                autoComplete="off"
-                required
-              />
-            </div>
+            <div className="dmn-admin__form-grid">
+              <div className="dmn-admin__field">
+                <label htmlFor="dmn-settings-app-id">App ID</label>
+                <input
+                  id="dmn-settings-app-id"
+                  value={form.app_id}
+                  onChange={(e) => setForm({ ...form, app_id: e.target.value })}
+                  autoComplete="off"
+                  required
+                />
+              </div>
 
-            <div className="dmn-admin__field">
-              <label htmlFor="dmn-settings-api-key">API key</label>
-              <input
-                id="dmn-settings-api-key"
-                type="password"
-                value={form.api_key}
-                autoComplete="new-password"
-                placeholder={mask || ''}
-                aria-describedby="dmn-settings-api-key-help"
-                onChange={(e) => setForm({ ...form, api_key: e.target.value })}
-              />
-              <p id="dmn-settings-api-key-help" className="dmn-admin__help">
-                {mask
-                  ? 'A key is saved. Leave this blank to keep it, or enter a new key to replace it.'
-                  : 'Enter the API key from your DesignMyNight account.'}
-              </p>
-            </div>
+              <div className="dmn-admin__field">
+                <label htmlFor="dmn-settings-api-key">API key</label>
+                <input
+                  id="dmn-settings-api-key"
+                  type="password"
+                  value={form.api_key}
+                  autoComplete="new-password"
+                  placeholder={mask || ''}
+                  aria-describedby="dmn-settings-api-key-help"
+                  onChange={(e) => setForm({ ...form, api_key: e.target.value })}
+                />
+                <p id="dmn-settings-api-key-help" className="dmn-admin__help">
+                  {mask
+                    ? 'A key is saved. Leave this blank to keep it, or enter a new key to replace it.'
+                    : 'Enter the API key from your DesignMyNight account.'}
+                </p>
+              </div>
 
-            <div className="dmn-admin__field">
-              <label htmlFor="dmn-settings-env">Environment</label>
-              <select
-                id="dmn-settings-env"
-                value={form.environment}
-                onChange={(e) => setForm({ ...form, environment: e.target.value as Env })}
-              >
-                <option value="prod">Production</option>
-                <option value="qa">QA / Sandbox</option>
-              </select>
-            </div>
+              <div className="dmn-admin__field">
+                <label htmlFor="dmn-settings-env">Environment</label>
+                <select
+                  id="dmn-settings-env"
+                  value={form.environment}
+                  onChange={(e) => setForm({ ...form, environment: e.target.value as Env })}
+                >
+                  <option value="prod">Production</option>
+                  <option value="qa">QA / Sandbox</option>
+                </select>
+              </div>
 
-            <div className="dmn-admin__field">
-              <label htmlFor="dmn-settings-vg">
-                Default venue group <span className="dmn-admin__label-hint">(optional)</span>
-              </label>
-              <input
-                id="dmn-settings-vg"
-                value={form.venue_group}
-                onChange={(e) => setForm({ ...form, venue_group: e.target.value })}
-              />
+              <div className="dmn-admin__field">
+                <label htmlFor="dmn-settings-vg">
+                  Default venue group <span className="dmn-admin__label-hint">(optional)</span>
+                </label>
+                <input
+                  id="dmn-settings-vg"
+                  value={form.venue_group}
+                  onChange={(e) => setForm({ ...form, venue_group: e.target.value })}
+                />
+              </div>
             </div>
 
             <label className="dmn-admin__checkbox">
               <input
                 type="checkbox"
                 checked={form.debug_mode}
+                aria-describedby="dmn-settings-debug-help"
                 onChange={(e) => setForm({ ...form, debug_mode: e.target.checked })}
               />
               Debug mode
             </label>
+            <p id="dmn-settings-debug-help" className="dmn-admin__help dmn-admin__help--flush">
+              Shows request details when you test the connection.
+            </p>
 
-            <div className="actions">
-              <button className="button" type="submit" disabled={saving} aria-busy={saving}>
-                {saving ? 'Saving…' : 'Save settings'}
-              </button>
-              <button
-                className="button button--secondary"
-                type="button"
-                onClick={onTest}
-                disabled={testing}
-                aria-busy={testing}
-              >
-                {testing ? 'Testing…' : 'Test connection'}
-              </button>
+            <div className="dmn-admin__form-footer">
+              <div className="actions">
+                <button className="button" type="submit" disabled={saving} aria-busy={saving}>
+                  {saving ? 'Saving…' : 'Save settings'}
+                </button>
+                <button
+                  className="button button--secondary"
+                  type="button"
+                  onClick={onTest}
+                  disabled={testing}
+                  aria-busy={testing}
+                  aria-describedby="dmn-settings-test-help"
+                >
+                  {testing ? 'Testing…' : 'Test connection'}
+                </button>
+              </div>
+              <p id="dmn-settings-test-help" className="dmn-admin__help">
+                Test connection uses the last <em>saved</em> credentials and environment, so save
+                any changes first.
+              </p>
             </div>
           </form>
 
@@ -202,11 +222,6 @@ export default function SettingsCard() {
           {details != null && (
             <pre className="dmn-admin__debug-dump">{JSON.stringify(details, null, 2)}</pre>
           )}
-
-          <p className="dmn-admin__help">
-            Test connection uses the last <em>saved</em> credentials and environment, so save any
-            changes first.
-          </p>
         </>
       )}
     </section>

@@ -1,27 +1,152 @@
 @use '../settings/breakpoints' as breakpoint;
 
+// Application layout: page header, section tabs, section panels.
 .dmn-admin {
-  &__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--universal-space-2);
-    align-items: start;
+  &__page-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space) var(--universal-space-2);
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--universal-space-2);
+  }
 
-    @include breakpoint.large-screen-min {
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 30%);
+  &__page-header-text {
+    flex: 1 1 420px;
+    min-width: 0;
+  }
+
+  &__page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space);
+  }
+
+  &__page-header-status {
+    flex-basis: 100%;
+  }
+
+  // Section tabs (MUI Tabs styled as Material 3 primary tabs).
+  &__nav {
+    margin-bottom: var(--universal-space-2);
+    border-bottom: 1px solid var(--c-lilac-grey);
+
+    .MuiTabs-root {
+      min-height: 48px;
     }
 
-    @include breakpoint.x-large-screen-min {
-      gap: var(--universal-space-3);
+    .MuiTabs-indicator {
+      height: 3px;
+      background-color: var(--c-purple);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .MuiTab-root {
+      min-width: 0;
+      min-height: 48px;
+      padding: 0 var(--universal-space);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--c-near-black);
+      text-transform: none;
+      letter-spacing: normal;
+      border-radius: var(--universal-space-half) var(--universal-space-half) 0 0;
+      opacity: 1;
+      transition: var(--transition);
+
+      &:hover {
+        background-color: color-mix(in srgb, var(--c-purple) 8%, transparent);
+      }
+
+      &.Mui-focusVisible {
+        outline: 2px solid var(--c-purple);
+        outline-offset: -2px;
+      }
+
+      &.Mui-selected {
+        color: var(--c-purple);
+      }
+    }
+
+    .MuiTabs-scrollButtons {
+      color: var(--c-near-black);
+
+      &.Mui-disabled {
+        opacity: 0.3;
+      }
     }
   }
 
-  &__main,
-  &__side {
+  &__nav-label {
+    display: inline-flex;
+    gap: var(--universal-space-half);
+    align-items: center;
+  }
+
+  &__nav-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--c-red);
+    border-radius: 50%;
+  }
+
+  &__panel[hidden] {
+    display: none;
+  }
+
+  // Section header: title and description on the left, status and save action on the right.
+  &__section-header,
+  &__card-header--split {
     display: flex;
-    flex-direction: column;
-    gap: var(--universal-space-2);
-    min-width: 0;
+    flex-wrap: wrap;
+    gap: var(--universal-space);
+    align-items: center;
+    justify-content: space-between;
+
+    > :first-child {
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+  }
+
+  &__section-header {
+    margin-bottom: var(--universal-space);
+
+    h2 {
+      margin-bottom: 0;
+    }
+
+    // Sticky so the save action stays reachable while editing long lists; it sits below the WP admin bar.
+    // On narrow screens the header wraps to several lines, so it only sticks from tablet width up.
+    &--sticky {
+      padding-bottom: var(--universal-space);
+      border-bottom: 1px solid var(--c-lilac-grey);
+
+      @include breakpoint.medium-screen-min {
+        position: sticky;
+        top: var(--dmn-sticky-top);
+        z-index: 10;
+        padding-top: var(--universal-space);
+        background: var(--c-off-white);
+      }
+    }
+  }
+
+  &__section-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space);
+    align-items: center;
+  }
+
+  &__card-header {
+    margin-bottom: var(--universal-space-2);
+
+    h2 {
+      margin-bottom: 0;
+    }
   }
 
   // Cards use a border, not a shadow.
@@ -41,36 +166,14 @@
     }
   }
 
-  // Card / section header: title on the left, status and save action on the right.
-  // Sticky so the save action stays reachable while editing long lists; it sits below the WP admin bar.
-  &__header {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--universal-space);
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--universal-space);
+  // Two equal columns on wider screens, one column on narrow ones.
+  &__split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 var(--universal-space-2);
 
-    &--sticky {
-      position: sticky;
-      top: var(--dmn-sticky-top);
-      z-index: 10;
-      padding: var(--universal-space) 0;
-      margin-top: calc(var(--universal-space) * -1);
-      background: var(--c-white);
-      border-bottom: 1px solid var(--c-lilac-grey);
-    }
-
-    &__inner {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--universal-space);
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    &__headline {
-      margin: 0;
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -122,47 +225,26 @@
   }
 
   &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space);
+    align-items: center;
     padding: var(--universal-space-2);
     margin: 0;
     font-size: 16px;
     text-align: center;
-    background: var(--c-off-white);
+    background: var(--c-white);
     border: 1px dashed var(--c-outline);
     border-radius: var(--border-radius);
-  }
 
-  &__sections {
-    display: flex;
-    flex-direction: column;
-    gap: var(--universal-space-3);
-  }
-
-  &__subsection + &__subsection {
-    padding-top: var(--universal-space-2);
-    border-top: 1px solid var(--c-lilac-grey);
-  }
-
-  &__list {
-    li + li {
-      margin-top: var(--universal-space-half);
+    p {
+      max-width: 60ch;
+      margin: 0;
     }
   }
 
   &__spacer-top {
     margin-top: var(--universal-space);
-  }
-
-  &__urlparams-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--universal-space);
-    padding-bottom: var(--universal-space);
-    margin-bottom: var(--universal-space);
-    border-bottom: 1px solid var(--c-lilac-grey);
-
-    .button {
-      justify-self: start;
-    }
   }
 
   &__debug-dump {

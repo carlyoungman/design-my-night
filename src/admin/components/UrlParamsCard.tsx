@@ -3,7 +3,7 @@ import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'rea
 import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 import { LoadError, Loading, SaveState, StatusMessage, errorMessage } from '@admin/components/ui';
 
-export default function UrlParamsCard() {
+export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
   const [orig, setOrig] = useState<UrlParamRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +13,10 @@ export default function UrlParamsCard() {
   const [ok, setOk] = useState<string | null>(null);
 
   const dirty = useMemo(() => JSON.stringify(rows) !== JSON.stringify(orig), [rows, orig]);
+
+  useEffect(() => {
+    onDirty?.(dirty);
+  }, [dirty, onDirty]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -74,26 +78,30 @@ export default function UrlParamsCard() {
 
   return (
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-params-title">
-      <div className="dmn-admin__header">
-        <h2 id="dmn-admin-params-title" className="dmn-admin__header__headline">
-          URL parameters
-        </h2>
+      <div className="dmn-admin__card-header dmn-admin__card-header--split">
+        <div>
+          <h2 id="dmn-admin-params-title">URL parameters</h2>
+          <p className="dmn-admin__help">
+            Added as query parameters to every DesignMyNight booking URL, for example for campaign
+            tracking. Rows without a name are ignored.
+          </p>
+        </div>
         <SaveState dirty={dirty} ok={ok} />
       </div>
-      <p className="dmn-admin__help">
-        Added as query parameters to every DesignMyNight booking URL. Rows without a name are
-        ignored.
-      </p>
 
       {loading && <Loading />}
       {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
 
       {!loading && !loadErr && (
         <form onSubmit={onSubmit} className="dmn-admin__spacer-top">
-          {rows.length === 0 && <p className="dmn-admin__empty">No parameters yet.</p>}
+          {rows.length === 0 && (
+            <p className="dmn-admin__empty">
+              No parameters yet. Use <strong>Add parameter</strong> to add one.
+            </p>
+          )}
 
           {rows.map((row, i) => (
-            <fieldset key={i} className="dmn-admin__urlparams-row">
+            <fieldset key={i} className="dmn-admin__param-row">
               <legend className="screen-reader-text">Parameter {i + 1}</legend>
               <div className="dmn-admin__field">
                 <label htmlFor={`dmn-param-name-${i}`}>Name</label>
@@ -124,7 +132,7 @@ export default function UrlParamsCard() {
               </button>
             </fieldset>
           ))}
-          <div className="actions dmn-admin__spacer-top">
+          <div className="actions dmn-admin__form-footer">
             <button type="submit" className="button" disabled={saving || !dirty} aria-busy={saving}>
               {saving ? 'Saving…' : 'Save URL parameters'}
             </button>

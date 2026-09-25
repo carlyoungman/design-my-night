@@ -1,3 +1,5 @@
+@use '../settings/breakpoints' as breakpoint;
+
 // Form controls. Loaded inside `.dmn-admin`, so these element selectors never reach the rest of wp-admin.
 // Control borders use --c-outline (at least 3:1); --c-lilac-grey is only for decorative dividers.
 
@@ -24,10 +26,51 @@ fieldset {
 label,
 .dmn-admin__label {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
   color: var(--c-near-black);
+}
+
+.dmn-admin__form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--universal-space) var(--universal-space-2);
+  align-items: start;
+
+  @include breakpoint.medium-screen-min {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Actions at the end of a form, separated from the fields.
+.dmn-admin__form-footer {
+  padding-top: var(--universal-space);
+  margin-top: var(--universal-space);
+  border-top: 1px solid var(--c-lilac-grey);
+}
+
+// URL parameter row: name, value and remove on one line on wider screens.
+.dmn-admin__param-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--universal-space);
+  align-items: end;
+  padding: var(--universal-space) 0;
+  border-bottom: 1px solid var(--c-lilac-grey);
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+
+  .button {
+    justify-self: start;
+    min-height: 48px;
+  }
+
+  @include breakpoint.medium-screen-min {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+  }
 }
 
 .dmn-admin__label-hint {
