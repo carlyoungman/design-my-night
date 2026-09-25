@@ -16,6 +16,7 @@ export default function RemoveDataCard() {
   const [includeSettings, setIncludeSettings] = useState(false);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
+  const headingId = useId();
   const titleId = useId();
   const descId = useId();
 
@@ -64,12 +65,12 @@ export default function RemoveDataCard() {
   };
 
   return (
-    <div className="dmn-admin__card dmn-admin__dashboard-wide">
-      <h3>Remove data</h3>
+    <section className="dmn-admin__card dmn-admin__spacer-top" aria-labelledby={headingId}>
+      <h2 id={headingId}>Start over</h2>
       <p>
         Delete the imported venues and activities, with your edits to them, and the import history,
-        so you can see the plugin as it is before an import. Import from DesignMyNight to bring them
-        back. Images stay in the media library.
+        so you can see the plugin as it is before an import. Run step 2 again to bring them back.
+        Images stay in the media library.
       </p>
       <div className="actions">
         <button type="button" className="button button--danger" onClick={() => open()}>
@@ -128,6 +129,6 @@ export default function RemoveDataCard() {
           </button>
         </div>
       </dialog>
-    </div>
+    </section>
   );
 }

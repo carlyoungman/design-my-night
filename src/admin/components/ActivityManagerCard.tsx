@@ -452,8 +452,8 @@ export default function ActivityManagerCard({
           {!loading && !loadErr && rows.length === 0 && (
             <div className="dmn-admin__empty">
               <p>
-                No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to
-                bring them in.
+                No activities for this venue yet. Use <strong>Import from DesignMyNight</strong>{' '}
+                under Connection to bring them in.
               </p>
               <button
                 type="button"
