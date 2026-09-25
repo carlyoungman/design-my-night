@@ -199,7 +199,8 @@ export async function adminRemoveData(includeSettings: boolean): Promise<{
   activities_removed: number;
   settings_removed: boolean;
 }> {
-  return wpFetch(`data?include_settings=${includeSettings ? 1 : 0}`, { method: 'DELETE' });
+  // In the body, not the query: with plain permalinks the REST base already has a query string.
+  return wpFetch('data', { method: 'DELETE', body: { include_settings: includeSettings } });
 }
 
 /** Dashboard */

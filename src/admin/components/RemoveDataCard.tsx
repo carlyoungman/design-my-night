@@ -19,8 +19,9 @@ export default function RemoveDataCard() {
   const titleId = useId();
   const descId = useId();
 
-  const open = () => {
-    setIncludeSettings(false);
+  /** Opens the dialog; a fresh start unticks "Also reset all settings", a retry keeps the choice. */
+  const open = (reset = true) => {
+    if (reset) setIncludeSettings(false);
     dialogRef.current?.showModal();
     // Start on the safe choice rather than the first control.
     cancelRef.current?.focus();
@@ -55,7 +56,7 @@ export default function RemoveDataCard() {
       dialogRef.current?.close();
       toast.error('Data could not be removed.', {
         error: e,
-        action: { label: 'Try again', onClick: open },
+        action: { label: 'Try again', onClick: () => open(false) },
       });
     } finally {
       setBusy(false);
@@ -71,7 +72,7 @@ export default function RemoveDataCard() {
         back. Images stay in the media library.
       </p>
       <div className="actions">
-        <button type="button" className="button button--danger" onClick={open}>
+        <button type="button" className="button button--danger" onClick={() => open()}>
           <Trash2 aria-hidden="true" />
           Remove all data…
         </button>
