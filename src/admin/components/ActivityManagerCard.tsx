@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { ChevronDown, ChevronLeft, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
 import {
   type AdminVenue,
@@ -605,41 +603,43 @@ export default function ActivityManagerCard({
 
                         <div className="dmn-admin__record-side">
                           <div className="dmn-admin__field">
-                            <span className="dmn-admin__label" id={`${base}-vis-label`}>
-                              Visibility in the widget
-                            </span>
-                            <ToggleButtonGroup
-                              value={visible ? 'enabled' : 'disabled'}
-                              exclusive
-                              onChange={(_, newValue) => {
-                                if (!newValue) return; // one option must stay selected
-                                onCell(r.id, 'visible', newValue === 'enabled');
-                              }}
-                              aria-labelledby={`${base}-vis-label`}
-                            >
-                              <ToggleButton value="enabled">Shown</ToggleButton>
-                              <ToggleButton value="disabled">Hidden</ToggleButton>
-                            </ToggleButtonGroup>
+                            <span className="dmn-admin__label">Visibility in the widget</span>
+                            <p id={`${base}-vis-help`} className="dmn-admin__help">
+                              {visible
+                                ? 'Shown: customers can choose it.'
+                                : 'Hidden: customers don’t see it.'}
+                            </p>
+                            <div className="actions">
+                              <button
+                                type="button"
+                                className="button button--secondary"
+                                aria-describedby={`${base}-vis-help`}
+                                onClick={() => onCell(r.id, 'visible', !visible)}
+                              >
+                                {visible ? (
+                                  <EyeOff aria-hidden="true" />
+                                ) : (
+                                  <Eye aria-hidden="true" />
+                                )}
+                                {visible ? 'Hide from widget' : 'Show in widget'}
+                              </button>
+                            </div>
                           </div>
 
                           <div className="dmn-admin__field">
-                            <span className="dmn-admin__label" id={`${base}-price-label`}>
-                              Pricing
-                            </span>
-                            <ToggleButtonGroup
+                            <label htmlFor={`${base}-price-mode`}>Pricing</label>
+                            <select
+                              id={`${base}-price-mode`}
                               value={r.price_mode ?? 'per_person'}
-                              exclusive
-                              onChange={(_, newValue) => {
-                                if (!newValue) return; // one option must stay selected
-                                onCell(r.id, 'price_mode', newValue as PriceMode);
-                              }}
-                              aria-labelledby={`${base}-price-label`}
                               aria-describedby={`${base}-price-mode-help`}
+                              onChange={(e) =>
+                                onCell(r.id, 'price_mode', e.target.value as PriceMode)
+                              }
                             >
-                              <ToggleButton value="per_person">Per person</ToggleButton>
-                              <ToggleButton value="per_room">Per room</ToggleButton>
-                              <ToggleButton value="display">Text only</ToggleButton>
-                            </ToggleButtonGroup>
+                              <option value="per_person">Per person</option>
+                              <option value="per_room">Per room</option>
+                              <option value="display">Text only</option>
+                            </select>
                             <p id={`${base}-price-mode-help`} className="dmn-admin__help">
                               Text only shows the price text without calculating a total.
                             </p>
