@@ -18,8 +18,6 @@ export type Venue = {
   _id: string;
   title: string;
   name?: string;
-  is_external?: boolean;
-  external_message?: string;
 };
 
 /**

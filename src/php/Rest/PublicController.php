@@ -224,67 +224,6 @@ class PublicController
       ],
     ]);
 
-    // Public: FAQs
-    register_rest_route('dmn/v1', '/public/faqs', [
-      [
-        'methods' => WP_REST_Server::READABLE,
-        'permission_callback' => '__return_true',
-        'callback' => [$this, 'dmn_public_faqs_get'],
-        'args' => [
-          'venue_id' => ['required' => true, 'type' => 'string'],
-        ],
-      ],
-    ]);
-
-    // Large group link
-    register_rest_route('dmn/v1', '/public/large-group-link', [
-      [
-        'methods' => WP_REST_Server::READABLE,
-        'permission_callback' => '__return_true',
-        'callback' => [$this, 'dmn_public_large_group_link_get'],
-        'args' => [
-          'venue_id' => ['required' => true, 'type' => 'string'],
-        ],
-      ],
-    ]);
-
-    // Return URL (for redirect after booking)
-    register_rest_route('dmn/v1', '/public/return-url', [[
-      'methods' => WP_REST_Server::READABLE,
-      'permission_callback' => '__return_true',
-      'callback' => function (WP_REST_Request $req): WP_REST_Response {
-        $venue_param = $req->get_param('venue_id');
-        $post_id = $this->resolve_venue_post_id($venue_param);
-        if ($post_id <= 0) {
-          return new WP_REST_Response(['url' => ''], 404);
-        }
-        $url = (string)get_post_meta($post_id, 'dmn_return_url', true);
-        return new WP_REST_Response(['url' => mb_substr($url, 0, 300)], 200);
-      },
-      'args' => ['venue_id' => ['required' => true, 'type' => 'string']],
-    ]]);
-  }
-
-  /** ---- Helpers ---- */
-  private function resolve_venue_post_id($venue_id_param): int
-  {
-    // numeric WP post ID
-    if (is_numeric($venue_id_param)) {
-      $pid = (int)$venue_id_param;
-      return max($pid, 0);
-    }
-
-    // DMN venue id stored in post meta 'dmn_venue_id'
-    $dmn_id = (string)$venue_id_param;
-    $ids = get_posts([
-      'post_type' => 'dmn_venue',
-      'numberposts' => 1,
-      'fields' => 'ids',
-      'meta_key' => 'dmn_venue_id',
-      'meta_value' => $dmn_id,
-    ]);
-
-    return !empty($ids) ? (int)$ids[0] : 0;
   }
 
   /**
@@ -303,38 +242,6 @@ class PublicController
 
     $dmn = new DmnClient();
     $res = $dmn->request('GET', '/venues', $query);
-
-    // Build maps of DMN venue _id → display mode and external message from WP posts.
-    $mode_map = [];
-    $content_map = [];
-    $wp_venue_ids = get_posts([
-      'post_type'   => 'dmn_venue',
-      'numberposts' => -1,
-      'fields'      => 'ids',
-    ]);
-    foreach ($wp_venue_ids as $pid) {
-      $ext_id = (string)get_post_meta((int)$pid, 'dmn_venue_id', true);
-      if ($ext_id === '') continue;
-      $mode = (string)(get_post_meta((int)$pid, 'dmn_display_mode', true) ?: 'display');
-      $mode_map[$ext_id] = $mode;
-      $content_map[$ext_id] = (string)(get_post_meta((int)$pid, 'dmn_ext_inline_message', true) ?: '');
-    }
-
-    // Filter hidden venues; annotate external_booking venues with inline message data.
-    if (!empty($res['data']['payload']['pages'])) {
-      $transformed = [];
-      foreach ($res['data']['payload']['pages'] as $v) {
-        $id = (string)($v['_id'] ?? '');
-        $mode = $mode_map[$id] ?? 'display';
-        if ($mode === 'hidden') continue;
-        if ($mode === 'external_booking') {
-          $v['is_external'] = true;
-          $v['external_message'] = $content_map[$id] ?? '';
-        }
-        $transformed[] = $v;
-      }
-      $res['data']['payload']['pages'] = array_values($transformed);
-    }
 
     return new WP_REST_Response([
       'data' => $res['data'] ?? null,
@@ -560,62 +467,4 @@ class PublicController
     return new WP_REST_Response(['data' => $out], 200);
   }
 
-  /** ---- Public: FAQs ---- */
-  public function dmn_public_faqs_get(WP_REST_Request $req): WP_REST_Response
-  {
-    $venue_param = $req->get_param('venue_id');
-    $post_id = $this->resolve_venue_post_id($venue_param);
-
-    if ($post_id <= 0) {
-      return new WP_REST_Response(['faqs' => [], 'error' => 'venue not found'], 404);
-    }
-
-    $faqs = get_post_meta($post_id, 'dmn_faqs', true);
-    if (!is_array($faqs)) $faqs = [];
-
-    // normalise
-    $faqs = array_values(array_map(function ($f) {
-      return [
-        'question' => isset($f['question']) ? (string)$f['question'] : '',
-        'answer' => isset($f['answer']) ? (string)$f['answer'] : '',
-      ];
-    }, $faqs));
-
-    return new WP_REST_Response(['faqs' => $faqs], 200);
-  }
-
-  /** ---- Public: Large group link ---- */
-  public function dmn_public_large_group_link_get(WP_REST_Request $req): WP_REST_Response
-  {
-    $venue_param = $req->get_param('venue_id');
-    $post_id = $this->resolve_venue_post_id($venue_param);
-
-    if ($post_id <= 0) {
-      return new WP_REST_Response([
-        'enabled' => false,
-        'minSize' => 12,
-        'label' => 'Groups of 12+ — Enquire here',
-        'url' => '',
-        'maxPartySize' => 12,
-        'error' => 'venue not found',
-      ], 404);
-    }
-
-    $url = (string)get_post_meta($post_id, 'dmn_large_group_url', true);
-    $label = (string)get_post_meta($post_id, 'dmn_large_group_label', true);
-    $min = (int)get_post_meta($post_id, 'dmn_large_group_min', true);
-    $max_party_size = (int)get_post_meta($post_id, 'dmn_party_size_max', true);
-
-    if ($label === '') $label = 'Groups of 12+ — Enquire here';
-    if ($min <= 0) $min = 12;
-    if ($max_party_size <= 0) $max_party_size = 12;
-
-    return new WP_REST_Response([
-      'enabled' => $url !== '',
-      'minSize' => $min,
-      'label' => $label,
-      'url' => $url,
-      'maxPartySize' => $max_party_size,
-    ], 200);
-  }
 }

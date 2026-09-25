@@ -1,5 +1,5 @@
 // src/frontend/app/helpers/checkout.ts
-import { checkAvailability, getReturnUrl } from '@api/public';
+import { checkAvailability } from '@api/public';
 
 // ——— Types ———
 export type BookingCustomer = {
@@ -64,15 +64,13 @@ const normalizeTime = (t: string): string => {
   return s.padStart(5, '0');
 };
 
-const resolveReturnUrl = async (
-  venueId: string | null | undefined,
+const resolveReturnUrl = (
   explicitReturnUrl: string | null | undefined,
   buttonSelector: string,
-): Promise<string> => {
+): string => {
   const fromButton = (document.querySelector(buttonSelector) as HTMLElement | null)?.dataset
     ?.returnUrl;
-  const perVenue = venueId ? ((await getReturnUrl(venueId)).url ?? '') : '';
-  return fromButton || perVenue || explicitReturnUrl || window.location.href;
+  return fromButton || explicitReturnUrl || window.location.href;
 };
 
 // src/frontend/app/helpers/checkout.ts
@@ -195,14 +193,15 @@ export async function continueCheckout(opts: {
       throw new Error('That time is no longer available. Choose another time and try again.');
 
     // 3) Resolve single source of truth for return_url
-    const ru = await resolveReturnUrl(state.venueId ?? null, returnUrl ?? null, buttonSelector);
+    const ru = resolveReturnUrl(returnUrl ?? null, buttonSelector);
 
     // 4) Redirect with full booking params in query
     if (!p.bookingDetails)
       throw new Error('We couldn’t confirm this booking with the venue. Please try again.');
     const payload = buildBookingPayload(p.bookingDetails, state.customer, ru, stateDuration);
     const base = p.next?.web;
-    if (!base) throw new Error('Online checkout isn’t available for this time. Choose another time.');
+    if (!base)
+      throw new Error('Online checkout isn’t available for this time. Choose another time.');
 
     // IMPORTANT: pass urlParams into the URL builder
     const url = buildRedirectUrl(base, payload, urlParams); // ← use urlParams here

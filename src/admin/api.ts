@@ -183,34 +183,6 @@ export async function adminSaveMenuItem(
   return wpFetch(`menu-items/${id}`, { method: 'POST', body: payload });
 }
 
-/** FAQs */
-export async function adminListFaqs(
-  venue_id: number,
-): Promise<{ faqs: { question: string; answer: string }[] }> {
-  return wpFetch(`faqs?venue_id=${encodeURIComponent(venue_id)}`);
-}
-
-export async function adminSaveFaqs(
-  venue_id: number,
-  faqs: Array<{ question: string; answer: string }>,
-): Promise<{ ok: true }> {
-  return wpFetch<{ ok: true }>('faqs', { method: 'POST', body: { venue_id, faqs } });
-}
-
-/** Large Group Link */
-export async function adminGetLargeGroupLink(
-  venue_id: number,
-): Promise<{ enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number }> {
-  return wpFetch(`large-group-link?venue_id=${encodeURIComponent(venue_id)}`);
-}
-
-export async function adminSaveLargeGroupLink(
-  venue_id: number,
-  body: { enabled: boolean; minSize: number; label: string; url: string; maxPartySize: number },
-): Promise<{ ok: true }> {
-  return wpFetch<{ ok: true }>('large-group-link', { method: 'POST', body: { venue_id, ...body } });
-}
-
 export type AdminMenuItemsResponse = {
   menus: Array<{
     menu_post_id: number;
@@ -230,42 +202,3 @@ export type AdminMenuItemsResponse = {
     }>;
   }>;
 };
-
-/** Venue Display Mode */
-export type VenueDisplayMode = 'display' | 'external_booking' | 'hidden';
-
-export type VenueDisplaySettings = {
-  mode: VenueDisplayMode;
-  inline_message: string;
-  title: string;
-  content: string;
-  button_text: string;
-  button_url: string;
-  image_id: number | null;
-  image_url: string | null;
-};
-
-export async function adminGetVenueDisplay(venue_id: number): Promise<VenueDisplaySettings> {
-  return wpFetch(`venue-display?venue_id=${encodeURIComponent(venue_id)}`);
-}
-
-export async function adminSaveVenueDisplay(
-  venue_id: number,
-  body: Omit<VenueDisplaySettings, 'image_url'>,
-): Promise<{ ok: true }> {
-  return wpFetch('venue-display', { method: 'POST', body: { venue_id, ...body } });
-}
-
-// Return URL
-export async function adminGetReturnUrl(
-  venue_id: number,
-): Promise<{ url?: string; enabled?: boolean }> {
-  return wpFetch(`return-url?venue_id=${encodeURIComponent(venue_id)}`);
-}
-
-export async function adminSaveReturnUrl(
-  venue_id: number,
-  body: { enabled: boolean; url: string },
-): Promise<void> {
-  await wpFetch('return-url', { method: 'POST', body: { venue_id, ...body } });
-}

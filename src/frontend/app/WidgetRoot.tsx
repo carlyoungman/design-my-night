@@ -10,7 +10,6 @@ import { useVenues } from '@app/hooks/useVenues';
 import { Details } from '@app/components/steps/Details';
 import { Review } from '@app/components/steps/Review';
 import ProgressBar from '@app/components/ProgressBar';
-import { Faqs } from '@app/components/steps/Faqs';
 import { useBookingTypes } from '@app/hooks/useBookingTypes';
 import { parseAllowedDays } from '@app/utils/helpers';
 import AddonsNew from '@app/components/steps/AddonsNew';
@@ -88,11 +87,6 @@ function WidgetInner() {
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
   const announcement = useStepAnnouncement();
 
-  const isExternalVenue = useMemo(
-    () => venues.find((v) => String(v._id) === String(state.venueId))?.is_external === true,
-    [venues, state.venueId],
-  );
-
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
   const {
@@ -124,52 +118,42 @@ function WidgetInner() {
             />
           </Step>
 
-          {!isExternalVenue && (
-            <>
-              <Step widgetId={widgetId} step="party">
-                <PartySize labelledBy={stepHeadingId(widgetId, 'party')} />
-              </Step>
+          <Step widgetId={widgetId} step="party">
+            <PartySize labelledBy={stepHeadingId(widgetId, 'party')} />
+          </Step>
 
-              <Step widgetId={widgetId} step="date">
-                <Date allowedDays={formattedAllowedDays} />
-              </Step>
+          <Step widgetId={widgetId} step="date">
+            <Date allowedDays={formattedAllowedDays} />
+          </Step>
 
-              <Step widgetId={widgetId} step="experience">
-                <Type
-                  types={types}
-                  loading={typesLoading}
-                  error={typesError}
-                  onRetry={reloadTypes}
-                  enabled={enabled}
-                  defaultTypeId={defaultTypeId}
-                  defaultTypeIds={defaultTypeIds}
-                  labelledBy={stepHeadingId(widgetId, 'experience')}
-                />
-              </Step>
+          <Step widgetId={widgetId} step="experience">
+            <Type
+              types={types}
+              loading={typesLoading}
+              error={typesError}
+              onRetry={reloadTypes}
+              enabled={enabled}
+              defaultTypeId={defaultTypeId}
+              defaultTypeIds={defaultTypeIds}
+              labelledBy={stepHeadingId(widgetId, 'experience')}
+            />
+          </Step>
 
-              <Step widgetId={widgetId} step="time">
-                <Time labelledBy={stepHeadingId(widgetId, 'time')} />
-              </Step>
+          <Step widgetId={widgetId} step="time">
+            <Time labelledBy={stepHeadingId(widgetId, 'time')} />
+          </Step>
 
-              <Step widgetId={widgetId} step="details">
-                <Details />
-              </Step>
-            </>
-          )}
+          <Step widgetId={widgetId} step="details">
+            <Details />
+          </Step>
         </div>
 
         <aside className="dmn-widget__side" aria-label="Booking summary">
           <ProgressBar showSteps />
-          {!isExternalVenue && (
-            <>
-              <Review sections={{ details: false }} venues={venues} types={types} />
-              <AddonsNew />
-            </>
-          )}
+          <Review sections={{ details: false }} venues={venues} types={types} />
+          <AddonsNew />
         </aside>
       </div>
-
-      {!isExternalVenue && <Faqs venues={venues} />}
 
       <div className="screen-reader-text" aria-live="polite" aria-atomic="true">
         {announcement}
