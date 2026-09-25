@@ -50,6 +50,8 @@ export type Appearance = {
   default_theme_colour: string;
   admin_mode: ColourMode;
   widget_mode: ColourMode;
+  /** Whether the widget's stylesheet is loaded on the site. */
+  widget_styles: boolean;
   /** `--theme-*` custom properties for the saved colour, shaded for each mode. */
   css_vars: Record<string, string>;
 };
@@ -62,6 +64,7 @@ export function saveAppearance(payload: {
   theme_colour?: string;
   admin_mode?: ColourMode;
   widget_mode?: ColourMode;
+  widget_styles?: boolean;
 }) {
   return wpFetch<Appearance & { ok: boolean }>('appearance', { method: 'POST', body: payload });
 }
