@@ -70,6 +70,18 @@
       }
     }
 
+    // Icon before the label; MUI would otherwise make icon tabs 72px tall.
+    .MuiTab-labelIcon {
+      gap: var(--universal-space-half);
+      min-height: 48px;
+    }
+
+    .MuiTab-icon {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+    }
+
     .MuiTabs-scrollButtons {
       color: var(--c-near-black);
 

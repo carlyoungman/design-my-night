@@ -67,6 +67,7 @@
   @include meta.load-css('./components/forms');
   @include meta.load-css('./components/records');
   @include meta.load-css('./components/toggles');
+  @include meta.load-css('./components/venues');
 
   @media (prefers-reduced-motion: reduce) {
     *,

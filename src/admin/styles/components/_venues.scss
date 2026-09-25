@@ -1,0 +1,185 @@
+@use '../settings/breakpoints' as breakpoint;
+
+// Venues overview (summary stats and venue cards) and the venue page's breadcrumb.
+.dmn-admin {
+  &__section[hidden] {
+    display: none;
+  }
+
+  // Summary of what has been imported. Plain figures with labels, no trend or comparison.
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--universal-space);
+    margin: 0 0 var(--universal-space-2);
+  }
+
+  &__stat {
+    padding: var(--universal-space);
+    background: var(--c-white);
+    border: 1px solid var(--c-lilac-grey);
+    border-radius: var(--border-radius);
+
+    dt {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    dd {
+      margin: 4px 0 0;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+  }
+
+  &__stat-of {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  &__venues {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--universal-space);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include breakpoint.x-large-screen-min {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  // The whole card opens the venue; the title link is stretched over it.
+  &__venue {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space-half);
+    margin: 0;
+    transition: var(--transition);
+
+    &:hover {
+      border-color: var(--c-purple);
+    }
+
+    > p {
+      margin: 0;
+    }
+
+    .dmn-admin__chips {
+      padding-top: var(--universal-space-half);
+      margin-top: auto;
+    }
+  }
+
+  &__venue-head {
+    display: flex;
+    gap: var(--universal-space);
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  &__venue-title {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__venue-link {
+    color: var(--c-near-black);
+    text-decoration: none;
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+      border-radius: var(--border-radius);
+    }
+
+    .dmn-admin__venue:hover & {
+      color: var(--c-purple);
+    }
+
+    &:focus-visible {
+      outline: 0;
+
+      &::after {
+        outline: 2px solid var(--c-purple);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__venue-chevron {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--c-purple);
+  }
+
+  &__venue-summary {
+    font-size: 14px;
+  }
+
+  &__toolbar--one {
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: minmax(0, 420px);
+    }
+  }
+
+  &__toolbar--two {
+    @include breakpoint.x-large-screen-min {
+      grid-template-columns: minmax(240px, 1.5fr) minmax(200px, 0.8fr);
+    }
+  }
+
+  &__breadcrumb {
+    margin-bottom: var(--universal-space-half);
+    font-size: 14px;
+
+    ol {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--universal-space-half);
+      align-items: center;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    li + li::before {
+      margin-right: var(--universal-space-half);
+      content: '/';
+    }
+
+    a {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      min-height: 24px;
+      font-weight: 600;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__section h2[tabindex='-1']:focus {
+    outline: 0;
+  }
+}

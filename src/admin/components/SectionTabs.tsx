@@ -28,6 +28,8 @@ export default function SectionTabs({ unsaved }: { unsaved: Partial<Record<Secti
             id={tabId(s.id)}
             aria-controls={panelId(s.id)}
             disableRipple
+            icon={<s.icon className="dmn-admin__nav-icon" aria-hidden="true" />}
+            iconPosition="start"
             label={
               <span className="dmn-admin__nav-label">
                 {s.label}

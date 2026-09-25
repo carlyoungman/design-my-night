@@ -85,9 +85,17 @@ export function testConnection(debug = false) {
 }
 
 /** Venues */
-export async function adminListVenues(): Promise<{
-  venues: { id: number; title: string; dmn_id: string }[];
-}> {
+export type AdminVenue = {
+  id: number;
+  title: string;
+  dmn_id: string;
+  /** Imported activities, how many are shown in the widget, and how many have no image. */
+  activities_count: number;
+  visible_count: number;
+  without_image_count: number;
+};
+
+export async function adminListVenues(): Promise<{ venues: AdminVenue[] }> {
   return wpFetch('venues');
 }
 

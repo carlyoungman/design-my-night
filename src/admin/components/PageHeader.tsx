@@ -46,8 +46,8 @@ export default function PageHeader() {
       <div className="dmn-admin__page-header-text">
         <h1 className="dmn-admin__title">DesignMyNight bookings</h1>
         <p className="dmn-admin__intro">
-          Choose how each venue&apos;s activities appear in the booking widget. Import again after
-          you add or change venues or activities in DesignMyNight.
+          Your DesignMyNight venues and how their activities appear in the booking widget. Import
+          again after you add or change venues or activities in DesignMyNight.
         </p>
       </div>
       <div className="dmn-admin__page-header-actions">

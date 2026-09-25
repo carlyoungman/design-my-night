@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { ChevronDown, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
-import { adminListActivities, adminSaveActivity } from '@admin/api';
+import { ChevronDown, ChevronLeft, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
+import { type AdminVenue, adminListActivities, adminSaveActivity } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
-import { useVenues } from '@admin/components/useVenues';
 import {
   LoadError,
   Loading,
@@ -33,7 +32,15 @@ type AdminActivity = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const wp: any;
 
-type Props = { onDirty?: (d: boolean) => void };
+type Props = {
+  venue: AdminVenue;
+  /** Hidden while the venues overview is showing; stays mounted so unsaved edits survive. */
+  hidden?: boolean;
+  headingRef?: React.Ref<HTMLHeadingElement>;
+  onDirty?: (d: boolean) => void;
+  /** Called after activities are saved, so the overview's counts can be refreshed. */
+  onSaved?: () => void;
+};
 
 const MAX = 200;
 
@@ -60,9 +67,16 @@ const isChanged = (r: AdminActivity, o: AdminActivity) =>
   (r.visible ?? true) !== (o.visible ?? true) ||
   (r.price_mode || 'per_person') !== (o.price_mode || 'per_person');
 
-export default function ActivityManagerCard({ onDirty }: Props) {
-  const { selectedVenueId, setSelectedVenueId, dataVersion, goToSection } = useAdmin();
-  const venues = useVenues();
+/** One venue's activities: how each appears in the booking widget. Opened from the venues overview. */
+export default function ActivityManagerCard({
+  venue,
+  hidden,
+  headingRef,
+  onDirty,
+  onSaved,
+}: Props) {
+  const { dataVersion, openVenue } = useAdmin();
+  const venueId = venue.id;
   const [query, setQuery] = useState('');
   const [visibility, setVisibility] = useState<VisibilityFilter>('all');
   const [loading, setLoading] = useState(false);
@@ -112,22 +126,18 @@ export default function ActivityManagerCard({ onDirty }: Props) {
 
   const load = useCallback(async () => {
     const isCurrent = beginRequest();
-    if (!selectedVenueId) {
-      setRows([]);
-      setOrig([]);
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setLoadErr(null);
     setErr(null);
     setOk(null);
     try {
-      const r = await adminListActivities(Number(selectedVenueId));
+      const r = await adminListActivities(venueId);
       if (!isCurrent()) return;
       const list = r.activities.map(withDefaults);
       setRows(list);
       setOrig(list);
+      setQuery('');
+      setVisibility('all');
       setOpen(new Set(list.length === 1 ? [list[0].id] : []));
     } catch (e) {
       if (!isCurrent()) return;
@@ -135,7 +145,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     } finally {
       if (isCurrent()) setLoading(false);
     }
-  }, [selectedVenueId, beginRequest]);
+  }, [venueId, beginRequest]);
 
   useEffect(() => {
     load();
@@ -224,21 +234,41 @@ export default function ActivityManagerCard({ onDirty }: Props) {
       } else {
         setOk(`Saved ${changed.length} ${changed.length === 1 ? 'activity' : 'activities'}.`);
       }
+      if (savedIds.size) onSaved?.();
     } finally {
       setSaving(false);
     }
   };
 
-  const hasVenues = !venues.loading && !venues.error && venues.venues.length > 0;
-  const showList = !!selectedVenueId && !loading && !loadErr && rows.length > 0;
+  const showList = !loading && !loadErr && rows.length > 0;
 
   return (
-    <section className="dmn-admin__section" aria-labelledby="dmn-admin-activities-title">
+    <section className="dmn-admin__section" aria-labelledby="dmn-admin-venue-title" hidden={hidden}>
+      <nav className="dmn-admin__breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li>
+            <a
+              href="#venues"
+              onClick={(e) => {
+                e.preventDefault();
+                openVenue(null);
+              }}
+            >
+              <ChevronLeft aria-hidden="true" />
+              Venues
+            </a>
+          </li>
+          <li aria-current="page">{venue.title || 'Untitled venue'}</li>
+        </ol>
+      </nav>
       <div className="dmn-admin__section-header dmn-admin__section-header--sticky">
         <div>
-          <h2 id="dmn-admin-activities-title">Activities</h2>
+          <h2 id="dmn-admin-venue-title" ref={headingRef} tabIndex={-1}>
+            {venue.title || 'Untitled venue'}
+          </h2>
           <p className="dmn-admin__help">
-            Edit how each of a venue&apos;s activities appears in the booking widget.
+            {venue.dmn_id ? `DMN venue ID ${venue.dmn_id}. ` : ''}Edit how each of this venue&apos;s
+            activities appears in the booking widget.
           </p>
         </div>
         <div className="dmn-admin__section-actions">
@@ -261,43 +291,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         </div>
       </div>
 
-      {venues.loading && <Loading>Loading venues…</Loading>}
-      {!venues.loading && venues.error && (
-        <LoadError message={venues.error} onRetry={venues.retry} />
-      )}
-      {!venues.loading && !venues.error && venues.venues.length === 0 && (
-        <div className="dmn-admin__empty">
-          <p>
-            No venues yet. Save your API credentials under Connection, then use{' '}
-            <strong>Import from DesignMyNight</strong> to bring in your venues and activities.
-          </p>
-          <button
-            type="button"
-            className="button button--secondary"
-            onClick={() => goToSection('connection')}
-          >
-            Go to Connection
-          </button>
-        </div>
-      )}
-
-      {hasVenues && (
-        <div className="dmn-admin__toolbar">
-          <div className="dmn-admin__field dmn-admin__toolbar-venue">
-            <label htmlFor="dmn-admin-venue-picker">Venue</label>
-            <select
-              id="dmn-admin-venue-picker"
-              value={selectedVenueId ?? ''}
-              onChange={(e) => setSelectedVenueId(e.target.value ? Number(e.target.value) : null)}
-            >
-              <option value="">Choose a venue</option>
-              {venues.venues.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.title} {v.dmn_id ? `(DMN ${v.dmn_id})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+      {showList && (
+        <div className="dmn-admin__toolbar dmn-admin__toolbar--two">
           <div className="dmn-admin__field dmn-admin__toolbar-search">
             <label htmlFor="dmn-admin-activity-search">Search activities</label>
             <div className="dmn-admin__search">
@@ -307,7 +302,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                 type="search"
                 value={query}
                 placeholder="Name or type ID"
-                disabled={!showList}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
@@ -317,7 +311,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             <select
               id="dmn-admin-activity-filter"
               value={visibility}
-              disabled={!showList}
               onChange={(e) => setVisibility(e.target.value as VisibilityFilter)}
             >
               <option value="all">All activities</option>
@@ -334,21 +327,25 @@ export default function ActivityManagerCard({ onDirty }: Props) {
         </StatusMessage>
       )}
 
-      {hasVenues && !selectedVenueId && (
-        <p className="dmn-admin__empty">Choose a venue to edit its activities.</p>
-      )}
-      {hasVenues && selectedVenueId && loading && <Loading>Loading activities…</Loading>}
-      {hasVenues && selectedVenueId && !loading && loadErr && (
-        <LoadError message={loadErr} onRetry={load} />
-      )}
-      {hasVenues && selectedVenueId && !loading && !loadErr && rows.length === 0 && (
-        <p className="dmn-admin__empty">
-          No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to bring
-          them in.
-        </p>
+      {loading && <Loading>Loading activities…</Loading>}
+      {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
+      {!loading && !loadErr && rows.length === 0 && (
+        <div className="dmn-admin__empty">
+          <p>
+            No activities for this venue yet. Use <strong>Import from DesignMyNight</strong> to
+            bring them in.
+          </p>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() => openVenue(null)}
+          >
+            Back to venues
+          </button>
+        </div>
       )}
 
-      {hasVenues && showList && (
+      {showList && (
         <>
           <div className="dmn-admin__list-bar">
             <p className="dmn-admin__result-count" role="status">
