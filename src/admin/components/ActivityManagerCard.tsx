@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { CircleDot, Eye, EyeOff, Search } from 'lucide-react';
+import { ChevronDown, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
 import { adminListActivities, adminSaveActivity } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
 import { useVenues } from '@admin/components/useVenues';
@@ -73,6 +73,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Activities whose editor is open. All start closed, except when a venue has only one activity.
+  const [open, setOpen] = useState<Set<number>>(() => new Set());
 
   const dirty = useMemo(() => {
     const d = new Set<number>();
@@ -126,6 +128,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
       const list = r.activities.map(withDefaults);
       setRows(list);
       setOrig(list);
+      setOpen(new Set(list.length === 1 ? [list[0].id] : []));
     } catch (e) {
       if (!isCurrent()) return;
       setLoadErr(errorMessage(e, 'Activities could not be loaded.'));
@@ -137,6 +140,14 @@ export default function ActivityManagerCard({ onDirty }: Props) {
   useEffect(() => {
     load();
   }, [load, dataVersion]);
+
+  const toggleOpen = (id: number) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const onCell = <K extends keyof AdminActivity>(id: number, key: K, value: AdminActivity[K]) => {
     setOk(null);
@@ -197,6 +208,8 @@ export default function ActivityManagerCard({ onDirty }: Props) {
 
       const failed = changed.filter((_, i) => results[i].status === 'rejected');
       if (failed.length) {
+        // Open the activities that failed so their changes are visible.
+        setOpen((prev) => new Set([...prev, ...failed.map((r) => r.id)]));
         const firstReason = (results.find((x) => x.status === 'rejected') as PromiseRejectedResult)
           ?.reason;
         const names = failed.map((r) => r.name || `#${r.id}`).join(', ');
@@ -337,11 +350,35 @@ export default function ActivityManagerCard({ onDirty }: Props) {
 
       {hasVenues && showList && (
         <>
-          <p className="dmn-admin__result-count" role="status">
-            {isFiltered
-              ? `Showing ${filtered.length} of ${countLabel(rows.length)}`
-              : countLabel(rows.length)}
-          </p>
+          <div className="dmn-admin__list-bar">
+            <p className="dmn-admin__result-count" role="status">
+              {isFiltered
+                ? `Showing ${filtered.length} of ${countLabel(rows.length)}`
+                : countLabel(rows.length)}
+            </p>
+            {filtered.length > 1 && (
+              <div className="actions dmn-admin__list-bar-actions">
+                <button
+                  type="button"
+                  className="button button--text"
+                  disabled={filtered.every((r) => open.has(r.id))}
+                  onClick={() =>
+                    setOpen((prev) => new Set([...prev, ...filtered.map((r) => r.id)]))
+                  }
+                >
+                  Expand all
+                </button>
+                <button
+                  type="button"
+                  className="button button--text"
+                  disabled={filtered.every((r) => !open.has(r.id))}
+                  onClick={() => setOpen(new Set())}
+                >
+                  Collapse all
+                </button>
+              </div>
+            )}
+          </div>
 
           {filtered.length === 0 && (
             <div className="dmn-admin__empty">
@@ -357,17 +394,31 @@ export default function ActivityManagerCard({ onDirty }: Props) {
               const base = `dmn-activity-${r.id}`;
               const remaining = MAX - (r.description || '').length;
               const visible = r.visible ?? true;
+              const isOpen = open.has(r.id);
 
               return (
                 <article
-                  className="dmn-admin__card dmn-admin__record"
+                  className={`dmn-admin__card dmn-admin__record${
+                    isOpen ? ' dmn-admin__record--open' : ''
+                  }`}
                   key={r.id}
                   aria-labelledby={`${base}-title`}
                 >
                   <header className="dmn-admin__record-header">
+                    <ChevronDown className="dmn-admin__record-chevron" aria-hidden="true" />
                     <div>
-                      <h3 id={`${base}-title`} className="dmn-admin__record-title">
-                        {r.name || 'Untitled activity'}
+                      <h3 className="dmn-admin__record-title">
+                        {/* The button covers the whole header (see _records.scss), so the header is the click target. */}
+                        <button
+                          type="button"
+                          id={`${base}-title`}
+                          className="dmn-admin__record-toggle"
+                          aria-expanded={isOpen}
+                          aria-controls={`${base}-body`}
+                          onClick={() => toggleOpen(r.id)}
+                        >
+                          {r.name || 'Untitled activity'}
+                        </button>
                       </h3>
                       <p className="dmn-admin__record-meta">
                         Type ID {r.dmn_type_id || 'not set'} · Duration{' '}
@@ -392,7 +443,7 @@ export default function ActivityManagerCard({ onDirty }: Props) {
                     </div>
                   </header>
 
-                  <div className="dmn-admin__record-body">
+                  <div id={`${base}-body`} className="dmn-admin__record-body" hidden={!isOpen}>
                     <div className="dmn-admin__record-fields">
                       <div className="dmn-admin__field">
                         <label htmlFor={`${base}-name`}>Name</label>

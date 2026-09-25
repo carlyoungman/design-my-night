@@ -2,7 +2,7 @@
 
 > Reusable design and implementation guidance for modern, user-friendly dashboards, especially WordPress admin plugin applications. Use this document as an instruction file for AI-assisted development, including Claude Code.
 >
-> This plugin has two UI surfaces: the **wp-admin app** (`src/admin`, React + MUI + SCSS) and the **customer-facing booking widget** (`src/frontend`, React + Base UI + SCSS). Sections 1–10 cover the admin app. Section 11 covers the widget.
+> This plugin has two UI surfaces: the **wp-admin app** (`src/admin`, React + MUI + SCSS) and the **customer-facing booking widget** (`src/frontend`, React + Base UI + SCSS). Sections 1–10 cover the admin app. Section 11 covers the widget. Section 12 covers integration with the DesignMyNight API, which must always follow the official DMN developer documentation.
 
 ## 1. Design goals
 
@@ -172,11 +172,32 @@ The booking widget (`src/frontend`) is embedded in pages of someone else's theme
 - **Submission.** Prevent double submission, keep the user's details if a booking or enquiry fails, and show a clear confirmation or next step (including the external-booking hand-off) on success.
 - **Performance.** Enqueue widget assets only on pages that render the `dmn_booking` shortcode, as the plugin does now.
 
-## 12. Implementation approach for Claude Code
+## 12. DesignMyNight API integration
+
+Every integration with DesignMyNight must follow the official **DMN developer documentation** at <https://developers.designmynight.com/>. Treat it as the source of truth for endpoints, request and response shapes, field names, parameters, and behaviour. The pages this plugin relies on most:
+
+- [API Basics](https://developers.designmynight.com/api/api-basics/): authentication, base URL, rate limits, and the response envelope.
+- [Venues API](https://developers.designmynight.com/api/venues-api/): venues, booking types, booking rules, and `booking-availability`.
+- [Booking API](https://developers.designmynight.com/api/booking-api/): the availability check and creating bookings and enquiries.
+- [Testing](https://developers.designmynight.com/testing/testing/) and [API FAQs](https://developers.designmynight.com/api/api-faqs/).
+
+Rules:
+
+- **Read the docs before you write or change an integration.** Check the relevant page for every new endpoint, parameter, or field. Do not guess endpoints, invent fields, or rely on memory of the API; if the docs and the live API disagree, follow the live API, note the difference in a code comment, and tell the user.
+- **Use documented endpoints and flows only.** Follow the documented booking flow (booking rules and availability, then the booking or enquiry, or DMN's own hand-off) rather than workarounds. Don't call undocumented or internal endpoints.
+- **All DMN calls go through the server.** Requests are made in PHP through `DmnClient` (`src/php/Services/DmnClient.php`) and exposed to the admin app and widget through the plugin's REST controllers. Never call the DMN API from the browser or expose the App ID or API key to the front end.
+- **Authentication and base URL.** Send `Authorization: APP_ID:API_KEY` over HTTPS to the v4 base URL (`https://api.designmynight.com/v4`, or the QA URL when the environment setting is `qa`). Keep the base URL in one place rather than hard-coding it in new code.
+- **Respect rate limits.** Limits are per App ID per hour (`X-RateLimit-*` headers, `429 Too Many Requests`). Cache GET responses where it is safe, avoid redundant calls, and use documented options such as `fields` on `booking-availability` to keep requests light.
+- **Handle the documented response envelope and errors.** Read data from `payload`, check `status`, and turn documented error codes (400, 401, 403, 404, 429, 503) into specific, user-facing messages and recovery paths (see sections 6 and 9).
+- **Validate against the docs server-side.** Use the documented rules (for example `min_people`, `max_people`, and booking hours from booking rules) to validate input in PHP, not only in the UI.
+- **Test against QA.** Use DMN's test/QA environment for development and testing, not live venues.
+- **Link the docs.** When adding or changing an integration, reference the relevant documentation page in the code comment or PR description.
+
+## 13. Implementation approach for Claude Code
 
 When designing or implementing a new dashboard screen or widget step:
 
-1. Identify the screen's target users, top tasks, available data, and operational constraints.
+1. Identify the screen's target users, top tasks, available data, and operational constraints. If the work touches DesignMyNight data, check the relevant DMN documentation page first (section 12).
 2. Propose the information hierarchy and interactions before selecting decorative styles.
 3. Reuse existing design tokens and components; add new ones only when necessary.
 4. Build semantic, responsive layouts and implement real loading, empty, error, and success states.
@@ -200,6 +221,7 @@ When designing or implementing a new dashboard screen or widget step:
 - [ ] WordPress admin styles and behaviour outside the plugin are unaffected.
 - [ ] Widget styles stay inside `.dmn-widget-root` and only use tokens defined there.
 - [ ] Performance, permissions, and server-side validation have been addressed.
+- [ ] DesignMyNight API calls follow the official DMN developer documentation (section 12) and run server-side only.
 
 ## Core principle
 
