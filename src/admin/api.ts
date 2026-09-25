@@ -192,6 +192,17 @@ export async function adminSyncAll(): Promise<ImportRecord & { message: string }
   return wpFetch('sync/all', { method: 'POST' });
 }
 
+/** Deletes every imported venue and activity and the import record; optionally every setting too. */
+export async function adminRemoveData(includeSettings: boolean): Promise<{
+  ok: boolean;
+  venues_removed: number;
+  activities_removed: number;
+  settings_removed: boolean;
+}> {
+  // In the body, not the query: with plain permalinks the REST base already has a query string.
+  return wpFetch('data', { method: 'DELETE', body: { include_settings: includeSettings } });
+}
+
 /** Dashboard */
 export async function adminOverview(): Promise<{
   last_import: ImportRecord | null;

@@ -236,6 +236,70 @@ class AdminController
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_all'],
     ]);
+
+    // Remove imported data, and optionally every setting, so the plugin is as it was before any import.
+    register_rest_route('dmn/v1/admin', '/data', [
+      'methods' => WP_REST_Server::DELETABLE,
+      'permission_callback' => fn() => current_user_can('manage_options'),
+      'callback' => [$this, 'dmn_admin_remove_data'],
+      'args' => [
+        'include_settings' => ['type' => 'boolean', 'required' => false, 'default' => false],
+      ],
+    ]);
+  }
+
+  /**
+   * Delete every imported venue and activity (with their meta) and the import record. With
+   * 'include_settings', also delete the connection, URL parameter and appearance settings.
+   * Images chosen for activities stay in the media library.
+   *
+   * @param WP_REST_Request $r Request with optional 'include_settings'.
+   * @return WP_REST_Response Counts of what was removed.
+   */
+  public function dmn_admin_remove_data(WP_REST_Request $r): WP_REST_Response
+  {
+    $counts = ['dmn_venue' => 0, 'dmn_activity' => 0];
+    foreach (array_keys($counts) as $type) {
+      $ids = get_posts([
+        'post_type' => $type,
+        'post_status' => 'any',
+        'numberposts' => -1,
+        'fields' => 'ids',
+      ]);
+      foreach ($ids as $id) {
+        if (wp_delete_post((int)$id, true)) $counts[$type]++;
+      }
+    }
+
+    delete_option(self::OPT_LAST_IMPORT);
+
+    $include_settings = rest_sanitize_boolean($r->get_param('include_settings'));
+    if ($include_settings) {
+      foreach ([
+        Settings::OPT_APP_ID,
+        Settings::OPT_API_KEY,
+        Settings::OPT_ENV,
+        Settings::OPT_VG,
+        Settings::OPT_DEBUG,
+        Appearance::OPT_THEME_COLOUR,
+        Appearance::OPT_ADMIN_MODE,
+        Appearance::OPT_WIDGET_MODE,
+        Appearance::OPT_WIDGET_STYLES,
+        'dmn_booking_url_params',
+      ] as $option) {
+        delete_option($option);
+      }
+    }
+
+    // Cached DesignMyNight responses belong to the removed data (and possibly removed credentials).
+    if (function_exists('wp_cache_flush_group')) wp_cache_flush_group('dmn');
+
+    return new WP_REST_Response([
+      'ok' => true,
+      'venues_removed' => $counts['dmn_venue'],
+      'activities_removed' => $counts['dmn_activity'],
+      'settings_removed' => $include_settings,
+    ], 200);
   }
 
 

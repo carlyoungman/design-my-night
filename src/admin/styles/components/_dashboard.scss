@@ -176,3 +176,37 @@
     margin: 0;
   }
 }
+
+// Confirmation dialog (native <dialog>, opened with showModal so it is modal and traps focus). It
+// stays a child of .dmn-admin in the DOM, so it keeps the plugin's tokens in the top layer.
+.dmn-admin__dialog {
+  width: min(520px, calc(100vw - var(--universal-space-2)));
+  max-height: calc(100vh - var(--universal-space-2));
+  padding: var(--universal-space-2);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-divider);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-3);
+
+  &::backdrop {
+    background: rgb(0 0 0 / 40%);
+  }
+
+  h3 {
+    margin-top: 0;
+  }
+
+  > p {
+    margin-bottom: var(--universal-space);
+  }
+
+  .dmn-admin__help {
+    margin-top: var(--universal-space-half);
+  }
+}
+
+.dmn-admin__dialog-actions {
+  justify-content: flex-end;
+  margin-top: var(--universal-space-2);
+}
