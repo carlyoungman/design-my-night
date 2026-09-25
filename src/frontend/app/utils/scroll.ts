@@ -1,35 +1,53 @@
-type Offset = number | { mobile?: number; desktop?: number };
+import type { StepKey } from '@app/utils/steps';
 
-export function scrollToSection(
-  target: string,
-  opts?: { offset?: Offset; delay?: number; breakpointPx?: number },
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Radio groups (and native selects on some platforms) change their value as the arrow keys move
+// through the options. Moving focus then would pull the user out of the group mid-choice, so we
+// remember whether the most recent key press was an arrow key.
+const ARROW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
+let lastKey: { key: string; at: number } | null = null;
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      lastKey = { key: e.key, at: Date.now() };
+    },
+    true,
+  );
+  document.addEventListener('pointerdown', () => (lastKey = null), true);
+}
+const isArrowNavigation = () =>
+  !!lastKey && ARROW_KEYS.has(lastKey.key) && Date.now() - lastKey.at < 1000;
+
+/**
+ * Move to the next step after a choice: focus its heading (so keyboard and screen reader users
+ * land on it) and scroll it into view. Skipped while the user is arrowing through options.
+ * `from` scopes the lookup to the widget that made the change, as a page can hold several.
+ */
+export function goToStep(
+  step: StepKey,
+  opts: { from?: Element | null; delay?: number; offset?: { mobile: number; desktop: number } } = {},
 ) {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (isArrowNavigation()) return;
 
-  const {
-    offset = 0,
-    delay = 0,
-    breakpointPx = 774, // desktop at ≥774px
-  } = opts || {};
+  const { delay = 400, offset = { mobile: 190, desktop: 200 } } = opts;
+  const origin = opts.from ?? document.activeElement;
+  const root: ParentNode = origin?.closest('.dmn-widget') ?? document;
 
-  // If it looks like a selector, use it directly; otherwise assume data-step
-  const isSelector = /[#.\[\s>:+~]|^section\b/.test(target);
-  const selector = isSelector ? target : `section[data-step="${target}"]`;
+  window.setTimeout(() => {
+    const heading = root.querySelector<HTMLElement>(`section[data-step="${step}"] h2`);
+    if (!heading) return;
+    heading.focus({ preventScroll: true });
 
-  const el = document.querySelector<HTMLElement>(selector);
-  if (!el) return false;
-
-  const isDesktop = window.matchMedia(`(min-width: ${breakpointPx}px)`).matches;
-  const effectiveOffset =
-    typeof offset === 'number' ? offset : isDesktop ? (offset.desktop ?? 0) : (offset.mobile ?? 0);
-
-  const doScroll = () => {
-    const y = window.scrollY + el.getBoundingClientRect().top - effectiveOffset;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-  };
-
-  if (delay > 0) setTimeout(() => requestAnimationFrame(doScroll), delay);
-  else requestAnimationFrame(doScroll);
-
-  return true;
+    const isDesktop = window.matchMedia('(min-width: 774px)').matches;
+    const y =
+      window.scrollY +
+      heading.getBoundingClientRect().top -
+      (isDesktop ? offset.desktop : offset.mobile);
+    window.scrollTo({ top: Math.max(0, y), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  }, delay);
 }

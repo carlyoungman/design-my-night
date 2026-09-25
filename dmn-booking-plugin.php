@@ -211,7 +211,16 @@ add_action('admin_menu', function () {
     'manage_options',
     'dmn-booking-admin',
     function () {
-      echo '<div class="wrap" ><h1 style="margin-bottom:1.5rem;">DesignMyNight – Admin</h1><div id="dmn-admin-root"></div></div>';
+      // WordPress moves admin notices to just after .wp-header-end. It sits outside .dmn-admin so
+      // notices from core and other plugins don't pick up the plugin's scoped styles.
+      echo '<div class="wrap">'
+        . '<hr class="wp-header-end">'
+        . '<div class="dmn-admin">'
+        . '<h1 class="dmn-admin__title">' . esc_html__('DesignMyNight bookings', 'dmn-booking') . '</h1>'
+        . '<p class="dmn-admin__intro">' . esc_html__('Connect to DesignMyNight, import your venues and activities, then choose how each venue appears in the booking widget.', 'dmn-booking') . '</p>'
+        . '<div id="dmn-admin-root"><p class="dmn-admin__loading">' . esc_html__('Loading…', 'dmn-booking') . '</p></div>'
+        . '</div>'
+        . '</div>';
     },
     'dashicons-tickets', 58
   );

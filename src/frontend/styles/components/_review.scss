@@ -1,62 +1,85 @@
 @use '../settings/mixins' as mixin;
 
 .review {
-  &__list, &__price, &__row, &__addons {
-    display: grid;
-    gap: var(--universal-space);
+  display: grid;
+  gap: var(--universal-space-2);
 
-    strong {
-      color: var(--c-theme-primary);
-    }
+  &__section {
+    display: grid;
+    gap: var(--universal-space-half);
   }
 
   &__heading {
+    margin: 0;
     font-size: 18px;
   }
 
-
   &__list {
-    gap: var(--universal-space-2);
-    margin-bottom: var(--universal-space-3);
+    display: grid;
+    gap: var(--universal-space-half);
+    margin: 0;
 
-    > li, span {
+    > div {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--universal-space-half);
-      align-items: center;
+      gap: var(--universal-space-half) var(--universal-space);
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--c-lilac-grey);
     }
 
+    dt {
+      display: inline-flex;
+      gap: var(--universal-space-half);
+      align-items: center;
+
+      svg {
+        width: 18px;
+        height: 18px;
+        color: var(--c-purple);
+      }
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
   }
 
-  &__row {
+  &__total {
     display: flex;
     flex-wrap: wrap;
     gap: var(--universal-space);
-
-    &--subtotal {
-      margin-top: var(--universal-space);
-    }
-
-    &--total {
-      margin: 0;
-    }
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
 
     &--display {
-      margin: 0;
-      color: var(--c-theme-primary);
+      font-size: 16px;
     }
   }
 
-  &__addons {
-    margin: var(--universal-space) 0;
+  &__note {
+    margin: 0;
+    font-size: 14px;
   }
 
   &__button {
     @include mixin.button-settings;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: var(--universal-space-2);
   }
+
+  &__missing {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+.addons-note {
+  margin: 0;
 }

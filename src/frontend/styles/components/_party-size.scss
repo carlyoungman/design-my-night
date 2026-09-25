@@ -1,7 +1,6 @@
 @use '../settings/mixins' as mixin;
 @use '../settings/breakpoints' as breakpoint;
 
-
 .party-size {
   display: flex;
   flex-wrap: wrap;
@@ -10,30 +9,13 @@
   width: 100%;
 
   @include breakpoint.medium-screen-min {
-    flex-wrap: nowrap;
     gap: var(--universal-space-2);
   }
 
-  &__group-link {
-    color: var(--c-success);
-    text-decoration: none;
-    text-wrap: balance;
-
-    &:hover {
-      color: var(--c-theme-primary);
-      text-decoration: underline;
-    }
-  }
-
-
   &__group {
     display: flex;
-    gap: var(--universal-space);
+    gap: var(--universal-space-half);
     align-items: center;
-
-    @include breakpoint.medium-screen-min {
-      justify-content: flex-end;
-    }
   }
 
   &__decrement,
@@ -41,25 +23,50 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px;
-    height: 50px;
-    color: var(--c-white);
+    width: 48px;
+    height: 48px;
+    color: var(--c-purple);
     cursor: pointer;
     user-select: none;
-    background: var(--c-theme-primary);
-    border: 1px solid var(--c-white);
+    background: var(--c-white);
+    border: 1px solid var(--c-outline);
+    border-radius: 50%;
     transition: var(--transition);
 
-    &:hover {
-      color: var(--c-black);
-      background: var(--c-white);
+    &:hover:not(:disabled, [data-disabled]) {
+      background: color-mix(in srgb, var(--c-purple) 8%, var(--c-white));
+    }
+
+    &:focus-visible {
+      @include mixin.focus-ring;
+    }
+
+    &:disabled,
+    &[data-disabled] {
+      color: color-mix(in srgb, var(--c-near-black) 40%, transparent);
+      cursor: not-allowed;
+      border-color: color-mix(in srgb, var(--c-near-black) 20%, transparent);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
     }
   }
 
   &__input {
     @include mixin.input;
-    flex: 1;
+
     width: 5rem;
+    font-size: 18px;
+    font-weight: 600;
     text-align: center;
+  }
+
+  &__hint {
+    @include mixin.hint;
+
+    flex-basis: 100%;
+    margin: 0;
   }
 }

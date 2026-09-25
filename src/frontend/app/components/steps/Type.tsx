@@ -2,15 +2,20 @@ import React, { useEffect, useId, useMemo } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { Radio } from '@base-ui-components/react/radio';
 import { RadioGroup } from '@base-ui-components/react/radio-group';
+import { Check } from 'lucide-react';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
-import { scrollToSection } from '@app/utils/scroll';
+import { StateMessage } from '@app/components/StateMessage';
+import { goToStep } from '@app/utils/scroll';
 
 type Props = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   types: any[];
   loading?: boolean;
   error?: string | null;
+  onRetry?: () => void;
   enabled: boolean;
+  labelledBy: string;
 
   // single
   defaultTypeId?: string | null;
@@ -22,14 +27,16 @@ export function Type({
   types = [],
   loading = false,
   error = null,
+  onRetry,
   enabled,
+  labelledBy,
   defaultTypeId = '',
   defaultTypeIds = null,
 }: Props) {
   const dispatch = useWidgetDispatch();
   const state = useWidgetState();
   const { allowDisabled } = useWidgetConfig();
-  const captionId = useId();
+  const uid = useId();
 
   const allowedIds = useMemo(() => {
     const list: string[] = [];
@@ -114,10 +121,6 @@ export function Type({
     }
   }, [enabled, loading, allowedIds.length, types, state.bookingType, dispatch, allowDisabled]);
 
-  const showList = !loading && !error && filteredTypes.length > 0;
-  const showEmpty = !loading && !error && filteredTypes.length === 0;
-  const showError = !loading && !!error;
-
   const selectedForExtraText = useMemo(() => {
     if (!shortcodeHasType) return null;
 
@@ -130,113 +133,114 @@ export function Type({
     return null;
   }, [shortcodeHasType, filteredTypes, state.bookingType]);
 
+  if (!enabled) {
+    return <StepPrerequisite requires={['venue', 'partySize', 'date']} />;
+  }
+
+  if (loading) return <LoadingAnimation text="Loading experiences…" />;
+
+  if (error) {
+    return (
+      <StateMessage kind="error" onAction={onRetry}>
+        We couldn’t load experiences for this date.
+      </StateMessage>
+    );
+  }
+
+  if (filteredTypes.length === 0) {
+    return (
+      <StateMessage kind="empty">
+        No experiences are available for this date and group size. Try another date.
+      </StateMessage>
+    );
+  }
+
   return (
-    <section className="type">
-      {!enabled ? (
-        <StepPrerequisite requires={['venue', 'partySize', 'date']} />
-      ) : (
-        <>
-          {loading && <LoadingAnimation type="loading" text="Loading experiences…" />}
+    <div className="type">
+      <RadioGroup
+        aria-labelledby={labelledBy}
+        value={state.bookingType ?? ''}
+        onValueChange={(value) => {
+          const next = String(value);
+          if (next !== (state.bookingType ?? '')) {
+            dispatch({ type: 'SET_TYPE', value: next });
+            const selected = filteredTypes.find((t) => String(t.id) === next);
 
-          {showError && (
-            <p className="type__error" role="alert">
-              {error}
-            </p>
-          )}
+            dispatch({ type: 'SET_DURATION', value: selected?.duration ?? null });
+            goToStep('time');
+          }
+        }}
+        className="type__list"
+      >
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {filteredTypes.map((t: any) => {
+          const isVisible = t.visible !== false;
 
-          {showEmpty && <p className="type__empty">No experiences available for this selection.</p>}
+          // Disable only when DMN says invalid/unavailable, OR dashboard-disabled AND allowDisabled is NOT enabled.
+          const isDisabled = t.valid === false || (!allowDisabled && !isVisible);
+          const isSelected = state.bookingType === t.id;
+          const base = `${uid}-${t.id}`;
 
-          {showList && (
-            <div className="step_field">
-              <RadioGroup
-                aria-labelledby={captionId}
-                value={state.bookingType ?? ''}
-                onValueChange={(value) => {
-                  const next = String(value);
-                  if (next !== (state.bookingType ?? '')) {
-                    dispatch({ type: 'SET_TYPE', value: next });
-                    const selected = filteredTypes.find((t) => String(t.id) === next);
-
-                    dispatch({ type: 'SET_DURATION', value: selected?.duration ?? null });
-                    scrollToSection('section.time', {
-                      offset: { mobile: 190, desktop: 200 },
-                      delay: 400,
-                    });
-                  }
-                }}
-                className="radio-group"
-              >
-                {filteredTypes.map((t: any) => {
-                  const isVisible = t.visible !== false;
-
-                  // Disable only when DMN says invalid/unavailable, OR dashboard-disabled AND allowDisabled is NOT enabled.
-                  const isDisabled = loading || t.valid === false || (!allowDisabled && !isVisible);
-
-                  const isSelected = state.bookingType === t.id;
-
-                  return (
-                    <label
-                      key={t.id}
-                      className={`radio${isDisabled ? ' radio--disabled' : ''}`}
-                      data-disabled={isDisabled ? 'true' : 'false'}
-                    >
-                      <Radio.Root
-                        id={t.id}
-                        value={t.id}
-                        data-duration={t.duration}
-                        className="radio__radio"
-                        disabled={isDisabled}
-                        aria-disabled={isDisabled}
-                      >
-                        <div className={`type-card${isDisabled ? ' type-card--disabled' : ''}`}>
-                          {t.image_url && (
-                            <div className="type-card__image-wrapper">
-                              <img src={t.image_url} alt={t.name} className="type-card__image" />
-                            </div>
-                          )}
-                          <article className="type-card__article">
-                            {t.name && (
-                              <h6
-                                className="type-card__name"
-                                dangerouslySetInnerHTML={{ __html: t.name }}
-                              />
-                            )}
-                            {t.description && (
-                              <p
-                                className="type-card__description"
-                                dangerouslySetInnerHTML={{ __html: t.description }}
-                              />
-                            )}
-                            <div className="type-card__article-footer">
-                              <h6 className="type-card__price">{t.priceText}</h6>
-                              <span
-                                className={`type-card__button${
-                                  isDisabled ? ' type-card__button--disabled' : ''
-                                }${isSelected ? ' type-card__button--selected' : ''}`}
-                                aria-hidden={isDisabled}
-                              >
-                                {isDisabled ? 'Unavailable' : isSelected ? 'Selected' : 'Select'}
-                              </span>
-                            </div>
-                          </article>
-                        </div>
-                      </Radio.Root>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-
-              {/* Only show when shortcode type_id is provided (single or multiple) */}
-              {shortcodeHasType && selectedForExtraText?.type_text && (
-                <div
-                  className="type__extra-text"
-                  dangerouslySetInnerHTML={{ __html: selectedForExtraText.type_text }}
-                />
+          return (
+            <label key={t.id} className={`type-card${isDisabled ? ' type-card--disabled' : ''}`}>
+              {t.image_url && (
+                <div className="type-card__image-wrapper">
+                  <img src={t.image_url} alt="" className="type-card__image" />
+                </div>
               )}
-            </div>
-          )}
-        </>
+              <div className="type-card__article">
+                {t.name && (
+                  <h3
+                    id={`${base}-name`}
+                    className="type-card__name"
+                    dangerouslySetInnerHTML={{ __html: t.name }}
+                  />
+                )}
+                {t.description && (
+                  <p
+                    id={`${base}-desc`}
+                    className="type-card__description"
+                    dangerouslySetInnerHTML={{ __html: t.description }}
+                  />
+                )}
+                {isDisabled && t.message && <p id={`${base}-msg`}>{t.message}</p>}
+                <div className="type-card__footer">
+                  <p id={`${base}-price`} className="type-card__price">
+                    {t.priceText}
+                  </p>
+                  <Radio.Root
+                    value={t.id}
+                    data-duration={t.duration}
+                    className="type-card__radio"
+                    disabled={isDisabled}
+                    aria-labelledby={`${base}-name`}
+                    aria-describedby={[
+                      t.description ? `${base}-desc` : '',
+                      t.priceText ? `${base}-price` : '',
+                      isDisabled && t.message ? `${base}-msg` : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {isSelected && <Check aria-hidden="true" />}
+                    <span aria-hidden="true">
+                      {isDisabled ? 'Unavailable' : isSelected ? 'Selected' : 'Select'}
+                    </span>
+                  </Radio.Root>
+                </div>
+              </div>
+            </label>
+          );
+        })}
+      </RadioGroup>
+
+      {/* Only show when shortcode type_id is provided (single or multiple) */}
+      {shortcodeHasType && selectedForExtraText?.type_text && (
+        <div
+          className="type__extra-text"
+          dangerouslySetInnerHTML={{ __html: selectedForExtraText.type_text }}
+        />
       )}
-    </section>
+    </div>
   );
 }

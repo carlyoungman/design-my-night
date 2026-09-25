@@ -9,64 +9,82 @@
   color: inherit;
   text-align: center;
   appearance: none;
-  appearance: none;
-  appearance: none;
   cursor: pointer;
   background: none;
   border: none;
-  outline: none !important;
 }
 
+@mixin focus-ring {
+  outline: 2px solid var(--c-purple);
+  outline-offset: 2px;
+}
+
+// Filled primary button (Material 3 style).
 @mixin button-settings {
   @include button-reset;
 
+  display: inline-flex;
+  gap: var(--universal-space-half);
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: var(--universal-space) var(--universal-space-2);
+  min-height: 48px;
+  padding: 12px var(--universal-space-2);
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--c-white);
-  text-transform: capitalize;
-  background: var(--c-theme-primary);
-  box-shadow: var(--box-shadow-1);
+  background: var(--c-purple);
+  border: 1px solid var(--c-purple);
+  border-radius: 999px;
+  transition: var(--transition);
 
-  &:hover {
-    color: var(--c-black);
-    background: var(--c-white);
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--c-purple) 88%, var(--c-near-black));
   }
 
-  &[disabled] {
-    color: var(--c-black);
-    pointer-events: none;
-    background: var(--c-white);
-    opacity: 0.3;
+  &:focus-visible {
+    @include focus-ring;
+  }
 
-    &:hover {
-      cursor: not-allowed;
-      background: var(--c-green);
-    }
+  &:disabled {
+    color: color-mix(in srgb, var(--c-near-black) 50%, transparent);
+    cursor: not-allowed;
+    background: color-mix(in srgb, var(--c-near-black) 8%, transparent);
+    border-color: transparent;
   }
 }
 
-@mixin aspect-ratio-1-1 {
-  @include aspect-ratio-settings;
+// Outlined secondary button.
+@mixin button-secondary {
+  @include button-reset;
 
-  padding-top: 100%;
-}
+  display: inline-flex;
+  gap: var(--universal-space-half);
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px var(--universal-space-2);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--c-purple);
+  background: var(--c-white);
+  border: 1px solid var(--c-outline);
+  border-radius: 999px;
+  transition: var(--transition);
 
-@mixin aspect-ratio-16-9 {
-  @include aspect-ratio-settings;
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--c-purple) 8%, var(--c-white));
+  }
 
-  padding-top: 56.25%;
-}
+  &:focus-visible {
+    @include focus-ring;
+  }
 
-@mixin aspect-ratio-4-3 {
-  @include aspect-ratio-settings;
-
-  padding-top: 75%;
-}
-
-@mixin aspect-ratio-3-2 {
-  @include aspect-ratio-settings;
-
-  padding-top: 66.66%;
+  &:disabled {
+    color: color-mix(in srgb, var(--c-near-black) 50%, transparent);
+    cursor: not-allowed;
+    border-color: color-mix(in srgb, var(--c-near-black) 20%, transparent);
+  }
 }
 
 @mixin aspect-ratio-settings {
@@ -82,111 +100,106 @@
   }
 }
 
+@mixin aspect-ratio-16-9 {
+  @include aspect-ratio-settings;
+
+  padding-top: 56.25%;
+}
+
 @mixin field-wrapper {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--universal-space-half);
-  align-items: center;
   width: 100%;
 }
 
-@mixin select {
+// Text input, select and textarea. Borders use --c-outline to meet 3:1 against the surface.
+@mixin control {
   width: 100%;
-  height: var(--input-height);
+  min-height: var(--input-height);
   padding: 0 var(--universal-space);
-  color: var(--c-white);
-  appearance: none;
-  appearance: none;
-  appearance: none;
-  background: none;
-  border: 1px solid var(--c-white);
+  font: inherit;
+  color: var(--c-near-black);
+  background: var(--c-white);
+  border: 1px solid var(--c-outline);
+  border-radius: 4px;
+  transition: var(--transition);
 
-  option {
-    color: var(--c-white);
-    background: var(--c-black);
+  &:hover:not(:disabled) {
+    border-color: var(--c-near-black);
   }
 
-  &:hover, &:focus-visible, &:focus, &:active {
-    cursor: pointer;
-    background: rgb(255 255 255 / 4%);
-    border: 1px solid var(--c-light-blue) !important;
+  &:focus,
+  &:focus-visible {
+    border-color: var(--c-purple);
+    outline: 2px solid var(--c-purple);
+    outline-offset: 0;
   }
+
+  &[aria-invalid='true'] {
+    border-color: var(--c-red);
+    outline-color: var(--c-red);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: var(--c-off-white);
+  }
+}
+
+@mixin input {
+  @include control;
+}
+
+@mixin select {
+  @include control;
+
+  padding-right: var(--universal-space-3);
+  appearance: none;
+  cursor: pointer;
 }
 
 @mixin select-down-arrow {
   &::after {
     position: absolute;
     right: var(--universal-space);
-    width: 24px;
-    height: 24px;
+    bottom: calc((var(--input-height) - 10px) / 2);
+    width: 10px;
+    height: 10px;
     pointer-events: none;
     content: '';
-    background: no-repeat center / contain url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1jaGV2cm9uLWRvd24taWNvbiBsdWNpZGUtY2hldnJvbi1kb3duIj48cGF0aCBkPSJtNiA5IDYgNiA2LTYiLz48L3N2Zz4=');
+    border-right: 2px solid var(--c-near-black);
+    border-bottom: 2px solid var(--c-near-black);
+    transform: translateY(-3px) rotate(45deg);
   }
-}
-
-@mixin input() {
-  width: 100%;
-  height: var(--input-height);
-  padding: var(--universal-space);
-  color: var(--c-white);
-  background: none;
-  border: 1px solid var(--c-white);
-  transition: var(--transition);
-
-  &:hover, &:focus-visible, &:focus, &:active {
-    cursor: pointer;
-    background: rgb(255 255 255 / 4%);
-    border: 1px solid var(--c-light-blue) !important;
-  }
-
-
-  &[aria-invalid="true"] {
-    background: rgb(255 0 0 / 4%);
-    border-color: var(--c-error);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: .6;
-  }
-}
-
-@mixin group {
-  display: grid;
-  gap: var(--universal-space);
 }
 
 @mixin textarea {
-  width: 100%;
-  min-height: 150px;
-  padding: var(--universal-space);
-  color: var(--c-white);
-  resize: vertical;
-  background: none;
-  border: 1px solid var(--c-white);
+  @include control;
 
-  &:hover, &:focus-visible, &:focus {
-    cursor: pointer;
-    background: rgb(255 255 255 / 4%);
-    border: 1px solid var(--c-light-blue);
-  }
+  min-height: 140px;
+  padding: 12px var(--universal-space);
+  resize: vertical;
 }
 
 @mixin label {
   display: block;
-  margin: 0 0 var(--universal-space) 0;
+  font-weight: 600;
 }
 
 @mixin hint {
   font-size: 14px;
-  text-transform: capitalize;
 }
 
-@mixin label-hint {
-  font-size: 14px;
-  text-transform: capitalize;
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
-
-

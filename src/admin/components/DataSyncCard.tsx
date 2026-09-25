@@ -1,8 +1,11 @@
 // src/admin/components/DataSyncCard.tsx
 import React, { useState } from 'react';
 import { adminSyncAll } from '@admin/api';
+import { useAdmin } from '@admin/AdminContext';
+import { StatusMessage, errorMessage } from '@admin/components/ui';
 
 export default function DataSyncCard() {
+  const { notifyDataChanged } = useAdmin();
   const [busy, setBusy] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -31,24 +34,38 @@ export default function DataSyncCard() {
 
         setOk(`Imported ${parts.join(', ')}.`);
       }
-    } catch (e: any) {
-      setErr(e.message || 'Sync failed.');
+      notifyDataChanged();
+    } catch (e) {
+      setErr(
+        errorMessage(e, 'Import failed. Check your API credentials with Test connection, then try again.'),
+      );
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <section className="dmn-admin__card">
-      <h2>Data Sync</h2>
-      <p>Import data from DesignMyNight.</p>
+    <section className="dmn-admin__card" aria-labelledby="dmn-admin-sync-title">
+      <h2 id="dmn-admin-sync-title">Data sync</h2>
+      <p>
+        Import venues and activities from DesignMyNight. Run this again after you add or change
+        venues or activities in DesignMyNight.
+      </p>
       <div className="actions">
-        <button className="button button--action" onClick={run} disabled={busy}>
+        <button type="button" className="button" onClick={run} disabled={busy} aria-busy={busy}>
           {busy ? 'Importing…' : 'Import data'}
         </button>
       </div>
-      {ok && <p className="ok">{ok}</p>}
-      {err && <p className="err">{err}</p>}
+      {ok && (
+        <StatusMessage tone="success" block>
+          {ok}
+        </StatusMessage>
+      )}
+      {err && (
+        <StatusMessage tone="error" block>
+          {err}
+        </StatusMessage>
+      )}
     </section>
   );
 }

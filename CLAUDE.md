@@ -46,14 +46,14 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 4. Typography, spacing, colour, and elevation
 
-Use the shared design tokens instead of ad-hoc values. The values below are this plugin's admin tokens, defined in `src/admin/styles/styles.scss`. They are the source of truth, except for colour: the colour palette below is the target, and the code still needs to move to it. Update this section if you change the tokens.
+Use the shared design tokens instead of ad-hoc values. The values below are this plugin's admin tokens, defined on `.dmn-admin` in `src/admin/styles/styles.scss`. Update this section if you change the tokens.
 
 | Token or element | Value |
 | --- | --- |
-| Font | Michroma (`--font-family`), with a serif fallback in the typography mixins |
+| Font | Michroma (`--font-family`), falling back to the system sans-serif stack |
 | Body text | 18 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`) |
 | Supporting / help text | 13 px (`.dmn-admin__help`) |
-| Page heading | 24–32 px |
+| Page heading | 28 px (`.dmn-admin__title`); card titles 22 px, section titles 18 px |
 | Spacing scale | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px |
 | Card corner radius | 15 px (`--border-radius`) |
 | Borders | 1 px `--c-lilac-grey` |
@@ -72,6 +72,7 @@ This palette applies to both the admin app and the booking widget. Variables are
 | `--c-white` | `#FFFFFF` | Cards, panels, and primary content surfaces |
 | `--c-off-white` | `#F8F7FA` | Main application background |
 | `--c-lilac-grey` | `#E7E0EC` | Borders, dividers, and secondary surfaces |
+| `--c-outline` | `#79747E` | Input, checkbox, and other control borders (about 4.6:1) |
 | `--c-near-black` | `#1D1B20` | Main headings and body text |
 | `--c-green` | `#379f70` | Success and saved states |
 | `--c-red` | `#bb3d3d` | Errors and unsaved changes |
@@ -79,22 +80,8 @@ This palette applies to both the admin app and the booking widget. Variables are
 Contrast limits (checked against `--c-white` and `--c-off-white`):
 
 - `--c-green` is only about 3.1–3.3:1, so it fails the 4.5:1 minimum for normal text. Use it for icons, fills, and borders, or for text of at least 24 px (19 px bold). Always pair it with a readable text label in `--c-near-black`.
-- `--c-lilac-grey` is about 1.3:1, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use a darker outline for those.
+- `--c-lilac-grey` is about 1.3:1, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use `--c-outline` for those.
 - `--c-purple`, `--c-red`, and `--c-near-black` pass 4.5:1 on both surfaces.
-
-#### Migrating from the old palette
-
-The code still uses the old colours. Move them to the palette above when working nearby:
-
-| Old | Replace with |
-| --- | --- |
-| `--c-blue` `#3a5683` | `--c-purple` |
-| `--c-off-white` `#d9d9d9` (borders) | `--c-lilac-grey`. Note that `--c-off-white` now means the page background. |
-| `--c-off-black` `#25251e`, `--c-black` `#000` (text) | `--c-near-black` |
-| `#ececec` page background | `--c-off-white` |
-| Widget `--c-theme-primary` `#f0f`, `--c-dark-blue`, `--c-light-blue` | `--c-purple` |
-| Widget black surfaces and white text | `--c-white` / `--c-off-white` surfaces with `--c-near-black` text |
-| Widget `--c-error` `#F00`, `--c-success` `#0F0` | `--c-red`, `--c-green` |
 
 - Distinguish page, section, label, metric, and supporting-text hierarchy through typography before adding decorative elements.
 - Use the named palette variables for every colour. Do not add ad-hoc hex values; if a new colour is needed, add it to the palette first. Use each colour only for the purpose listed in the palette.
@@ -166,27 +153,18 @@ Every asynchronous view should account for:
 - Ensure Gutenberg integrations respect editor behaviour and do not override unrelated blocks or controls.
 - Match the product's branding without breaking native admin expectations or accessibility.
 
-### Known violations to fix
-
-These exist in the current code and break the scoping rule above. Do not copy them; fix them when working nearby.
-
-- `src/admin/styles/styles.scss` defines the design tokens on `:root` instead of `.dmn-admin`.
-- `src/admin/styles/styles.scss` overrides `#wpcontent` and `#wpfooter` (`margin-left: 160px` and a background colour). The fixed margin also breaks the folded and mobile WordPress sidebars.
-- Admin and widget colours don't yet match the target palette (see "Migrating from the old palette" in section 4).
-- `dmn-booking-plugin.php` renders the admin page heading with an inline `style` attribute instead of a scoped class.
-
 ## 11. Front-end booking widget
 
 The booking widget (`src/frontend`) is embedded in pages of someone else's theme. It is not a wp-admin dashboard, but sections 4–9 apply to it too, with these differences.
 
 - **Isolation first.** Everything, including the CSS reset and design tokens, is scoped under `.dmn-widget-root` (see `src/frontend/styles/index.scss`). Never add styles or custom properties on `:root`, `body`, or bare element selectors: the widget must not change the host theme, and the host theme should affect the widget as little as possible.
-- **Own tokens.** The widget has its own token set, separate from the admin's. The base font size is 16 px; spacing, radius, and transition values match the admin (15 px base, 15 px radius). It uses the same colour palette as the admin (section 4), defined again inside `.dmn-widget-root`. Only use tokens that are defined inside `.dmn-widget-root`; admin tokens (such as `--box-shadow-1`) are not loaded on the front end.
-- **Visual style.** The widget uses the same light palette as the admin: light surfaces, `--c-near-black` text, and `--c-purple` for primary actions and selection. It currently uses dark surfaces with a `#f0f` accent; see the migration table in section 4. Keep colours in tokens so a site can re-theme it if needed.
-- **Step flow.** The booking flow is a linear sequence of steps (Party → Venue → Date & Time → Type → Packages → Details → Review). Each step must:
+- **Own tokens.** The widget has its own token set, separate from the admin's. The base font size is 16 px and the font is inherited from the host theme; spacing, radius, and transition values match the admin (15 px base, 15 px radius). It uses the same colour palette as the admin (section 4), defined again inside `.dmn-widget-root`. Only use tokens that are defined inside `.dmn-widget-root`; admin tokens (such as `--box-shadow-1`) are not loaded on the front end.
+- **Visual style.** The widget uses the same light palette as the admin: light surfaces, `--c-near-black` text, and `--c-purple` for primary actions and selection. Keep colours in tokens so a site can re-theme it by overriding them on `.dmn-widget-root`. The MUI date calendar reads the same variables through its theme (`calendarTheme` in `src/frontend/app/utils/helpers.tsx`).
+- **Step flow.** The booking flow is a linear sequence of steps, all shown on one page and defined in `src/frontend/app/utils/steps.ts`: Venue → Group size → Date → Experience → Time → Details, with the Review summary alongside. Add-ons are chosen on DesignMyNight's checkout. Each step must:
   - show where the user is in the flow (progress bar and step labels),
   - allow going back without losing entered data,
   - validate only the current step, inline, before moving on,
-  - move focus to the new step's heading when the step changes, and announce errors to assistive technologies.
+  - move focus to the next step's heading when a choice completes a step (`goToStep` in `src/frontend/app/utils/scroll.ts`), except while the customer is changing options with the arrow keys, which would pull them out of a radio group. Announce step changes and errors to assistive technologies, and when the customer continues with invalid details, move focus to the first invalid field.
 - **Live data.** Venues, booking types, and availability come from the DMN API. Every step that depends on them needs loading, empty (for example, “no availability on this date”), and error states with a way to retry or pick something else.
 - **Submission.** Prevent double submission, keep the user's details if a booking or enquiry fails, and show a clear confirmation or next step (including the external-booking hand-off) on success.
 - **Performance.** Enqueue widget assets only on pages that render the `dmn_booking` shortcode, as the plugin does now.

@@ -1,49 +1,58 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Radio } from '@base-ui-components/react/radio';
+import { RadioGroup } from '@base-ui-components/react/radio-group';
 import { useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
 import { checkAvailability } from '@api/public';
-import { FormControl, FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import LoadingAnimation from '@app/components/LoadingAnimation';
 import { StepPrerequisite } from '@app/components/StepPrerequisite';
-import { scrollToSection } from '@app/utils/scroll';
+import { StateMessage } from '@app/components/StateMessage';
+import { goToStep } from '@app/utils/scroll';
 
 type SuggestedTime = { iso: string; label: string };
 
-export function Time() {
+// Convert whatever DMN returns into a consistent { iso, label } pair
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseTimes(res: any): SuggestedTime[] {
+  const v =
+    res?.payload?.validation?.time ??
+    res?.data?.payload?.validation?.time ??
+    res?.data?.validation?.time ??
+    res?.validation?.time ??
+    null;
+
+  const sv = Array.isArray(v?.suggestedValues) ? v.suggestedValues : [];
+  const out: SuggestedTime[] = [];
+
+  for (const item of sv) {
+    if (item?.valid !== true) continue;
+    const raw = item?.time ?? item?.value ?? item;
+    if (!raw) continue;
+
+    const iso = typeof raw === 'string' ? raw : String(raw);
+    const m = /\d{2}:\d{2}/.exec(iso);
+    const label = m ? m[0] : iso;
+
+    out.push({ iso, label });
+  }
+  return out;
+}
+
+export function Time({ labelledBy }: { labelledBy: string }) {
   const state = useWidgetState();
   const dispatch = useWidgetDispatch();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [times, setTimes] = useState<SuggestedTime[]>([]);
+  const [attempt, setAttempt] = useState(0);
 
-  // Convert whatever DMN returns into a consistent { iso, label } pair
-  const parseTimes = useCallback((res: any): SuggestedTime[] => {
-    const v =
-      res?.payload?.validation?.time ??
-      res?.data?.payload?.validation?.time ??
-      res?.data?.validation?.time ??
-      res?.validation?.time ??
-      null;
-
-    const sv = Array.isArray(v?.suggestedValues) ? v.suggestedValues : [];
-    const out: SuggestedTime[] = [];
-
-    for (const item of sv) {
-      if (item?.valid !== true) continue;
-      const raw = item?.time ?? item?.value ?? item;
-      if (!raw) continue;
-
-      const iso = typeof raw === 'string' ? raw : String(raw);
-      const m = /\d{2}:\d{2}/.exec(iso);
-      const label = m ? m[0] : iso;
-
-      out.push({ iso, label });
-    }
-    return out;
-  }, []);
+  const ready = !!state.venueId && state.partySize != null && !!state.date && !!state.bookingType;
 
   useEffect(() => {
-    if (!state.venueId || state.partySize == null || !state.date || !state.bookingType) {
+    if (!ready) {
       setTimes([]);
+      setLoaded(false);
       return;
     }
 
@@ -52,71 +61,76 @@ export function Time() {
     (async () => {
       try {
         setLoading(true);
+        setError(false);
         const res = await checkAvailability(
           {
             venue_id: state.venueId!,
-            ...(state.partySize != null ? { num_people: state.partySize } : {}),
-            ...(state.date ? { date: state.date } : {}),
-            ...(state.bookingType
-              ? { activity_id: state.bookingType, type: state.bookingType }
-              : {}),
+            num_people: state.partySize!,
+            date: state.date!,
+            ...{ activity_id: state.bookingType!, type: state.bookingType! },
           },
           'time',
         );
 
         if (cancelled) return;
-        const parsed = parseTimes(res);
-        setTimes(parsed);
+        setTimes(parseTimes(res));
       } catch {
         if (!cancelled) {
           setTimes([]);
-          // dispatch({
-          //   type: 'ERROR',
-          //   message: 'Unable to load available times. Please adjust date or party size.',
-          // });
+          setError(true);
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setLoaded(true);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [state.venueId, state.partySize, state.date, state.bookingType, dispatch, parseTimes]);
+  }, [ready, state.venueId, state.partySize, state.date, state.bookingType, attempt]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'SET_TIME', value: e.target.value });
-    scrollToSection('section.details', { offset: { mobile: 190, desktop: 200 }, delay: 600 });
-  };
+  const handleChange = useCallback(
+    (value: unknown) => {
+      dispatch({ type: 'SET_TIME', value: String(value) });
+      goToStep('details');
+    },
+    [dispatch],
+  );
+
+  if (!ready) {
+    return <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience']} />;
+  }
 
   return (
-    <section className="time">
-      {loading && (
-        <LoadingAnimation type="loading" text="Checking availability…"></LoadingAnimation>
+    <div className="time">
+      {loading && <LoadingAnimation text="Checking available times…" />}
+      {!loading && error && (
+        <StateMessage kind="error" onAction={() => setAttempt((n) => n + 1)}>
+          We couldn’t load available times.
+        </StateMessage>
       )}
-      <StepPrerequisite requires={['venue', 'partySize', 'date', 'experience']} />
-      {!loading && times.length > 0 && (
-        <FormControl component="fieldset" variant="standard" className="time">
-          <RadioGroup
-            aria-label="Available times"
-            name="available-times"
-            value={state.time || ''}
-            onChange={handleChange}
-            className="time__radio-group"
-          >
-            {times.map((t) => (
-              <FormControlLabel
-                key={t.iso}
-                value={t.iso}
-                control={<Radio />}
-                label={t.label}
-                className="time__radio-label"
-              />
-            ))}
-          </RadioGroup>
-        </FormControl>
+      {!loading && !error && loaded && times.length === 0 && (
+        <StateMessage kind="empty">
+          No times are left for this experience on this date. Choose another date or experience.
+        </StateMessage>
       )}
-    </section>
+      {!loading && !error && times.length > 0 && (
+        <RadioGroup
+          aria-labelledby={labelledBy}
+          value={state.time || ''}
+          onValueChange={handleChange}
+          className="time__options"
+        >
+          {times.map((t) => (
+            <Radio.Root key={t.iso} value={t.iso} className="time__option">
+              {t.label}
+            </Radio.Root>
+          ))}
+        </RadioGroup>
+      )}
+    </div>
   );
 }

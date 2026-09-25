@@ -1,45 +1,87 @@
+@use '../settings/breakpoints' as breakpoint;
+
+// Record editor: one row per record, fields on the left, image and toggles on the right.
 .table {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--universal-space-2);
 
   &__row {
     display: grid;
-    grid-template-columns: 1fr 30%;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--universal-space-2);
     align-items: start;
     width: 100%;
     padding-bottom: var(--universal-space-2);
-    border-bottom: 1px solid var(--c-off-white);
+    border-bottom: 1px solid var(--c-lilac-grey);
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    @include breakpoint.medium-screen-min {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 30%);
+    }
   }
 
-  &__label {
-    margin-bottom: var(--universal-space-half);
+  &__row-title {
+    grid-column: 1 / -1;
+    margin: 0;
   }
 
-  &__left {
+  &__left,
+  &__right {
     display: grid;
     gap: var(--universal-space);
+    min-width: 0;
   }
 
   &__cell {
     display: flex;
     flex-direction: column;
+    gap: var(--universal-space-half);
   }
 
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--universal-space-half) var(--universal-space-2);
+    margin: 0;
+    font-size: 14px;
+
+    dt {
+      display: inline;
+      font-weight: 600;
+    }
+
+    dd {
+      display: inline;
+      margin: 0 0 0 6px;
+    }
+  }
 
   &__image-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--universal-space-half);
+
     &__image,
     &__image-preview {
       display: block;
       width: 100%;
       aspect-ratio: 16 / 9;
-      margin-bottom: var(--universal-space-half);
       object-fit: cover;
+      border-radius: var(--universal-space-half);
     }
 
     &__image-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
       background-color: var(--c-off-white);
+      border: 1px dashed var(--c-outline);
     }
 
     &__button-wrap {
@@ -49,36 +91,7 @@
     }
 
     &__btn {
-      flex: 1;
-    }
-  }
-
-  &__options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--universal-space);
-    align-items: center;
-  }
-
-  &__toggle {
-    margin-top: var(--universal-space);
-  }
-}
-
-.MuiToggleButtonGroup-root {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  gap: var(--universal-space-half);
-
-  button {
-    flex: 1;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    text-transform: capitalize;
-
-    &.Mui-selected {
-      color: var(--c-white) !important;
-      background-color: var(--c-green) !important;
+      flex: 1 1 auto;
     }
   }
 }

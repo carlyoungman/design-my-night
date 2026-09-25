@@ -171,11 +171,11 @@ export default function PreorderMenusCard({ onDirty }: Props) {
         <h2 className="dmn-admin__header__headline">Pre-order Menus</h2>
         <span className="dmn-admin__header__inner">
           {dirtyIds.size > 0 && (
-            <p className="dmn-admin__header__dirty">Unsaved changes ({dirtyIds.size})</p>
+            <p className="dmn-admin__status">Unsaved changes ({dirtyIds.size})</p>
           )}
-          {ok && <p className="dmn-admin__header__ok">{ok}</p>}
+          {ok && <p className="dmn-admin__status" role="status">{ok}</p>}
           <button
-            className="button button--action"
+            className="button"
             onClick={saveAll}
             disabled={saving || dirtyIds.size === 0}
           >
@@ -186,7 +186,7 @@ export default function PreorderMenusCard({ onDirty }: Props) {
 
       {!selectedVenueId && <p className="dmn-admin__help">Pick a venue above to manage Add-ons.</p>}
       {loading && <p>Loading menu items…</p>}
-      {err && <p className="err">{err}</p>}
+      {err && <p className="dmn-admin__status dmn-admin__status--error" role="alert">{err}</p>}
 
       {!loading && groups.length === 0 && selectedVenueId && (
         <p>No activities have a pre-order menu selected for this venue.</p>
@@ -249,7 +249,7 @@ export default function PreorderMenusCard({ onDirty }: Props) {
                         </button>
                         {i.image_id ? (
                           <button
-                            className="table__image-picker__btn button button--sub"
+                            className="table__image-picker__btn button button--secondary"
                             type="button"
                             onClick={() => clearImage(g.menu_post_id, i.id)}
                           >

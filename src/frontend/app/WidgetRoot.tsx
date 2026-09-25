@@ -1,7 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { WidgetProvider, useWidgetConfig, useWidgetState } from '@app/WidgetProvider';
 import type { RootProps } from '@app/WidgetProvider';
-import { Building, Calendar, PenLine, Rocket, Clock4, User } from 'lucide-react';
 import { Venue } from '@app/components/steps/Venue';
 import { PartySize } from '@app/components/steps/PartySize';
 import { Date } from '@app/components/steps/Date';
@@ -13,12 +12,13 @@ import { Review } from '@app/components/steps/Review';
 import ProgressBar from '@app/components/ProgressBar';
 import { Faqs } from '@app/components/steps/Faqs';
 import { useBookingTypes } from '@app/hooks/useBookingTypes';
-import { hhmmFromState, parseAllowedDays } from '@app/utils/helpers';
+import { parseAllowedDays } from '@app/utils/helpers';
 import AddonsNew from '@app/components/steps/AddonsNew';
+import { STEPS, stepHeadingId, type StepKey } from '@app/utils/steps';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   return (
-    <div className="dmn-widget" role="form" aria-labelledby="dmn-title">
+    <div className="dmn-widget" role="form" aria-label="Make a booking">
       <WidgetProvider {...props}>
         <WidgetInner />
       </WidgetProvider>
@@ -26,126 +26,154 @@ export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   );
 }
 
+const STEP_INDEX = Object.fromEntries(STEPS.map((s, i) => [s.key, i])) as Record<StepKey, number>;
+
+function Step({
+  widgetId,
+  step,
+  children,
+}: {
+  widgetId: string;
+  step: StepKey;
+  children: React.ReactNode;
+}) {
+  const def = STEPS[STEP_INDEX[step]];
+  const headingId = stepHeadingId(widgetId, step);
+  return (
+    <section className="dmn-widget__section" data-step={step} aria-labelledby={headingId}>
+      <h2 id={headingId} className="dmn-widget__header" tabIndex={-1}>
+        <span className="dmn-widget__step-number" aria-hidden="true">
+          {STEP_INDEX[step] + 1}
+        </span>
+        <span>
+          <span className="screen-reader-text">
+            Step {STEP_INDEX[step] + 1} of {STEPS.length}:{' '}
+          </span>
+          {def.title}
+        </span>
+      </h2>
+      <div className="dmn-widget__body">{children}</div>
+    </section>
+  );
+}
+
+/** Politely announces what was just chosen and what comes next. */
+function useStepAnnouncement() {
+  const state = useWidgetState();
+  const [message, setMessage] = useState('');
+  const prev = useRef(state);
+
+  useEffect(() => {
+    const p = prev.current;
+    prev.current = state;
+    if (state.venueId && state.venueId !== p.venueId)
+      setMessage(`${state.venueName || 'Venue'} selected. Next, choose your group size and date.`);
+    else if (state.date && state.date !== p.date)
+      setMessage('Date selected. Next, choose your experience.');
+    else if (state.bookingType && state.bookingType !== p.bookingType)
+      setMessage('Experience selected. Next, choose a time.');
+    else if (state.time && state.time !== p.time)
+      setMessage('Time selected. Next, enter your details.');
+  }, [state]);
+
+  return message;
+}
+
 function WidgetInner() {
   const { venueGroup, defaultVenueId, defaultTypeId, defaultTypeIds, allowedDays, allowDisabled } =
     useWidgetConfig();
   const state = useWidgetState();
-  const { venues, loading, error } = useVenues(venueGroup);
+  const widgetId = useId().replace(/:/g, '');
+  const { venues, loading, error, reload: reloadVenues } = useVenues(venueGroup);
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
+  const announcement = useStepAnnouncement();
 
   const isExternalVenue = useMemo(
     () => venues.find((v) => String(v._id) === String(state.venueId))?.is_external === true,
     [venues, state.venueId],
   );
 
-  // const timeHHmm = useMemo(() => hhmmFromState(state.time), [state.time]);
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
   const {
     types = [],
     loading: typesLoading,
     error: typesError,
+    reload: reloadTypes,
   } = useBookingTypes({
     venueId: state.venueId ?? null,
     partySize: state.partySize ?? null,
     date: state.date ?? null,
-    // time: timeHHmm,
     enabled,
     allowDisabled,
   });
 
   return (
     <>
-      <ProgressBar></ProgressBar>
+      <ProgressBar compact />
       <div className="dmn-widget__grid">
         <div className="dmn-widget__main">
-          <section className="dmn-widget__section">
-            <p className="dmn-widget__header">
-              <Building className="dmn-widget__icon" />
-              1. Select a venue
-            </p>
-            <div className="dmn-widget__body">
-              <Venue
-                venues={venues}
-                initialLoading={loading}
-                error={error}
-                defaultVenueId={defaultVenueId}
-              />
-            </div>
-          </section>
+          <Step widgetId={widgetId} step="venue">
+            <Venue
+              venues={venues}
+              initialLoading={loading}
+              error={error}
+              onRetry={reloadVenues}
+              defaultVenueId={defaultVenueId}
+              labelledBy={stepHeadingId(widgetId, 'venue')}
+            />
+          </Step>
 
           {!isExternalVenue && (
             <>
-              <section className="dmn-widget__section">
-                <p className="dmn-widget__header">
-                  <User className="dmn-widget__icon" />
-                  2. Size of your group?
-                </p>
-                <div className="dmn-widget__body">
-                  <PartySize />
-                </div>
-              </section>
+              <Step widgetId={widgetId} step="party">
+                <PartySize labelledBy={stepHeadingId(widgetId, 'party')} />
+              </Step>
 
-              <section className="dmn-widget__section">
-                <p className="dmn-widget__header">
-                  <Calendar className="dmn-widget__icon" />
-                  3. Select a date
-                </p>
-                <div className="dmn-widget__body">
-                  <Date allowedDays={formattedAllowedDays} />
-                </div>
-              </section>
+              <Step widgetId={widgetId} step="date">
+                <Date allowedDays={formattedAllowedDays} />
+              </Step>
 
-              <section className="dmn-widget__section">
-                <p className="dmn-widget__header">
-                  <Rocket className="dmn-widget__icon" />
-                  4. Choose your experience
-                </p>
-                <div className="dmn-widget__body">
-                  <Type
-                    types={types}
-                    loading={typesLoading}
-                    error={typesError}
-                    enabled={enabled}
-                    defaultTypeId={defaultTypeId}
-                    defaultTypeIds={defaultTypeIds}
-                  />
-                </div>
-              </section>
+              <Step widgetId={widgetId} step="experience">
+                <Type
+                  types={types}
+                  loading={typesLoading}
+                  error={typesError}
+                  onRetry={reloadTypes}
+                  enabled={enabled}
+                  defaultTypeId={defaultTypeId}
+                  defaultTypeIds={defaultTypeIds}
+                  labelledBy={stepHeadingId(widgetId, 'experience')}
+                />
+              </Step>
 
-              <section className="dmn-widget__section">
-                <p className="dmn-widget__header">
-                  <Clock4 className="dmn-widget__icon" />
-                  5. Pick a time
-                </p>
-                <div className="dmn-widget__body">
-                  <Time />
-                </div>
-              </section>
+              <Step widgetId={widgetId} step="time">
+                <Time labelledBy={stepHeadingId(widgetId, 'time')} />
+              </Step>
 
-              <section className="dmn-widget__section">
-                <p className="dmn-widget__header">
-                  <PenLine className="dmn-widget__icon" />
-                  6. Confirm your details
-                </p>
-                <div className="dmn-widget__body">
-                  <Details />
-                </div>
-              </section>
+              <Step widgetId={widgetId} step="details">
+                <Details />
+              </Step>
             </>
           )}
         </div>
 
-        <div className="dmn-widget__side">
-          <ProgressBar></ProgressBar>
+        <aside className="dmn-widget__side" aria-label="Booking summary">
+          <ProgressBar showSteps />
           {!isExternalVenue && (
-            <Review sections={{ details: false }} venues={venues} types={types} />
+            <>
+              <Review sections={{ details: false }} venues={venues} types={types} />
+              <AddonsNew />
+            </>
           )}
-        </div>
+        </aside>
       </div>
 
       {!isExternalVenue && <Faqs venues={venues} />}
-      {!isExternalVenue && <AddonsNew />}
+
+      <div className="screen-reader-text" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
     </>
   );
 }

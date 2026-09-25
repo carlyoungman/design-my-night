@@ -15,22 +15,11 @@ export default function AdditionalCard({ onDirty }: Props) {
     onDirty?.(faqDirty || linkDirty);
   }, [faqDirty, linkDirty, onDirty]);
 
-  useEffect(() => {
-    setFaqDirty(false);
-  }, [selectedVenueId]);
-
   return (
-    <section className="dmn-admin__card">
-      <div className="dmn-admin__header">
-        <h2 className="dmn-admin__header__headline">Additional</h2>
-        <span className="dmn-admin__header__inner">
-          {(faqDirty || linkDirty) && (
-            <p className="dmn-admin__header__dirty">Unsaved changes</p>
-          )}
-        </span>
-      </div>
+    <div>
+      <h2 className="screen-reader-text">Links and FAQs</h2>
       {!selectedVenueId && (
-        <p className="dmn-admin__help">Pick a venue above to manage Additional content.</p>
+        <p className="dmn-admin__empty">Choose a venue above to edit its links and FAQs.</p>
       )}
       {selectedVenueId && (
         <div className="dmn-admin__sections">
@@ -38,6 +27,6 @@ export default function AdditionalCard({ onDirty }: Props) {
           <FaqEditor onDirty={setFaqDirty} />
         </div>
       )}
-    </section>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { j } from './http';
+import { j, restUrl } from './http';
 
 /* ---------- Venues ---------- */
 
@@ -92,7 +92,10 @@ export function getBookingTypes(params: BookingTypeQuery) {
 /* ---------- Addons ---------- */
 
 export async function getAddons(venueId: string, activityId?: string, allowDisabled?: boolean) {
-  const base = (window as any).__DMN_API_BASE__ || '/wp-json/dmn/v1';
+  const base =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__DMN_API_BASE__ ||
+    (window.DMN_PUBLIC_BOOT?.restUrl || '/wp-json/dmn/v1/').replace(/\/$/, '');
   if (!venueId) {
     throw new Error('Missing venue id');
   }
@@ -109,7 +112,9 @@ export async function getAddons(venueId: string, activityId?: string, allowDisab
     try {
       const jj = await r.json();
       msg = jj?.message || msg;
-    } catch {}
+    } catch {
+      // Not JSON; keep the default message.
+    }
     throw new Error(msg);
   }
 
@@ -121,7 +126,9 @@ export async function getAddons(venueId: string, activityId?: string, allowDisab
 
 /** Base fetch for public endpoints */
 async function wpPublicFetch<T = any>(slug: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`/wp-json/dmn/v1/public/${slug}`, {
+  // Built from the REST base WordPress gives us, so subdirectory installs and sites without
+  // pretty permalinks (`?rest_route=`) both work.
+  const res = await fetch(restUrl(`public/${slug}`), {
     method: init.method || 'GET',
     credentials: 'same-origin',
     headers: {

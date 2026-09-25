@@ -1,59 +1,72 @@
 import React, { useMemo } from 'react';
+import { CheckCircle2, Circle, CircleDot } from 'lucide-react';
 import { useWidgetState } from '@app/WidgetProvider';
+import { stepStatuses } from '@app/utils/steps';
 
-function isEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());
-}
+const STATUS_TEXT = { done: 'complete', current: 'current step', todo: 'not started' } as const;
 
-export default function ProgressBar() {
+/**
+ * Booking progress. `showSteps` adds the list of step labels with their status; the compact
+ * version (bar only) is used for the sticky bar on small screens and is hidden from assistive
+ * technology, which gets the full version in the side panel instead.
+ */
+export default function ProgressBar({
+  showSteps = false,
+  compact = false,
+}: {
+  showSteps?: boolean;
+  compact?: boolean;
+}) {
   const state = useWidgetState();
 
-  const { completed, total, percent } = useMemo(() => {
-    const partyDone = (state.partySize ?? 0) >= 1;
-
-    const venueDone = !!state.venueId;
-
-    const dateDone = venueDone && !!state.date;
-
-    const timeDone = dateDone && !!state.time;
-
-    const typeDone = timeDone && !!state.bookingType;
-
-    // Add-ons are optional. Count as done when the step is reachable.
-    const addonsDone = typeDone;
-
-    const c = state.customer || ({} as typeof state.customer);
-    const detailsDone =
-      c &&
-      (c.first_name || '').trim().length >= 2 &&
-      (c.last_name || '').trim().length >= 2 &&
-      isEmail(c.email || '') &&
-      (!(c.phone || '').trim() || /^[\d\s()+-]{6,20}$/.test((c.phone || '').trim())) &&
-      (c.message || '').length <= 500;
-
-    const steps = [partyDone, venueDone, dateDone, timeDone, typeDone, addonsDone, detailsDone];
-
-    const done = steps.filter(Boolean).length;
-    const total = steps.length;
-    const percent = Math.round((done / total) * 100);
-    return { completed: done, total, percent };
-  }, [state]);
+  const steps = useMemo(() => stepStatuses(state), [state]);
+  const completed = steps.filter((s) => s.status === 'done').length;
+  const total = steps.length;
+  const percent = Math.round((completed / total) * 100);
 
   return (
-    <section className="progress-bar" role="group" aria-label="Booking progress">
+    <section
+      className="progress-bar"
+      aria-label={compact ? undefined : 'Booking progress'}
+      aria-hidden={compact || undefined}
+    >
+      <p className="progress-bar__text">
+        {completed} of {total} steps complete
+      </p>
       <div
         className="progress-bar__bar"
         role="progressbar"
-        aria-valuenow={percent}
+        aria-valuenow={completed}
         aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={`${completed} of ${total} steps complete`}
+        aria-valuemax={total}
+        aria-valuetext={`${completed} of ${total} steps complete`}
+        aria-label="Booking progress"
       >
         <div className="progress-bar__fill" style={{ width: `${percent}%` }} />
       </div>
-      <div className="progress-bar__text">
-        Steps {completed} of {total} complete
-      </div>
+      {showSteps && (
+        <ol className="progress-bar__steps">
+          {steps.map((s) => (
+            <li
+              key={s.key}
+              className={`progress-bar__step progress-bar__step--${s.status}`}
+              aria-current={s.status === 'current' ? 'step' : undefined}
+            >
+              {s.status === 'done' ? (
+                <CheckCircle2 />
+              ) : s.status === 'current' ? (
+                <CircleDot />
+              ) : (
+                <Circle />
+              )}
+              <span>
+                {s.label}
+                <span className="screen-reader-text">, {STATUS_TEXT[s.status]}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   );
 }

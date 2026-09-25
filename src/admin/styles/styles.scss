@@ -1,9 +1,13 @@
 @use 'sass:meta';
+@use './settings/breakpoints' as breakpoint;
 
-:root {
-  --box-shadow-1: rgb(50 50 93 / 25%) 0px 2px 5px -1px, rgb(0 0 0 / 30%) 0px 1px 3px -1px; /* Original */
-  --box-shadow-2: rgb(50 50 93 / 30%) 0px 4px 8px -2px, rgb(0 0 0 / 35%) 0px 2px 4px -2px;
-  --box-shadow-3: rgb(50 50 93 / 35%) 0px 8px 16px -3px, rgb(0 0 0 / 40%) 0px 4px 6px -3px;
+// Design tokens and component styles for the wp-admin app.
+// Everything is scoped under `.dmn-admin` (rendered by dmn-booking-plugin.php) so nothing
+// leaks into the rest of wp-admin. Do not add styles to `:root`, `body` or WordPress's own elements.
+.dmn-admin {
+  --box-shadow-1: rgb(29 27 32 / 15%) 0 1px 3px 1px, rgb(29 27 32 / 30%) 0 1px 2px 0;
+  --box-shadow-2: rgb(29 27 32 / 15%) 0 2px 6px 2px, rgb(29 27 32 / 30%) 0 1px 2px 0;
+  --box-shadow-3: rgb(29 27 32 / 15%) 0 4px 8px 3px, rgb(29 27 32 / 30%) 0 1px 3px 0;
   --border-radius: 15px;
   --font-base-size: 18px;
   --font-base-line-height: 1.6;
@@ -15,33 +19,57 @@
   --universal-space-3: calc(var(--universal-space) * 3);
   --universal-space-4: calc(var(--universal-space) * 4);
   --universal-space-half: calc(var(--universal-space) / 2);
+
+  // Colour palette (see CLAUDE.md section 4).
+  --c-purple: #6750a4;
   --c-white: #fff;
-  --c-off-black: #25251e;
-  --c-black: #000;
-  --c-blue: #3a5683;
+  --c-off-white: #f8f7fa;
+  --c-lilac-grey: #e7e0ec;
+  --c-outline: #79747e;
+  --c-near-black: #1d1b20;
   --c-green: #379f70;
-  --c-off-white: #d9d9d9;
   --c-red: #bb3d3d;
-}
 
-#wpcontent,
-#wpfooter {
-  margin-left: 160px;
-  background: #ececec;
-}
+  // WordPress exposes the admin bar height; fall back to its desktop height.
+  --dmn-sticky-top: var(--wp-admin--admin-bar--height, 32px);
 
-.dmn-admin {
-  * {
+  box-sizing: border-box;
+  max-width: 1600px;
+  padding: var(--universal-space);
+  font-family: var(--font-family), -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, sans-serif;
+  font-size: var(--font-base-size);
+  font-weight: var(--font-base-font-weight);
+  line-height: var(--font-base-line-height);
+  color: var(--c-near-black);
+  background: var(--c-off-white);
+  border: 1px solid var(--c-lilac-grey);
+  border-radius: var(--border-radius);
+
+  @include breakpoint.medium-screen-min {
+    padding: var(--universal-space-2);
+  }
+
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
-  .MuiBox-root.css-19kzrtu {
-    padding: var(--universal-space) 0;
-  }
-
+  @include meta.load-css('./components/typography');
   @include meta.load-css('./components/buttons');
   @include meta.load-css('./components/dmn-admin');
   @include meta.load-css('./components/forms');
   @include meta.load-css('./components/table');
   @include meta.load-css('./components/toggles');
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 }

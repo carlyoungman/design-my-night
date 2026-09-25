@@ -1,74 +1,29 @@
 @use '../settings/mixins' as mixin;
 
-
+// The calendar itself (MUI DateCalendar) is styled through its theme in utils/helpers.tsx.
 .date {
+  display: grid;
+  gap: var(--universal-space);
+
   &__quick-row {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--universal-space);
-    margin-bottom: var(--universal-space);
+    gap: var(--universal-space-half);
   }
 
   &__quick-btn {
-    @include mixin.button-reset;
+    @include mixin.button-secondary;
 
-    flex: 1;
-    height: var(--input-height);
-    padding: 0 var(--universal-space);
-    border: 1px solid var(--c-white);
-    transition: var(--transition);
+    flex: 1 1 120px;
 
-    &:hover {
-      background-color: var(--c-theme-primary);
-      border: 1px solid var(--c-theme-primary);
+    &[aria-pressed='true'] {
+      color: var(--c-white);
+      background: var(--c-purple);
+      border-color: var(--c-purple);
     }
   }
-}
 
-.css-1dedkb6-MuiDateCalendar-root {
-  height: unset;
-  max-height: unset;
-}
-
-.MuiPickersSlideTransition-root {
-  height: 310px;
-  font-size: 16px;
-}
-
-.MuiPickersCalendarHeader-root {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.MuiPickersCalendarHeader-labelContainer {
-  position: absolute;
-}
-
-.MuiPickersArrowSwitcher-root {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-
-  .MuiButtonBase-root {
-    border: none !important;
-    outline: none !important;
+  &__calendar {
+    max-width: 420px;
   }
-}
-
-.MuiDayCalendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  width: 100%;
-  margin: var(--universal-space) 0;
-  border-top: 1px solid var(--c-white);
-  border-bottom: 1px solid var(--c-white);
-}
-
-.css-9lguqa {
-  height: unset;
-  max-height: unset;
 }

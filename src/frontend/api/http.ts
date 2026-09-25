@@ -1,17 +1,20 @@
 const DEBUG = false; // flip to false to disable logging
 
-function getHeadersAsRecord(headers: Headers): Record<string, string> {
-  const out: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    out[key] = value;
-  });
-  return out;
+/**
+ * Join the REST base with a route that may carry a query string. Without pretty permalinks the
+ * base is `…/?rest_route=/dmn/v1/`, so the route's own query must be appended with `&`, not `?`.
+ */
+export function restUrl(path: string): string {
+  const base = window.DMN_PUBLIC_BOOT?.restUrl || '/wp-json/dmn/v1/';
+  const [route, query] = path.split(/\?(.*)/s, 2);
+  const url = base + route;
+  if (!query) return url;
+  return url + (base.includes('?') ? '&' : '?') + query;
 }
 
 export async function j<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = window.DMN_PUBLIC_BOOT.restUrl + path;
+  const url = restUrl(path);
 
-  const started = performance.now();
   const res = await fetch(url, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
