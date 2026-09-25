@@ -43,6 +43,8 @@ Dashboard is the landing view (`Dashboard.tsx`): setup steps until the plugin is
 
 The Venues section starts with an overview of every imported venue with a summary of its activities (`VenuesOverview`). Opening a venue shows its activities (`#venues/<id>`, `ActivityManagerCard`), with a breadcrumb back to the overview, and a **Venue options** sidebar (beside the activities on wide screens, above them on narrow ones) with the setting for unavailable activities (show them disabled with DMN's reason, or hide them; the `dmn_hide_unavailable` venue meta, applied by `GET dmn/v1/booking-types`), which saves as soon as it changes. The activity editor stays mounted behind the overview, so going back keeps unsaved edits (the venue's card shows them), and opening a different venue asks before discarding them (`VenuesPanel`).
 
+The Shortcode section starts with a generator (`ShortcodeGenerator`): a form for every `[dmn_booking]` option, with the venue and activities picked from the imported ones (their DMN IDs fill `venue_id` and `type_id`), and the resulting shortcode with a Copy button. It saves nothing and makes no DesignMyNight request. The options reference table follows it (`ShortcodeCard`).
+
 - Keep the existing WordPress admin navigation for plugins that run inside wp-admin.
 - Place plugin screens and subsections in a logical, stable hierarchy; avoid duplicating the whole WordPress sidebar inside a plugin.
 - Use descriptive labels and indicate the active page clearly.
