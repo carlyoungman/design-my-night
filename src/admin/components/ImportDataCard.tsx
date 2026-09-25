@@ -6,7 +6,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { type ImportRecord, adminOverview, adminSyncAll } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
-import { ProgressPanel, StatusMessage, useElapsedSeconds } from '@admin/components/ui';
+import {
+  LoadError,
+  Loading,
+  ProgressPanel,
+  StatusMessage,
+  errorMessage,
+  useElapsedSeconds,
+} from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -14,27 +21,36 @@ const seconds = (ms: number) => Math.max(1, Math.round(ms / 1000));
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 export default function ImportDataCard() {
-  const { dataVersion, notifyDataChanged, goToSection } = useAdmin();
+  const { dataVersion, settingsVersion, notifyDataChanged, goToSection } = useAdmin();
   const [busy, setBusy] = useState(false);
   // Null until the overview loads; the button works meanwhile, and the server checks anyway.
   const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);
   const [last, setLast] = useState<ImportRecord | null>(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
   const elapsed = useElapsedSeconds(busy);
   const importToast = useToast();
   // Try again in the toast runs the import as it is then.
   const runImportRef = useRef<() => void>(() => {});
 
   // Reads the stored import record and whether credentials are saved; reloads after settings are
-  // saved or data changes (both bump dataVersion).
-  const loadOverview = useCallback(() => {
-    adminOverview()
-      .then((o) => {
-        setHasCredentials(o.connection.has_credentials);
-        setLast(o.last_import);
-      })
-      .catch(() => {});
+  // saved (settingsVersion) or data changes (dataVersion). Later loads keep the last result on
+  // screen while they run.
+  const loadOverview = useCallback(async () => {
+    setOverviewError(null);
+    try {
+      const o = await adminOverview();
+      setHasCredentials(o.connection.has_credentials);
+      setLast(o.last_import);
+    } catch (e) {
+      setOverviewError(errorMessage(e, 'The last import could not be loaded.'));
+    } finally {
+      setOverviewLoading(false);
+    }
   }, []);
-  useEffect(loadOverview, [loadOverview, dataVersion]);
+  useEffect(() => {
+    loadOverview();
+  }, [loadOverview, dataVersion, settingsVersion]);
 
   // Leaving the page would lose the outcome of the import, so ask first.
   useEffect(() => {
@@ -44,7 +60,8 @@ export default function ImportDataCard() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [busy]);
 
-  const blocked = hasCredentials === false;
+  // Only while the explanation is on screen; if the overview failed, the server still checks.
+  const blocked = !overviewError && hasCredentials === false;
 
   const runImport = async () => {
     // aria-disabled rather than disabled, so the button keeps focus while the import runs.
@@ -109,7 +126,17 @@ export default function ImportDataCard() {
         </p>
       </div>
 
-      {blocked ? (
+      {overviewLoading ? (
+        <Loading>Loading the last import…</Loading>
+      ) : overviewError ? (
+        <LoadError
+          message={overviewError}
+          onRetry={() => {
+            setOverviewLoading(true);
+            loadOverview();
+          }}
+        />
+      ) : blocked ? (
         <div id="dmn-admin-import-blocked">
           <StatusMessage tone="warning">
             Save your App ID and API key in step 1 first.

@@ -42,6 +42,13 @@ type Ctx = {
   /** Increments after a data import so screens can reload imported data. */
   dataVersion: number;
   notifyDataChanged: () => void;
+  /**
+   * Increments after the connection settings are saved, for screens that show whether credentials
+   * are saved. Separate from dataVersion so saving settings never reloads (and discards unsaved
+   * edits in) the activity editor.
+   */
+  settingsVersion: number;
+  notifySettingsChanged: () => void;
 };
 
 const AdminCtx = createContext<Ctx | null>(null);
@@ -65,6 +72,7 @@ const sameRoute = (a: Route, b: Route) => a.section === b.section && a.venueId =
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [route, setRoute] = React.useState<Route>(routeFromHash);
   const [dataVersion, setDataVersion] = React.useState(0);
+  const [settingsVersion, setSettingsVersion] = React.useState(0);
   // Kept in step synchronously, so the hashchange that follows our own navigation is a no-op.
   const routeRef = useRef(route);
   const guardRef = useRef<VenueGuard | null>(null);
@@ -118,6 +126,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const notifyDataChanged = useCallback(() => setDataVersion((v) => v + 1), []);
+  const notifySettingsChanged = useCallback(() => setSettingsVersion((v) => v + 1), []);
 
   const value = useMemo(
     () => ({
@@ -128,8 +137,19 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setVenueGuard,
       dataVersion,
       notifyDataChanged,
+      settingsVersion,
+      notifySettingsChanged,
     }),
-    [route, goToSection, openVenue, setVenueGuard, dataVersion, notifyDataChanged],
+    [
+      route,
+      goToSection,
+      openVenue,
+      setVenueGuard,
+      dataVersion,
+      notifyDataChanged,
+      settingsVersion,
+      notifySettingsChanged,
+    ],
   );
 
   return <AdminCtx.Provider value={value}>{children}</AdminCtx.Provider>;

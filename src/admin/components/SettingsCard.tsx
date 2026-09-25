@@ -23,7 +23,7 @@ type FormState = {
 };
 
 export default function SettingsCard() {
-  const { notifyDataChanged } = useAdmin();
+  const { notifySettingsChanged } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -89,7 +89,7 @@ export default function SettingsCard() {
         description: 'Test the connection, then import your venues in step 2.',
       });
       // Step 2 and the Dashboard read whether credentials are saved.
-      notifyDataChanged();
+      notifySettingsChanged();
     } catch (e) {
       saveToast.error('Settings could not be saved. Check your connection and try again.', {
         error: e,
