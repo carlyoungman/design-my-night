@@ -25,7 +25,6 @@ type AdminActivity = {
   priceText?: string;
   image_id?: number | null;
   image_url?: string | null;
-  menu_post_id?: number | null;
   visible?: boolean;
   duration_minutes?: number | null;
   type_text?: string;
@@ -59,7 +58,6 @@ const isChanged = (r: AdminActivity, o: AdminActivity) =>
   (r.description || '') !== (o.description || '') ||
   (r.priceText || '') !== (o.priceText || '') ||
   (r.image_id ?? null) !== (o.image_id ?? null) ||
-  (r.menu_post_id ?? null) !== (o.menu_post_id ?? null) ||
   (r.visible ?? true) !== (o.visible ?? true) ||
   (r.type_text || '') !== (o.type_text || '') ||
   (r.price_mode || 'per_person') !== (o.price_mode || 'per_person');
@@ -111,9 +109,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
     setQuery('');
     setVisibility('all');
   };
-
-  // Pre-order menus are not in use. To bring back the per-activity menu picker, load the options
-  // with adminListMenus() and add a select bound to `menu_post_id`.
 
   const load = useCallback(async () => {
     const isCurrent = beginRequest();
@@ -188,7 +183,6 @@ export default function ActivityManagerCard({ onDirty }: Props) {
             description: r.description ?? '',
             priceText: r.priceText ?? '',
             image_id: r.image_id ?? null,
-            menu_post_id: r.menu_post_id ?? null,
             visible: r.visible ?? true,
             type_text: r.type_text ?? '',
             price_mode: r.price_mode ?? 'per_person',

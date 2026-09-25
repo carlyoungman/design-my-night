@@ -14,7 +14,6 @@ class PublicController
 {
   /**
    * POST /dmn/v1/create-booking
-   * Accepts { addons: [] } from front-end and maps to DMN "packages"
    */
   public static function create_booking(WP_REST_Request $req): WP_Error|WP_REST_Response
   {
@@ -27,149 +26,6 @@ class PublicController
     } catch (Throwable $e) {
       return new WP_Error('dmn_error', $e->getMessage(), ['status' => 400]);
     }
-  }
-
-  /**
-   * GET /dmn/v1/addons?venue_id=.&activity_id=.&allow_disabled=1
-   * Returns add-ons mapped to the front-end shape used in Addons.tsx.
-   *
-   * Filters out (unless allow_disabled=1):
-   * - Activities with meta `visible` set to `'0'` (disabled).
-   * - Menu items (add-ons) with meta `_dmn_visible` set to `'0'` (disabled).
-   */
-  public static function get_addons(WP_REST_Request $r): WP_REST_Response
-  {
-    $allow_disabled = filter_var($r->get_param('allow_disabled'), FILTER_VALIDATE_BOOLEAN);
-
-    // Inputs (DMN external IDs as strings)
-    $venue_ext_id = (string)($r->get_param('venue_id') ?? '');
-    $activity_id = (string)($r->get_param('activity_id') ?? '');
-
-    if ($venue_ext_id === '') {
-      return new WP_REST_Response(['message' => 'The venue_id parameter is required.'], 400);
-    }
-
-    // 1) Map external DMN venue id -> local dmn_venue post ID
-    $venue_posts = get_posts([
-      'post_type' => 'dmn_venue',
-      'numberposts' => 1,
-      'fields' => 'ids',
-      'meta_query' => [[
-        'key' => 'dmn_venue_id',
-        'value' => $venue_ext_id,
-      ]],
-      'no_found_rows' => true,
-    ]);
-
-    if (empty($venue_posts)) {
-      return new WP_REST_Response(['data' => []], 200);
-    }
-
-    $venue_post_id = (int)$venue_posts[0];
-
-    // 2) Find activities under this venue that have a menu assigned (optionally filter by type)
-    $activity_meta = [
-      ['key' => 'dmn_menu_post_id', 'compare' => 'EXISTS'],
-    ];
-
-    if ($activity_id !== '') {
-      $activity_meta[] = [
-        'relation' => 'OR',
-        ['key' => 'dmn_type_id', 'value' => $activity_id],
-        ['key' => 'dmn_type_ids', 'value' => '\"' . $activity_id . '\"', 'compare' => 'LIKE'],
-        // keep these fallbacks if older keys exist
-        ['key' => 'activity_id', 'value' => $activity_id],
-        ['key' => 'activity_ids', 'value' => '\"' . $activity_id . '\"', 'compare' => 'LIKE'],
-      ];
-    }
-
-    $activities = get_posts([
-      'post_type' => 'dmn_activity',
-      'post_parent' => $venue_post_id,
-      'numberposts' => 1000,
-      'fields' => 'ids',
-      'meta_query' => $activity_meta,
-      'no_found_rows' => true,
-    ]);
-
-    if (empty($activities)) {
-      return new WP_REST_Response(['data' => []], 200);
-    }
-
-    // 2b) Filter out activities that are disabled (visible === '0'), unless allow_disabled
-    $visible_activity_ids = [];
-    foreach ($activities as $aid) {
-      $is_visible = get_post_meta((int)$aid, 'visible', true) !== '0';
-      if ($allow_disabled || $is_visible) {
-        $visible_activity_ids[] = (int)$aid;
-      }
-    }
-
-    if (empty($visible_activity_ids)) {
-      return new WP_REST_Response(['data' => []], 200);
-    }
-
-    // 3) Collect menu IDs from activities
-    $menu_ids = [];
-    foreach ($visible_activity_ids as $aid) {
-      $mid = (int)get_post_meta((int)$aid, 'dmn_menu_post_id', true);
-      if ($mid > 0) {
-        $menu_ids[$mid] = $mid;
-      }
-    }
-
-    if (empty($menu_ids)) {
-      return new WP_REST_Response(['data' => []], 200);
-    }
-
-    // 4) Load menu items linked to those menus
-    $items = get_posts([
-      'post_type' => 'dmn_menu_item',
-      'posts_per_page' => -1,
-      'meta_query' => [[
-        'key' => '_dmn_menu_post_id',
-        'value' => array_values($menu_ids),
-        'compare' => 'IN',
-      ]],
-      'no_found_rows' => true,
-    ]);
-
-    // 5) Map to frontend shape (flat list), skipping disabled items unless allow_disabled
-    $out = [];
-    foreach ($items as $it) {
-      /** @var WP_Post $it */
-
-      $item_visible = get_post_meta($it->ID, '_dmn_visible', true) !== '0';
-      if (!$allow_disabled && !$item_visible) {
-        continue;
-      }
-
-      $img_id = (int)get_post_thumbnail_id($it->ID);
-      $image_url = $img_id ? wp_get_attachment_image_url($img_id, 'medium') : null;
-
-      $price_ro = get_post_meta($it->ID, '_dmn_item_price_ro', true);
-      $price_num = is_numeric($price_ro) ? (float)$price_ro : null;
-
-      // NOTE:
-      // If you store a dedicated DMN package id meta (e.g. _dmn_package_id), prefer that.
-      // Otherwise, return null rather than incorrectly using the DMN item id.
-      $package_id = (string)get_post_meta($it->ID, '_dmn_package_id', true);
-      if ($package_id === '') {
-        $package_id = null;
-      }
-
-      $out[] = [
-        'id' => (string)$it->ID,
-        'name' => $it->post_title,
-        'description' => (string)apply_filters('the_content', $it->post_content),
-        'priceText' => $price_num !== null ? '£' . number_format($price_num, 2) : '',
-        'image_url' => $image_url,
-        'visible' => $item_visible,
-        'dmn_package_id' => $package_id,
-      ];
-    }
-
-    return new WP_REST_Response(['data' => array_values($out)], 200);
   }
 
   /**
@@ -211,19 +67,6 @@ class PublicController
         'allow_disabled' => ['type' => 'boolean', 'required' => false],
       ],
     ]);
-
-    // GET /dmn/v1/addons
-    register_rest_route('dmn/v1', '/addons', [
-      'methods' => 'GET',
-      'callback' => [self::class, 'get_addons'],
-      'permission_callback' => '__return_true',
-      'args' => [
-        'venue_id' => ['type' => 'string', 'required' => true],
-        'activity_id' => ['type' => 'string', 'required' => false],
-        'allow_disabled' => ['type' => 'boolean', 'required' => false],
-      ],
-    ]);
-
   }
 
   /**

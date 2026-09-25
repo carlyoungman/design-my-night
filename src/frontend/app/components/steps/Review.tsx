@@ -1,6 +1,6 @@
 import React, { useId, useMemo, useState, useCallback, useRef } from 'react';
 import { useWidgetConfig, useWidgetDispatch, useWidgetState } from '@app/WidgetProvider';
-import { Building, Calendar, Clock4, MicVocal, Rocket, User } from 'lucide-react';
+import { Building, Calendar, Clock4, Rocket, User } from 'lucide-react';
 import { fmt, fmtDate, toNum } from '@app/utils/helpers';
 import { continueCheckout } from '@app/utils/checkout';
 import { isStepDone, STEPS } from '@app/utils/steps';
@@ -43,11 +43,6 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     [types, state.bookingType],
   );
 
-  const selectedAddons = useMemo(
-    () => state.addons.filter((p) => state.addonsSelected.includes(p.id)),
-    [state.addons, state.addonsSelected],
-  );
-
   // Base pricing:
   // - per_person: unit * partySize
   // - per_room: unit (no multiplication)
@@ -61,13 +56,6 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
     const size = state.partySize ?? 0;
     return mode === 'per_room' ? unitPrice : unitPrice * size;
   }, [unitPrice, selectedType?.price_mode, state.partySize]);
-
-  const addonsTotal = useMemo(
-    () => selectedAddons.reduce((s, p) => s + toNum(p.priceText), 0),
-    [selectedAddons],
-  );
-
-  const grandTotal = useMemo(() => basePrice + addonsTotal, [basePrice, addonsTotal]);
 
   // Booking steps (everything except details) that still need doing.
   const missingSteps = useMemo(
@@ -231,23 +219,6 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
 
       <section className="review__section">
         <h3 className="review__heading">Price</h3>
-        {selectedAddons.length > 0 && (
-          <dl className="review__list">
-            {selectedAddons.map((a) => (
-              <div key={a.id}>
-                <dt>
-                  <MicVocal />
-                  {a.name}
-                </dt>
-                <dd>{fmt(toNum(a.priceText))}</dd>
-              </div>
-            ))}
-            <div>
-              <dt>Add-ons</dt>
-              <dd>{fmt(addonsTotal)}</dd>
-            </div>
-          </dl>
-        )}
         {!selectedType ? (
           <p className="review__note">Choose an experience to see the price.</p>
         ) : selectedType.price_mode === 'display' ? (
@@ -256,7 +227,7 @@ export function Review({ sections, venues, types = [] }: ReviewStepProps) {
           <>
             <p className="review__total">
               <span>Total</span>
-              <span>{fmt(grandTotal)}</span>
+              <span>{fmt(basePrice)}</span>
             </p>
             <p className="review__note">
               {selectedType.price_mode === 'per_room'
