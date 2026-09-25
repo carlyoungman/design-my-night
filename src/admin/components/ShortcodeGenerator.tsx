@@ -6,7 +6,7 @@ import { Copy, RotateCcw } from 'lucide-react';
 import { adminListActivities, getSettings } from '@admin/api';
 import { useVenues } from '@admin/components/useVenues';
 import { FieldError, LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
-import { useErrorToast } from '@admin/components/Toasts';
+import { useToast } from '@admin/components/Toasts';
 
 type Activity = Awaited<ReturnType<typeof adminListActivities>>['activities'][number];
 
@@ -126,7 +126,7 @@ export default function ShortcodeGenerator() {
   const [defaultGroup, setDefaultGroup] = useState('');
   const [copied, setCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
-  const copyError = useErrorToast();
+  const copyError = useToast();
 
   const set = (patch: Partial<ShortcodeState>) => {
     setCopied(false);
@@ -177,7 +177,7 @@ export default function ShortcodeGenerator() {
       setCopied(true);
     } catch {
       selectCode();
-      copyError.show('The shortcode could not be copied', {
+      copyError.error('The shortcode could not be copied', {
         description: 'It is selected: copy it with Ctrl+C (⌘C on a Mac).',
       });
     }
