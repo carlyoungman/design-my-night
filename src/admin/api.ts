@@ -8,8 +8,12 @@ export async function wpFetch<T = any>(
   opts: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: any } = {},
 ): Promise<T> {
   const base = window.DMN_ADMIN_BOOT?.restUrl ?? '/wp-json/dmn/v1/admin/';
+  // Without pretty permalinks the base is `…/?rest_route=/dmn/v1/admin/`, so a query on the
+  // route must be joined with `&`.
+  const [route, query] = slug.split(/\?(.*)/s, 2);
+  const url = base + route + (query ? (base.includes('?') ? '&' : '?') + query : '');
   return (await apiFetch({
-    url: base + slug,
+    url,
     method: opts.method || 'GET',
     data: opts.body,
   })) as Promise<T>;
@@ -198,4 +202,194 @@ export async function adminOverview(): Promise<{
   connection: { has_credentials: boolean; environment: 'prod' | 'qa'; venue_group: string };
 }> {
   return wpFetch('overview');
+}
+
+/** Analytics (see src/php/Services/Analytics.php). Reports read the plugin's own tables. */
+export type AnalyticsFilters = {
+  from: string;
+  to: string;
+  /** `created`: by the day bookings were made; `visit`: by the day they take place. */
+  basis: 'created' | 'visit';
+  venue: string;
+  type: string;
+};
+
+export type AnalyticsTotals = {
+  bookings: number;
+  covers: number;
+  value: number | null;
+  deposits: number | null;
+  average_party: number | null;
+  /** Rejected, lost and deleted bookings, left out of the other figures. */
+  inactive: number;
+  /** Null while filtering by venue or activity: opening the widget isn't tied to either. */
+  widget_views: number | null;
+  widget_handoffs: number;
+  conversion: number | null;
+};
+
+export type AnalyticsSummary = {
+  period: { from: string; to: string; days: number; previous_from: string; previous_to: string };
+  current: AnalyticsTotals;
+  previous: AnalyticsTotals;
+};
+
+export type SyncState = {
+  finished_at: number | null;
+  last_success_at: number | null;
+  ok: boolean | null;
+  error: string | null;
+  error_code:
+    | 'no_permission'
+    | 'rate_limited'
+    | 'no_venues'
+    | 'no_credentials'
+    | 'bad_credentials'
+    | 'request_failed'
+    | null;
+  count: number;
+  complete: boolean;
+  next_run_at: number | null;
+};
+
+export type AnalyticsDataStatus = {
+  bookings_stored: number;
+  events_stored: number;
+  /** Whether any stored booking has a value; DMN doesn't document one, so deposits stand in. */
+  has_value: boolean;
+  tracking: boolean;
+  retention_days: number;
+  sync: SyncState;
+};
+
+export type BreakdownRow = {
+  key: string;
+  label: string;
+  bookings: number;
+  covers: number;
+  value: number | null;
+  inactive?: boolean;
+};
+
+export type FunnelStageKey =
+  | 'view'
+  | 'venue'
+  | 'date'
+  | 'experience'
+  | 'time'
+  | 'details'
+  | 'handoff';
+
+export type AnalyticsReport = {
+  filters: AnalyticsFilters;
+  summary: AnalyticsSummary;
+  timeseries: {
+    interval: 'day' | 'week';
+    /** Days in the last week (7 unless the period isn't whole weeks). */
+    last_days: number;
+    points: { date: string; bookings: number; covers: number; value: number; handoffs: number }[];
+  };
+  funnel: {
+    stages: { key: FunnelStageKey; count: number | null }[];
+    checkout_errors: number;
+  };
+  breakdown: {
+    venues: BreakdownRow[];
+    types: BreakdownRow[];
+    statuses: BreakdownRow[];
+    sources: BreakdownRow[];
+  };
+  timing: {
+    /** weekday: 0 is Monday. */
+    heatmap: { weekday: number; hour: number; bookings: number }[];
+    lead_time: { key: string; label: string; bookings: number }[];
+    group_size: { key: string; label: string; bookings: number }[];
+  };
+  data: AnalyticsDataStatus;
+  options: {
+    venues: { id: string; name: string }[];
+    types: { id: string; name: string; venue_id: string }[];
+  };
+};
+
+export type AnalyticsBooking = {
+  id: string;
+  reference: string | null;
+  venue_id: string;
+  venue: string | null;
+  type: string | null;
+  date: string | null;
+  time: string | null;
+  num_people: number;
+  status: string;
+  status_label: string;
+  source: string | null;
+  value: number | null;
+  deposit: number | null;
+  /** ISO 8601, UTC. */
+  created: string | null;
+};
+
+export type BookingSort =
+  | 'booking_date'
+  | 'created_date'
+  | 'num_people'
+  | 'value'
+  | 'deposit'
+  | 'status';
+
+const analyticsQuery = (f: AnalyticsFilters, extra: Record<string, string | number> = {}) =>
+  new URLSearchParams({
+    ...f,
+    ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, String(v)])),
+  }).toString();
+
+export function analyticsReport(f: AnalyticsFilters) {
+  return wpFetch<AnalyticsReport>(`analytics/report?${analyticsQuery(f)}`);
+}
+
+export function analyticsSummary(f: AnalyticsFilters) {
+  return wpFetch<{ summary: AnalyticsSummary; data: AnalyticsDataStatus }>(
+    `analytics/summary?${analyticsQuery(f)}`,
+  );
+}
+
+export function analyticsBookings(
+  f: AnalyticsFilters,
+  q: { page: number; per_page: number; sort: BookingSort; order: 'asc' | 'desc' },
+) {
+  return wpFetch<{ total: number; page: number; per_page: number; items: AnalyticsBooking[] }>(
+    `analytics/bookings?${analyticsQuery(f, q)}`,
+  );
+}
+
+export function analyticsExport(f: AnalyticsFilters, kind: 'bookings' | 'timeseries') {
+  return wpFetch<{ filename: string; csv: string; rows: number; total: number }>(
+    `analytics/export?${analyticsQuery(f, { kind })}`,
+  );
+}
+
+export function analyticsSync() {
+  return wpFetch<SyncState>('analytics/sync', { method: 'POST' });
+}
+
+export type AnalyticsSettings = {
+  tracking: boolean;
+  retention_days: number;
+  retention_max: number;
+};
+
+export function getAnalyticsSettings() {
+  return wpFetch<AnalyticsSettings>('analytics/settings');
+}
+
+export function saveAnalyticsSettings(s: { tracking?: boolean; retention_days?: number }) {
+  return wpFetch<AnalyticsSettings & { ok: boolean }>('analytics/settings', {
+    method: 'POST',
+    body: s,
+  });
+}
+
+export function deleteAnalyticsEvents() {
+  return wpFetch<{ ok: boolean; deleted: number }>('analytics/delete-events', { method: 'POST' });
 }

@@ -5,6 +5,8 @@ namespace DMN\Booking\Rest;
 use DateInterval;
 use DMN\Booking\Config\Appearance;
 use DMN\Booking\Config\Settings;
+use DMN\Booking\Services\Analytics;
+use DMN\Booking\Services\BookingSync;
 use DMN\Booking\Services\DmnClient;
 use Exception;
 use Throwable;
@@ -236,6 +238,8 @@ class AdminController
       'permission_callback' => fn() => current_user_can('manage_options'),
       'callback' => [$this, 'dmn_admin_sync_all'],
     ]);
+
+    $this->register_analytics_routes();
   }
 
 
@@ -824,5 +828,132 @@ class AdminController
 
     return sprintf('%s (%s). %s', $context, $status ? "HTTP $status" : 'no response', $hint)
       . ($detail !== '' ? " DesignMyNight said: $detail" : '');
+  }
+
+  /**
+   * Analytics section. Reports read the plugin's own tables (Services\Analytics); only
+   * `analytics/sync` talks to DesignMyNight.
+   */
+  private function register_analytics_routes(): void
+  {
+    $can = fn() => current_user_can('manage_options');
+
+    // Everything above the bookings table: totals, trend, funnel, breakdowns and timing.
+    register_rest_route('dmn/v1/admin', '/analytics/report', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->report() + ['options' => Analytics::filter_options()]
+      ),
+    ]);
+
+    // Totals only, for the Dashboard.
+    register_rest_route('dmn/v1/admin', '/analytics/summary', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => ['summary' => $a->summary(), 'data' => $a->data_status()]
+      ),
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/bookings', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->bookings(
+          (int)($req->get_param('page') ?? 1),
+          (int)($req->get_param('per_page') ?? 25),
+          (string)($req->get_param('sort') ?? 'created_date'),
+          (string)($req->get_param('order') ?? 'desc')
+        )
+      ),
+    ]);
+
+    // CSV as JSON ({filename, csv}), so the request is authenticated like the others.
+    register_rest_route('dmn/v1/admin', '/analytics/export', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->export($req->get_param('kind') === 'timeseries' ? 'timeseries' : 'bookings')
+      ),
+    ]);
+
+    // Fetch bookings from DesignMyNight now, instead of waiting for the hourly run.
+    register_rest_route('dmn/v1/admin', '/analytics/sync', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => $can,
+      'callback' => function () {
+        $state = (new BookingSync())->run();
+        if (!empty($state['busy'])) {
+          return new WP_REST_Response([
+            'code' => 'dmn_sync_busy',
+            'message' => 'Bookings are already being loaded. Try again in a few minutes.',
+          ] + $state, 409);
+        }
+        if ($state['ok'] === false) {
+          return new WP_REST_Response(['code' => 'dmn_sync_failed', 'message' => $state['error']] + $state, 502);
+        }
+        return new WP_REST_Response($state, 200);
+      },
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/settings', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => $can,
+        'callback' => fn() => new WP_REST_Response(self::analytics_settings(), 200),
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => $can,
+        'callback' => function (WP_REST_Request $req) {
+          $errors = Settings::set_analytics($req->get_json_params() ?? []);
+          if ($errors) {
+            return new WP_Error('dmn_invalid_analytics_settings', reset($errors), [
+              'status' => 400,
+              'fields' => $errors,
+            ]);
+          }
+          // Apply a shorter retention period straight away.
+          Analytics::purge(Settings::get_retention_days());
+          return new WP_REST_Response(['ok' => true] + self::analytics_settings(), 200);
+        },
+      ],
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/delete-events', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => $can,
+      'callback' => function () {
+        try {
+          return new WP_REST_Response(['ok' => true, 'deleted' => Analytics::delete_events()], 200);
+        } catch (Throwable $e) {
+          return new WP_Error('dmn_delete_failed', $e->getMessage(), ['status' => 500]);
+        }
+      },
+    ]);
+  }
+
+  private static function analytics_settings(): array
+  {
+    return [
+      'tracking' => Settings::get_tracking(),
+      'retention_days' => Settings::get_retention_days(),
+      'retention_max' => Settings::RETENTION_MAX,
+    ];
+  }
+
+  /** Validates the report filters, then runs `$fn` with them. */
+  private function with_analytics(WP_REST_Request $req, callable $fn): WP_Error|WP_REST_Response
+  {
+    [$filters, $errors] = Analytics::filters($req->get_params());
+    if ($errors) {
+      return new WP_Error('dmn_invalid_filters', reset($errors), ['status' => 400, 'fields' => $errors]);
+    }
+    return new WP_REST_Response($fn(new Analytics($filters)), 200);
   }
 }

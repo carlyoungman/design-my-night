@@ -14,6 +14,7 @@ import { useBookingTypes } from '@app/hooks/useBookingTypes';
 import { parseAllowedDays } from '@app/utils/helpers';
 import { STEPS, stepHeadingId, type StepKey } from '@app/utils/steps';
 import { useToasts } from '@app/components/Toasts';
+import { useTracking } from '@app/hooks/useTracking';
 
 export default function WidgetRoot(props: Omit<RootProps, 'children'>) {
   const ref = useRef<HTMLDivElement>(null);
@@ -88,6 +89,7 @@ function WidgetInner() {
   const { venues, loading, error, reload: reloadVenues } = useVenues(venueGroup);
   const formattedAllowedDays = useMemo(() => parseAllowedDays(allowedDays), [allowedDays]);
   const announcement = useStepAnnouncement();
+  useTracking(state);
 
   const enabled = !!state.venueId && state.partySize != null && !!state.date;
 
