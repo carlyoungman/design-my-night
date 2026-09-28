@@ -14,6 +14,7 @@ require_once DMN_BP_DIR . 'src/php/Core/Database.php';
 DMN\Booking\Core\Database::drop();
 delete_option('dmn_bookings_sync');
 delete_option('dmn_bookings_sync_lock');
+delete_option('dmn_bookings_sync_generation');
 delete_option('dmn_analytics_tracking');
 delete_option('dmn_analytics_retention_days');
 delete_transient('dmn_db_install_retry');

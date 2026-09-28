@@ -11,6 +11,7 @@ import {
   type ProgressState,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { useAdmin } from '@admin/AdminContext';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -22,6 +23,7 @@ type FormState = {
 };
 
 export default function SettingsCard() {
+  const { notifyOverviewChanged } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -83,7 +85,11 @@ export default function SettingsCard() {
         setMask(s.api_key_mask || '');
       }
       setForm((f) => ({ ...f, api_key: '' }));
-      saveToast.success('Settings saved.');
+      saveToast.success('Settings saved.', {
+        description: 'Test the connection, then import your venues in step 2.',
+      });
+      // Step 2 and the Dashboard read whether credentials are saved.
+      notifyOverviewChanged();
     } catch (e) {
       saveToast.error('Settings could not be saved. Check your connection and try again.', {
         error: e,
@@ -102,7 +108,11 @@ export default function SettingsCard() {
     try {
       const r = await testConnection(form.debug_mode);
       if (r.debug) setDetails(r.debug);
-      if (r.ok) setTest({ state: 'success', message: `Connection works (status ${r.status}).` });
+      if (r.ok)
+        setTest({
+          state: 'success',
+          message: `Connection works (status ${r.status}). Next, import your venues in step 2.`,
+        });
       else
         setTest({
           state: 'error',
@@ -116,11 +126,10 @@ export default function SettingsCard() {
   return (
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-settings-title">
       <div className="dmn-admin__card-header">
-        <h2 id="dmn-admin-settings-title">API credentials</h2>
+        <h2 id="dmn-admin-settings-title">1. Connect to DesignMyNight</h2>
         <p className="dmn-admin__help">
-          Connects the plugin to your DesignMyNight account. After saving, use{' '}
-          <strong>Import from DesignMyNight</strong> at the top of the page to bring in your venues
-          and activities.
+          Enter the API credentials from your DesignMyNight account, save them, and test the
+          connection.
         </p>
       </div>
 

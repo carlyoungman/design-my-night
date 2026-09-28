@@ -636,9 +636,16 @@ function DataNotices({
     );
   } else if (s.error_code === 'no_venues') {
     notices.push(
-      <StatusMessage key="venues" tone="warning">
-        {s.error} Use <strong>Import from DesignMyNight</strong> at the top of the page.
-      </StatusMessage>,
+      <div key="venues" className="actions">
+        <StatusMessage tone="warning">{s.error}</StatusMessage>
+        <button
+          type="button"
+          className="button button--text"
+          onClick={() => goToSection('connection')}
+        >
+          Go to Connection
+        </button>
+      </div>,
     );
   } else if (s.error_code === 'no_permission') {
     notices.push(

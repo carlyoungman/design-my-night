@@ -24,6 +24,8 @@ use DMN\Booking\Core\Database;
 class BookingSync
 {
   public const OPT_STATE = 'dmn_bookings_sync';
+  /** Counts resets of the stored bookings (see reset()). */
+  private const OPT_GENERATION = 'dmn_bookings_sync_generation';
   public const CRON_HOOK = 'dmn_sync_bookings';
 
   /** Option holding the sync lock (see acquire_lock()), and how long a lock is honoured. */
@@ -92,6 +94,45 @@ class BookingSync
       return;
     }
     (new self())->run();
+  }
+
+  /**
+   * Deletes the stored bookings and the sync state, so the next sync starts again with a full
+   * backfill. Used when all imported data is removed.
+   */
+  public static function reset(): int
+  {
+    global $wpdb;
+    // First, so a run still going can't have its progress resumed (see `generation` in sync()).
+    update_option(self::OPT_GENERATION, self::generation() + 1, false);
+    $deleted = (int)$wpdb->query('DELETE FROM ' . Database::bookings_table());
+    delete_option(self::OPT_STATE);
+    return $deleted;
+  }
+
+  /** Read from the database, so a reset in another request is seen. */
+  private static function generation(): int
+  {
+    global $wpdb;
+    return (int)$wpdb->get_var($wpdb->prepare(
+      "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+      self::OPT_GENERATION
+    ));
+  }
+
+  /** Deletes stored bookings whose venue isn't one of these DMN IDs (all of them for none). */
+  private static function delete_bookings_outside(array $venue_ids): void
+  {
+    global $wpdb;
+    $table = Database::bookings_table();
+    if (!$venue_ids) {
+      $wpdb->query("DELETE FROM $table");
+      return;
+    }
+    $wpdb->query($wpdb->prepare(
+      "DELETE FROM $table WHERE venue_id NOT IN (" . implode(',', array_fill(0, count($venue_ids), '%s')) . ')',
+      $venue_ids
+    ));
   }
 
   /** Schedules the hourly run when it isn't scheduled yet. */
@@ -210,7 +251,13 @@ class BookingSync
 
     // A new environment or a different set of venues starts again with a full backfill. After an
     // environment change the stored bookings belong to the other environment, so they go.
-    $scope = ['environment' => Settings::get_env(), 'venues' => md5(implode(',', $venue_ids))];
+    // The generation changes on every reset(), so progress a run saved from before a reset can
+    // never be resumed, even when the same venues are imported again.
+    $scope = [
+      'environment' => Settings::get_env(),
+      'venues' => md5(implode(',', $venue_ids)),
+      'generation' => self::generation(),
+    ];
     $prev_scope = is_array($state['scope']) ? $state['scope'] : null;
     if ($prev_scope !== $scope) {
       global $wpdb;
@@ -218,11 +265,7 @@ class BookingSync
         $wpdb->query('DELETE FROM ' . Database::bookings_table());
       } else {
         // Venues no longer imported: their bookings would stop updating but keep counting.
-        $wpdb->query($wpdb->prepare(
-          'DELETE FROM ' . Database::bookings_table() . ' WHERE venue_id NOT IN ('
-            . implode(',', array_fill(0, count($venue_ids), '%s')) . ')',
-          $venue_ids
-        ));
+        self::delete_bookings_outside($venue_ids);
       }
       $state['watermark'] = null;
       $state['cursor'] = null;
@@ -268,6 +311,16 @@ class BookingSync
         if (is_array($b) && self::store($b)) {
           $stored++;
         }
+      }
+
+      // The imported venues changed while this run was going (for example Start over removed
+      // them): drop bookings for venues no longer imported, and forget this run's progress (saved
+      // after earlier pages), so the next run starts again with a full backfill.
+      $now_ids = self::imported_venue_ids();
+      if ($now_ids !== $venue_ids) {
+        self::delete_bookings_outside($now_ids);
+        delete_option(self::OPT_STATE);
+        return;
       }
 
       // Paging by position stays safe across runs: results are sorted by created date and filtered
@@ -331,9 +384,20 @@ class BookingSync
   /** DMN IDs of the imported venues, sorted so the set can be compared between runs. */
   public static function imported_venue_ids(): array
   {
+    global $wpdb;
+    // Read from the database, not through get_posts()/post meta: those are cached for the request,
+    // and a sync checks this again while running to notice venues removed by another request.
+    $rows = $wpdb->get_col($wpdb->prepare(
+      "SELECT pm.meta_value FROM {$wpdb->postmeta} pm
+        JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE p.post_type = %s AND p.post_status = %s AND pm.meta_key = %s",
+      'dmn_venue',
+      'publish',
+      'dmn_venue_id'
+    )) ?: [];
     $ids = [];
-    foreach (get_posts(['post_type' => 'dmn_venue', 'numberposts' => 1000, 'fields' => 'ids']) as $pid) {
-      $id = (string)get_post_meta((int)$pid, 'dmn_venue_id', true);
+    foreach ($rows as $id) {
+      $id = (string)$id;
       if ($id !== '' && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id)) {
         $ids[] = $id;
       }

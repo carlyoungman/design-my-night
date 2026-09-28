@@ -62,6 +62,14 @@ type Ctx = {
   /** Increments after a data import so screens can reload imported data. */
   dataVersion: number;
   notifyDataChanged: () => void;
+  /**
+   * Increments when the dashboard overview changes without the imported data changing: connection
+   * settings saved, or an import that failed (only its record changed). For screens that show the
+   * overview; separate from dataVersion so these never reload (and discard unsaved edits in) the
+   * activity editor.
+   */
+  overviewVersion: number;
+  notifyOverviewChanged: () => void;
 };
 
 const AdminCtx = createContext<Ctx | null>(null);
@@ -93,6 +101,7 @@ const sameRoute = (a: Route, b: Route) =>
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [route, setRoute] = React.useState<Route>(routeFromHash);
   const [dataVersion, setDataVersion] = React.useState(0);
+  const [overviewVersion, setOverviewVersion] = React.useState(0);
   // Kept in step synchronously, so the hashchange that follows our own navigation is a no-op.
   const routeRef = useRef(route);
   const guardRef = useRef<VenueGuard | null>(null);
@@ -158,6 +167,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const notifyDataChanged = useCallback(() => setDataVersion((v) => v + 1), []);
+  const notifyOverviewChanged = useCallback(() => setOverviewVersion((v) => v + 1), []);
 
   const value = useMemo(
     () => ({
@@ -170,6 +180,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setVenueGuard,
       dataVersion,
       notifyDataChanged,
+      overviewVersion,
+      notifyOverviewChanged,
     }),
     [
       route,
@@ -179,6 +191,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setVenueGuard,
       dataVersion,
       notifyDataChanged,
+      overviewVersion,
+      notifyOverviewChanged,
     ],
   );
 

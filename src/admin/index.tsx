@@ -10,6 +10,8 @@ import VenuesPanel from '@admin/components/VenuesPanel';
 import Dashboard from '@admin/components/Dashboard';
 import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
 import SettingsCard from '@admin/components/SettingsCard';
+import ImportDataCard from '@admin/components/ImportDataCard';
+import RemoveDataCard from '@admin/components/RemoveDataCard';
 import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
 import AppearanceCard from '@admin/components/AppearanceCard';
@@ -81,6 +83,8 @@ function App() {
         </Panel>
         <Panel id="connection">
           <SettingsCard />
+          <ImportDataCard />
+          <RemoveDataCard />
         </Panel>
         <Panel id="url-params">
           <UrlParamsCard onDirty={setParamsDirty} />

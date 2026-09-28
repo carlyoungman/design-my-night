@@ -63,7 +63,7 @@ function formatDuration(ms: number) {
 }
 
 export default function Dashboard() {
-  const { section, dataVersion, goToSection, openVenue } = useAdmin();
+  const { section, dataVersion, overviewVersion, goToSection, openVenue } = useAdmin();
   const active = section === 'dashboard';
   const [overview, setOverview] = useState<Overview | null>(null);
   const [venues, setVenues] = useState<AdminVenue[]>([]);
@@ -90,7 +90,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (active) load(loaded);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `loaded` only picks quiet vs full.
-  }, [active, dataVersion, load]);
+  }, [active, dataVersion, overviewVersion, load]);
 
   if (!active && !loaded) return null;
 
@@ -196,9 +196,13 @@ export default function Dashboard() {
                       </span>
                     </p>
                     {!hasImported && (
-                      <p className="dmn-admin__help">
-                        Use <strong>Import from DesignMyNight</strong> at the top of the page.
-                      </p>
+                      <button
+                        type="button"
+                        className="button button--secondary"
+                        onClick={() => goToSection('connection')}
+                      >
+                        Import under Connection
+                      </button>
                     )}
                   </div>
                 </li>
@@ -350,8 +354,8 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
       <div className="dmn-admin__card">
         <h3>Last import</h3>
         <p>
-          Nothing has been imported yet. Use <strong>Import from DesignMyNight</strong> at the top
-          of the page to bring in your venues and activities.
+          Nothing has been imported yet. Use <strong>Import from DesignMyNight</strong> under
+          Connection to bring in your venues and activities.
         </p>
       </div>
     );
