@@ -38,6 +38,7 @@ import {
   defaultFilters,
   downloadCsv,
   fmtDateTime,
+  fmtDayRange,
   fmtFullDay,
   plural,
   presetRange,
@@ -108,6 +109,16 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
       return;
     }
     setFilters((f) => ({ ...f, ...presetRange(next) }));
+  };
+
+  /** Shows a custom range, clamped to the longest the server accepts (ending at `to`). */
+  const showRange = (from: string, to: string) => {
+    const earliest = addDays(to, -(MAX_RANGE_DAYS - 1));
+    const range = { from: from < earliest ? earliest : from, to };
+    setPreset('custom');
+    setCustom(range);
+    setRangeError(null);
+    setFilters((f) => ({ ...f, ...range }));
   };
 
   const changeCustom = (key: 'from' | 'to', value: string) => {
@@ -558,6 +569,7 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
               openSettings={() => openAnalyticsTab('settings')}
             />
           )}
+          {report && !filtered && <PeriodNotice report={report} onShowRange={showRange} />}
         </>
       )}
 
@@ -601,6 +613,51 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
         <AnalyticsSettings onSaved={reload} onDirty={setDirty} />
       </div>
     </section>
+  );
+}
+
+/**
+ * Bookings are stored but none fall in the chosen period (for example they were all made more
+ * than 30 days ago): say when they were made or take place, with a button to show those dates.
+ * Venue and activity filters have their own empty state, so this is only for the period.
+ */
+function PeriodNotice({
+  report,
+  onShowRange,
+}: {
+  report: AnalyticsReport;
+  onShowRange: (from: string, to: string) => void;
+}) {
+  const { data, summary, filters } = report;
+  if (data.bookings_stored === 0 || summary.current.bookings > 0) return null;
+  const visit = filters.basis === 'visit';
+  const from = visit ? data.range.visit_from : data.range.created_from;
+  const to = visit ? data.range.visit_to : data.range.created_to;
+  // Only when every stored booking lies outside the period. If the period holds some that don't
+  // count in the totals (rejected, lost or deleted), the Bookings tab shows them and this would
+  // point back at the same dates.
+  if (!from || !to || (to >= filters.from && from <= filters.to)) return null;
+  const period =
+    filters.from === filters.to
+      ? fmtFullDay(filters.from)
+      : `${fmtFullDay(filters.from)} to ${fmtFullDay(filters.to)}`;
+  return (
+    <div className="dmn-admin__analytics-notices">
+      <div className="actions">
+        <StatusMessage tone="warning">
+          {visit
+            ? `No bookings take place in this period (${period}). Your stored ${data.bookings_stored === 1 ? 'booking takes place' : 'bookings take place'} ${fmtDayRange(from, to)}.`
+            : `No bookings were made in this period (${period}). Your stored ${data.bookings_stored === 1 ? 'booking was made' : 'bookings were made'} ${fmtDayRange(from, to)}.`}
+        </StatusMessage>
+        <button
+          type="button"
+          className="button button--secondary"
+          onClick={() => onShowRange(from, to)}
+        >
+          Show those dates
+        </button>
+      </div>
+    </div>
   );
 }
 

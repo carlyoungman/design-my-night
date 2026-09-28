@@ -590,6 +590,34 @@ class Analytics
       'tracking' => Settings::get_tracking(),
       'retention_days' => Settings::get_retention_days(),
       'sync' => BookingSync::public_state(),
+      'range' => $this->stored_range(),
+    ];
+  }
+
+  /**
+   * The days the stored bookings were made and take place (every status, as the Bookings tab
+   * lists them; no filters), so the admin can point to them when the chosen period has none.
+   * Dates are local (Y-m-d) or null.
+   */
+  private function stored_range(): array
+  {
+    global $wpdb;
+    $row = $wpdb->get_row(
+      'SELECT MIN(created_date) AS cf, MAX(created_date) AS ct, MIN(booking_date) AS vf, MAX(booking_date) AS vt
+        FROM ' . Database::bookings_table(),
+      ARRAY_A
+    ) ?: [];
+    $local = function ($utc): ?string {
+      if (!$utc) {
+        return null;
+      }
+      return (new DateTimeImmutable($utc, new DateTimeZone('UTC')))->setTimezone($this->tz)->format('Y-m-d');
+    };
+    return [
+      'created_from' => $local($row['cf'] ?? null),
+      'created_to' => $local($row['ct'] ?? null),
+      'visit_from' => $row['vf'] ?? null,
+      'visit_to' => $row['vt'] ?? null,
     ];
   }
 

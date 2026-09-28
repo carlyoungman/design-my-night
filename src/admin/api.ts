@@ -274,6 +274,13 @@ export type AnalyticsDataStatus = {
   tracking: boolean;
   retention_days: number;
   sync: SyncState;
+  /** Local days (Y-m-d) the stored bookings were made and take place, or null when there are none. */
+  range: {
+    created_from: string | null;
+    created_to: string | null;
+    visit_from: string | null;
+    visit_to: string | null;
+  };
 };
 
 export type BreakdownRow = {
