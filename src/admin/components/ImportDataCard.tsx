@@ -1,5 +1,5 @@
 // src/admin/components/ImportDataCard.tsx
-// Step 2 of the Connection section: import venues and activities from DesignMyNight with the
+// Step 2 of the Connection tab under Settings: import venues and activities from DesignMyNight with the
 // credentials saved in step 1 (SettingsCard). Shows whether credentials are saved and what the last
 // import brought in, both from the stored overview; opening it makes no DesignMyNight request.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -125,7 +125,7 @@ export default function ImportDataCard() {
       aria-labelledby="dmn-admin-import-title"
     >
       <div className="dmn-admin__card-header">
-        <h2 id="dmn-admin-import-title">2. Import venues and activities</h2>
+        <h3 id="dmn-admin-import-title">2. Import venues and activities</h3>
         <p className="dmn-admin__help">
           Brings in your venues and their activities using the credentials saved in step 1. Import
           again after you add or change venues or activities in DesignMyNight; your edits in the

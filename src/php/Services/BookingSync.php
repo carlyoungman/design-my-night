@@ -239,7 +239,7 @@ class BookingSync
     $state = self::state();
 
     if (Settings::get_app_id() === '' || Settings::get_api_key() === '') {
-      $this->fail($state, 'no_credentials', 'Add your App ID and API key under Connection to load bookings.');
+      $this->fail($state, 'no_credentials', 'Add your App ID and API key under Settings > Connection to load bookings.');
       return;
     }
 
@@ -418,7 +418,7 @@ class BookingSync
     $said = $detail !== '' ? " DesignMyNight said: $detail" : '';
 
     if ($status === 401) {
-      return ['bad_credentials', "DesignMyNight rejected the API credentials (HTTP 401). Check the App ID, API key and environment under Connection.$said"];
+      return ['bad_credentials', "DesignMyNight rejected the API credentials (HTTP 401). Check the App ID, API key and environment under Settings > Connection.$said"];
     }
     if ($status === 403) {
       return ['no_permission', "DesignMyNight didn't allow this API key to read bookings (HTTP 403). Ask DesignMyNight to enable booking access for your App ID, then refresh.$said"];

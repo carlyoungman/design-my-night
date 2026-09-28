@@ -43,7 +43,7 @@ export default function ShortcodeCard() {
   return (
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-shortcode-title">
       <div className="dmn-admin__card-header">
-        <h2 id="dmn-admin-shortcode-title">Shortcode</h2>
+        <h3 id="dmn-admin-shortcode-title">Shortcode</h3>
         <p className="dmn-admin__help">
           Add the shortcode to any page or post to show the booking widget. Choose options below to
           preselect a venue or activities, or limit which days can be booked, then copy the result.
@@ -52,9 +52,9 @@ export default function ShortcodeCard() {
 
       <ShortcodeGenerator />
 
-      <h3 id="dmn-admin-shortcode-options" className="dmn-admin__spacer-top">
+      <h4 id="dmn-admin-shortcode-options" className="dmn-admin__spacer-top">
         Options reference
-      </h3>
+      </h4>
       <div className="dmn-admin__table-wrap">
         <table className="dmn-admin__table" aria-labelledby="dmn-admin-shortcode-options">
           <thead>

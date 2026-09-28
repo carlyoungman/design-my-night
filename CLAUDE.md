@@ -37,11 +37,13 @@ This is a starting point, not a mandatory template. For operational dashboards, 
 
 ## 3. Navigation
 
-The admin screen is one WordPress menu page with a page header (title and intro) followed by section tabs, each with an icon and a text label: Dashboard, Analytics, Venues, Connection, URL parameters, Shortcode, and Appearance (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
+The admin screen is one WordPress menu page with a page header (title and intro) followed by section tabs, each with an icon and a text label: Dashboard, Analytics, Venues, and Settings (`SECTIONS` in `src/admin/AdminContext.tsx`). The active section is kept in the URL hash. Every panel stays mounted and inactive ones are hidden, so switching section never loses unsaved edits; tabs with unsaved edits show a marker.
 
 Dashboard is the landing view (`Dashboard.tsx`): setup steps until the plugin is connected and imported, the outcome of the last import (recorded by `dmn_admin_sync_all` in the `dmn_last_import` option and read from `GET dmn/v1/admin/overview`), the connection settings, totals, and venues that need attention. It makes no DesignMyNight request when opened.
 
-The Connection section is the setup flow, in numbered steps: **1. Connect to DesignMyNight** (`SettingsCard`: save and test the API credentials), then **2. Import venues and activities** (`ImportDataCard`, `POST dmn/v1/admin/sync/all`; waits for saved credentials, shows the last import, and points to Venues afterwards). Saving settings and a failed import call `notifyOverviewChanged` (not `notifyDataChanged`, which would reload the activity editor and discard its unsaved edits) so step 2 and the Dashboard see the new credentials or import record. It ends with **Start over** (`RemoveDataCard`, `DELETE dmn/v1/admin/data`), which after a confirmation dialog deletes the imported venues, activities, and the import record, and optionally resets every setting, so the plugin is back to how it looks before an import.
+The Settings section (`SettingsPanel.tsx`) has its own tabs, each with an icon and a label (`SETTINGS_TABS` in `AdminContext.tsx`, kept in the hash as `#settings/<tab>`): Connection, URL parameters, Shortcode, and Appearance. Every tab stays mounted and inactive ones are hidden, like the sections; tabs with unsaved edits show a marker, and so does the Settings section tab. Old links to `#connection`, `#url-params`, `#shortcode`, and `#appearance` open the matching Settings tab. Link to a tab with `openSettingsTab`.
+
+The Connection tab is the setup flow, in numbered steps: **1. Connect to DesignMyNight** (`SettingsCard`: save and test the API credentials), then **2. Import venues and activities** (`ImportDataCard`, `POST dmn/v1/admin/sync/all`; waits for saved credentials, shows the last import, and points to Venues afterwards). Saving settings and a failed import call `notifyOverviewChanged` (not `notifyDataChanged`, which would reload the activity editor and discard its unsaved edits) so step 2 and the Dashboard see the new credentials or import record. It ends with **Start over** (`RemoveDataCard`, `DELETE dmn/v1/admin/data`), which after a confirmation dialog deletes the imported venues, activities, and the import record, and optionally resets every setting, so the plugin is back to how it looks before an import.
 
 The Dashboard also shows a **Last 30 days** card (bookings, guests, widget visitors sent to checkout) from `GET dmn/v1/admin/analytics/summary`.
 
@@ -54,7 +56,7 @@ The Analytics section (`src/admin/components/analytics/`) has its own tabs (`ANA
 
 The Venues section starts with an overview of every imported venue with a summary of its activities (`VenuesOverview`). Opening a venue shows its activities (`#venues/<id>`, `ActivityManagerCard`), with a breadcrumb back to the overview, and a **Venue options** sidebar (beside the activities on wide screens, above them on narrow ones) with the setting for unavailable activities (show them disabled with DMN's reason, or hide them; the `dmn_hide_unavailable` venue meta, applied by `GET dmn/v1/booking-types`), which saves as soon as it changes. The activity editor stays mounted behind the overview, so going back keeps unsaved edits (the venue's card shows them), and opening a different venue asks before discarding them (`VenuesPanel`).
 
-The Shortcode section starts with a generator (`ShortcodeGenerator`): a form for every `[dmn_booking]` option, with the venue and activities picked from the imported ones (their DMN IDs fill `venue_id` and `type_id`), and the resulting shortcode with a Copy button. It saves nothing and makes no DesignMyNight request. The options reference table follows it (`ShortcodeCard`).
+The Shortcode tab starts with a generator (`ShortcodeGenerator`): a form for every `[dmn_booking]` option, with the venue and activities picked from the imported ones (their DMN IDs fill `venue_id` and `type_id`), and the resulting shortcode with a Copy button. It saves nothing and makes no DesignMyNight request. The options reference table follows it (`ShortcodeCard`).
 
 - Keep the existing WordPress admin navigation for plugins that run inside wp-admin.
 - Place plugin screens and subsections in a logical, stable hierarchy; avoid duplicating the whole WordPress sidebar inside a plugin.
@@ -67,20 +69,20 @@ The Shortcode section starts with a generator (`ShortcodeGenerator`): a form for
 
 Use the shared design tokens instead of ad-hoc values. The values below are this plugin's admin tokens, defined on `.dmn-admin` in `src/admin/styles/styles.scss`. Update this section if you change the tokens.
 
-| Token or element                    | Value                                                                                                         |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Font                                | Michroma (`--font-family`), falling back to the system sans-serif stack                                       |
-| Body text                           | 16 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`) |
-| Labels, status text, tabs           | 14 px, weight 600 for labels and tabs                                                                         |
-| Supporting / help text and metadata | 13 px (`.dmn-admin__help`)                                                                                    |
-| Page heading                        | 28 px (`.dmn-admin__title`); section headings (`h2`) 22 px, card titles (`h3`) 18 px                          |
-| Spacing scale                       | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px                       |
-| Card corner radius                  | 15 px (`--border-radius`)                                                                                     |
-| Borders                             | 1 px `--c-divider`                                                                                            |
-| Shadows                             | `--box-shadow-1` (resting), `--box-shadow-2` (raised), `--box-shadow-3` (overlay)                             |
-| Transition                          | `--transition`: `all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1)`                                                |
-| Colour                              | See the colour palette below                                                                                  |
-| Breakpoints                         | 320, 576, 768, 992, 1200, 1440 px, used through the mixins in `settings/_breakpoints.scss`                    |
+| Token or element                    | Value                                                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Font                                | Michroma (`--font-family`), falling back to the system sans-serif stack                                         |
+| Body text                           | 16 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`)   |
+| Labels, status text, tabs           | 14 px, weight 600 for labels and tabs                                                                           |
+| Supporting / help text and metadata | 13 px (`.dmn-admin__help`)                                                                                      |
+| Page heading                        | 28 px (`.dmn-admin__title`); section headings (`h2`) 22 px, card titles (`h3`) 18 px, sub-headings (`h4`) 16 px |
+| Spacing scale                       | 15 px base (`--universal-space`): 7.5 (`-half`), 15, 30 (`-2`), 45 (`-3`), 60 (`-4`) px                         |
+| Card corner radius                  | 15 px (`--border-radius`)                                                                                       |
+| Borders                             | 1 px `--c-divider`                                                                                              |
+| Shadows                             | `--box-shadow-1` (resting), `--box-shadow-2` (raised), `--box-shadow-3` (overlay)                               |
+| Transition                          | `--transition`: `all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1)`                                                  |
+| Colour                              | See the colour palette below                                                                                    |
+| Breakpoints                         | 320, 576, 768, 992, 1200, 1440 px, used through the mixins in `settings/_breakpoints.scss`                      |
 
 ### Colour palette
 
@@ -100,7 +102,7 @@ This palette applies to both the admin app and the booking widget. It is defined
 | `--c-success`       | `#379f70`                                        | `#6fcf9f`              | Success and saved states                                                                                          |
 | `--c-error`         | `#bb3d3d`                                        | `#f2b8b5`              | Errors and unsaved changes                                                                                        |
 
-**Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Appearance section (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
+**Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Settings > Appearance tab (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
 
 Contrast limits (checked against `--c-surface` and `--c-background` in each mode):
 

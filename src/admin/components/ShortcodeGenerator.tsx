@@ -405,7 +405,7 @@ export default function ShortcodeGenerator() {
       </form>
 
       <div className="dmn-admin__generator-output">
-        <h3 id="dmn-sc-output-title">Your shortcode</h3>
+        <h4 id="dmn-sc-output-title">Your shortcode</h4>
         <code
           ref={codeRef}
           className="dmn-admin__code-block"

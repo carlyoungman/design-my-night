@@ -132,7 +132,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-appearance-title">
       <div className="dmn-admin__card-header dmn-admin__card-header--split">
         <div>
-          <h2 id="dmn-admin-appearance-title">Appearance</h2>
+          <h3 id="dmn-admin-appearance-title">Appearance</h3>
           <p className="dmn-admin__help">
             The theme colour and light or dark mode for this screen and the booking widget.
           </p>

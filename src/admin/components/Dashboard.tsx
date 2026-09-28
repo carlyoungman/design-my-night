@@ -63,7 +63,8 @@ function formatDuration(ms: number) {
 }
 
 export default function Dashboard() {
-  const { section, dataVersion, overviewVersion, goToSection, openVenue } = useAdmin();
+  const { section, dataVersion, overviewVersion, goToSection, openVenue, openSettingsTab } =
+    useAdmin();
   const active = section === 'dashboard';
   const [overview, setOverview] = useState<Overview | null>(null);
   const [venues, setVenues] = useState<AdminVenue[]>([]);
@@ -175,7 +176,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="button button--secondary"
-                        onClick={() => goToSection('connection')}
+                        onClick={() => openSettingsTab('connection')}
                       >
                         Go to Connection
                       </button>
@@ -199,7 +200,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="button button--secondary"
-                        onClick={() => goToSection('connection')}
+                        onClick={() => openSettingsTab('connection')}
                       >
                         Import under Connection
                       </button>
@@ -213,7 +214,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       className="button button--text"
-                      onClick={() => goToSection('shortcode')}
+                      onClick={() => openSettingsTab('shortcode')}
                     >
                       See the shortcode
                     </button>
@@ -260,7 +261,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 className="button button--secondary"
-                onClick={() => goToSection('connection')}
+                onClick={() => openSettingsTab('connection')}
               >
                 Manage connection
               </button>
@@ -355,7 +356,7 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
         <h3>Last import</h3>
         <p>
           Nothing has been imported yet. Use <strong>Import from DesignMyNight</strong> under
-          Connection to bring in your venues and activities.
+          Settings &gt; Connection to bring in your venues and activities.
         </p>
       </div>
     );

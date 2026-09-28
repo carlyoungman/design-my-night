@@ -810,7 +810,7 @@ class AdminController
     $this->import_error = null;
 
     if (Settings::get_app_id() === '' || Settings::get_api_key() === '') {
-      $this->import_error = 'Add your App ID and API key under Connection before importing.';
+      $this->import_error = 'Add your App ID and API key under Settings > Connection before importing.';
       $venues_count = 0;
       $types_count = 0;
     } else {
@@ -897,9 +897,9 @@ class AdminController
     if ($status === 0) {
       $hint = 'DesignMyNight could not be reached. Check the site can make outgoing requests, then try again.';
     } elseif ($status === 401 || $status === 403) {
-      $hint = 'DesignMyNight rejected the API credentials. Check the App ID, API key and environment under Connection.';
+      $hint = 'DesignMyNight rejected the API credentials. Check the App ID, API key and environment under Settings > Connection.';
     } elseif ($status === 404) {
-      $hint = 'DesignMyNight could not find it. Check the venue group and environment under Connection.';
+      $hint = 'DesignMyNight could not find it. Check the venue group and environment under Settings > Connection.';
     } elseif ($status === 429) {
       $hint = 'The hourly DesignMyNight request limit was reached. Try again later.';
     } elseif ($status === 503) {
