@@ -16,6 +16,7 @@ import UrlParamsCard from '@admin/components/UrlParamsCard';
 import ShortcodeCard from '@admin/components/ShortcodeCard';
 import AppearanceCard from '@admin/components/AppearanceCard';
 import { ToastsProvider } from '@admin/components/Toasts';
+import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
   interface Window {
@@ -52,7 +53,7 @@ function App() {
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!dirty) return;
+      if (!dirty || !shouldWarnOnUnload()) return;
       e.preventDefault();
       e.returnValue = '';
     };
