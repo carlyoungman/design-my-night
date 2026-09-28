@@ -126,7 +126,7 @@ export default function SettingsCard() {
   return (
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-settings-title">
       <div className="dmn-admin__card-header">
-        <h2 id="dmn-admin-settings-title">1. Connect to DesignMyNight</h2>
+        <h3 id="dmn-admin-settings-title">1. Connect to DesignMyNight</h3>
         <p className="dmn-admin__help">
           Enter the API credentials from your DesignMyNight account, save them, and test the
           connection.

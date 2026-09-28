@@ -1,5 +1,5 @@
 // src/admin/components/PageHeader.tsx
-// Page identity. Importing from DesignMyNight lives in the Connection section (ImportDataCard).
+// Page identity. Importing from DesignMyNight lives in Settings > Connection (ImportDataCard).
 import React from 'react';
 
 export default function PageHeader() {
@@ -9,8 +9,8 @@ export default function PageHeader() {
         <h1 className="dmn-admin__title">DesignMyNight bookings</h1>
         <p className="dmn-admin__intro">
           Your DesignMyNight venues and how their activities appear in the booking widget. Import
-          them under Connection, and again after you add or change venues or activities in
-          DesignMyNight.
+          them under Settings &gt; Connection, and again after you add or change venues or
+          activities in DesignMyNight.
         </p>
       </div>
     </header>

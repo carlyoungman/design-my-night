@@ -7,6 +7,7 @@ import {
   MapPin,
   Palette,
   PlugZap,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -15,13 +16,20 @@ export const SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'analytics', label: 'Analytics', icon: ChartColumn },
   { id: 'venues', label: 'Venues', icon: MapPin },
+  { id: 'settings', label: 'Settings', icon: Settings },
+] as const satisfies readonly { id: string; label: string; icon: LucideIcon }[];
+
+export type SectionId = (typeof SECTIONS)[number]['id'];
+
+/** Tabs inside the Settings section, in order; the first is the default. */
+export const SETTINGS_TABS = [
   { id: 'connection', label: 'Connection', icon: PlugZap },
   { id: 'url-params', label: 'URL parameters', icon: Link2 },
   { id: 'shortcode', label: 'Shortcode', icon: CodeXml },
   { id: 'appearance', label: 'Appearance', icon: Palette },
 ] as const satisfies readonly { id: string; label: string; icon: LucideIcon }[];
 
-export type SectionId = (typeof SECTIONS)[number]['id'];
+export type SettingsTab = (typeof SETTINGS_TABS)[number]['id'];
 
 /** Tabs inside the Analytics section, in order; the first is the default. */
 export const ANALYTICS_TABS = [
@@ -37,9 +45,14 @@ export type AnalyticsTab = (typeof ANALYTICS_TABS)[number]['id'];
 
 /**
  * Where the admin is: a section; inside Venues, the venue being edited (null is the overview);
- * inside Analytics, the tab.
+ * inside Analytics and Settings, the tab.
  */
-type Route = { section: SectionId; venueId: number | null; analyticsTab: AnalyticsTab };
+type Route = {
+  section: SectionId;
+  venueId: number | null;
+  analyticsTab: AnalyticsTab;
+  settingsTab: SettingsTab;
+};
 
 /**
  * Asked before opening a different venue. Returns false to stay put, for example when the user
@@ -58,6 +71,9 @@ type Ctx = {
   /** The open tab in the Analytics section. */
   analyticsTab: AnalyticsTab;
   openAnalyticsTab: (tab: AnalyticsTab) => void;
+  /** The open tab in the Settings section. */
+  settingsTab: SettingsTab;
+  openSettingsTab: (tab: SettingsTab) => void;
   setVenueGuard: (guard: VenueGuard | null) => void;
   /** Increments after a data import so screens can reload imported data. */
   dataVersion: number;
@@ -74,29 +90,41 @@ type Ctx = {
 
 const AdminCtx = createContext<Ctx | null>(null);
 
-/** Hash for a route: `#venues`, `#venues/12`, `#analytics/bookings` or another section's id. */
+/**
+ * Hash for a route: `#venues`, `#venues/12`, `#analytics/bookings`, `#settings/appearance` or
+ * another section's id. A section's first tab is left out.
+ */
 export const venueHref = (id: number) => `#venues/${id}`;
 const hashFor = (r: Route) =>
   r.section === 'venues' && r.venueId != null
     ? `venues/${r.venueId}`
     : r.section === 'analytics' && r.analyticsTab !== ANALYTICS_TABS[0].id
       ? `analytics/${r.analyticsTab}`
-      : r.section;
+      : r.section === 'settings' && r.settingsTab !== SETTINGS_TABS[0].id
+        ? `settings/${r.settingsTab}`
+        : r.section;
 
 function routeFromHash(): Route {
-  const [head, sub] = window.location.hash.replace(/^#/, '').split('/');
-  // `#activities` is the old name of the Venues section; keep existing links working.
-  const section =
-    head === 'activities' ? 'venues' : (SECTIONS.find((s) => s.id === head)?.id ?? 'dashboard');
+  let [head, sub] = window.location.hash.replace(/^#/, '').split('/');
+  // `#activities` is the old name of the Venues section, and Connection, URL parameters, Shortcode
+  // and Appearance were sections before they moved under Settings; keep existing links working.
+  if (head === 'activities') head = 'venues';
+  if (SETTINGS_TABS.some((t) => t.id === head)) [head, sub] = ['settings', head];
+  const section = SECTIONS.find((s) => s.id === head)?.id ?? 'dashboard';
   const venueId = section === 'venues' && sub && /^\d+$/.test(sub) ? Number(sub) : null;
   const analyticsTab =
     (section === 'analytics' && ANALYTICS_TABS.find((t) => t.id === sub)?.id) ||
     ANALYTICS_TABS[0].id;
-  return { section, venueId, analyticsTab };
+  const settingsTab =
+    (section === 'settings' && SETTINGS_TABS.find((t) => t.id === sub)?.id) || SETTINGS_TABS[0].id;
+  return { section, venueId, analyticsTab, settingsTab };
 }
 
 const sameRoute = (a: Route, b: Route) =>
-  a.section === b.section && a.venueId === b.venueId && a.analyticsTab === b.analyticsTab;
+  a.section === b.section &&
+  a.venueId === b.venueId &&
+  a.analyticsTab === b.analyticsTab &&
+  a.settingsTab === b.settingsTab;
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [route, setRoute] = React.useState<Route>(routeFromHash);
@@ -129,11 +157,14 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const onHashChange = () => {
       const parsed = routeFromHash();
-      // Outside Analytics the hash doesn't name a tab, so keep the one last open.
-      const next =
-        parsed.section === 'analytics'
-          ? parsed
-          : { ...parsed, analyticsTab: routeRef.current.analyticsTab };
+      // Outside Analytics and Settings the hash doesn't name their tab, so keep the one last open.
+      const next = {
+        ...parsed,
+        analyticsTab:
+          parsed.section === 'analytics' ? parsed.analyticsTab : routeRef.current.analyticsTab,
+        settingsTab:
+          parsed.section === 'settings' ? parsed.settingsTab : routeRef.current.settingsTab,
+      };
       if (sameRoute(next, routeRef.current)) return;
       if (!allowed(next)) {
         // Put the address back without adding a history entry.
@@ -147,19 +178,23 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [allowed]);
 
-  // Leaving Analytics and coming back returns to the same tab.
+  // Leaving Analytics or Settings and coming back returns to the same tab.
   const goToSection = useCallback(
-    (id: SectionId) =>
-      navigate({ section: id, venueId: null, analyticsTab: routeRef.current.analyticsTab }),
+    (id: SectionId) => navigate({ ...routeRef.current, section: id, venueId: null }),
     [navigate],
   );
   const openVenue = useCallback(
-    (id: number | null) =>
-      navigate({ section: 'venues', venueId: id, analyticsTab: routeRef.current.analyticsTab }),
+    (id: number | null) => navigate({ ...routeRef.current, section: 'venues', venueId: id }),
     [navigate],
   );
   const openAnalyticsTab = useCallback(
-    (tab: AnalyticsTab) => navigate({ section: 'analytics', venueId: null, analyticsTab: tab }),
+    (tab: AnalyticsTab) =>
+      navigate({ ...routeRef.current, section: 'analytics', venueId: null, analyticsTab: tab }),
+    [navigate],
+  );
+  const openSettingsTab = useCallback(
+    (tab: SettingsTab) =>
+      navigate({ ...routeRef.current, section: 'settings', venueId: null, settingsTab: tab }),
     [navigate],
   );
   const setVenueGuard = useCallback((guard: VenueGuard | null) => {
@@ -177,6 +212,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       openVenue,
       analyticsTab: route.analyticsTab,
       openAnalyticsTab,
+      settingsTab: route.settingsTab,
+      openSettingsTab,
       setVenueGuard,
       dataVersion,
       notifyDataChanged,
@@ -188,6 +225,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       goToSection,
       openVenue,
       openAnalyticsTab,
+      openSettingsTab,
       setVenueGuard,
       dataVersion,
       notifyDataChanged,

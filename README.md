@@ -16,7 +16,7 @@ assets from `/dist`, which is not committed: run `npm run build` after cloning o
 - Customer details capture with **first_name / last_name / email / phone / notes**.
 - Accessibility‑first UI with keyboard support.
 - Small React admin to sync venues and types and manage settings.
-- A theme colour and light/dark mode (light, dark or match device), set in the admin's **Appearance** section, for both the admin screen and the widget.
+- A theme colour and light/dark mode (light, dark or match device), set in the admin's **Settings > Appearance** tab, for both the admin screen and the widget.
 
 ## Tech stack
 
@@ -176,7 +176,7 @@ Customer fields sent to DMN on submit:
 
 - Widget styles live under `src/frontend/styles` (SCSS). BEM‑style classes with a small design token layer scoped to `.dmn-widget-root`.
 - Admin app uses **MUI** with light and dark modes; tokens and overrides live in `src/admin/styles` (SCSS).
-- The colour palette for both is in `src/shared/styles/_palette.scss`. The theme colour and each surface's mode are set in the admin's Appearance section and written onto the root elements by the server (`src/php/Config/Appearance.php`).
+- The colour palette for both is in `src/shared/styles/_palette.scss`. The theme colour and each surface's mode are set in the admin's Settings > Appearance tab and written onto the root elements by the server (`src/php/Config/Appearance.php`).
 - Design rules for both surfaces are in [`CLAUDE.md`](CLAUDE.md).
 
 ## Accessibility

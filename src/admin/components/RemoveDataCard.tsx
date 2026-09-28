@@ -11,8 +11,8 @@ import { reloadWithoutWarning } from '@admin/unload';
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 export default function RemoveDataCard() {
-  const { section, goToSection, notifyDataChanged } = useAdmin();
-  // Set by Try again: the dialog opens once the Connection section is showing (see below).
+  const { section, settingsTab, openSettingsTab, notifyDataChanged } = useAdmin();
+  // Set by Try again: the dialog opens once Settings > Connection is showing (see below).
   const [retryPending, setRetryPending] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -32,17 +32,17 @@ export default function RemoveDataCard() {
   };
 
   // A modal inside a hidden section would open invisibly and block the page, so Try again (whose
-  // toast can be clicked from any section) switches to Connection first and opens it from here,
-  // after the section is shown.
+  // toast can be clicked from any section) switches to Settings > Connection first and opens it
+  // from here, after the tab is shown.
   useEffect(() => {
-    if (!retryPending || section !== 'connection') return;
+    if (!retryPending || section !== 'settings' || settingsTab !== 'connection') return;
     setRetryPending(false);
     open(false);
-  }, [retryPending, section]);
+  }, [retryPending, section, settingsTab]);
 
   const retry = () => {
     setRetryPending(true);
-    goToSection('connection');
+    openSettingsTab('connection');
   };
 
   const close = () => {
@@ -85,7 +85,7 @@ export default function RemoveDataCard() {
 
   return (
     <section className="dmn-admin__card dmn-admin__spacer-top" aria-labelledby={headingId}>
-      <h2 id={headingId}>Start over</h2>
+      <h3 id={headingId}>Start over</h3>
       <p>
         Delete the imported venues and activities, with your edits to them, the import history, and
         the analytics data, so you can see the plugin as it is before an import. Run step 2 again to

@@ -51,7 +51,7 @@ const analyticsTabId = (id: AnalyticsTab) => `dmn-analytics-tab-${id}`;
 const analyticsPanelId = (id: AnalyticsTab) => `dmn-analytics-panel-${id}`;
 
 export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean) => void }) {
-  const { section, dataVersion, goToSection, analyticsTab, openAnalyticsTab } = useAdmin();
+  const { section, dataVersion, analyticsTab, openAnalyticsTab, openSettingsTab } = useAdmin();
   const [settingsDirty, setSettingsDirty] = useState(false);
   const setDirty = useCallback(
     (dirty: boolean) => {
@@ -565,7 +565,7 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
               data={data}
               onSync={sync}
               syncing={syncing}
-              goToSection={goToSection}
+              openConnection={() => openSettingsTab('connection')}
               openSettings={() => openAnalyticsTab('settings')}
             />
           )}
@@ -666,13 +666,13 @@ function DataNotices({
   data,
   onSync,
   syncing,
-  goToSection,
+  openConnection,
   openSettings,
 }: {
   data: AnalyticsReport['data'];
   onSync: () => void;
   syncing: boolean;
-  goToSection: ReturnType<typeof useAdmin>['goToSection'];
+  openConnection: () => void;
   openSettings: () => void;
 }) {
   const s: SyncState = data.sync;
@@ -682,11 +682,7 @@ function DataNotices({
     notices.push(
       <div key="cred" className="actions">
         <StatusMessage tone="warning">{s.error}</StatusMessage>
-        <button
-          type="button"
-          className="button button--text"
-          onClick={() => goToSection('connection')}
-        >
+        <button type="button" className="button button--text" onClick={openConnection}>
           Go to Connection
         </button>
       </div>,
@@ -695,11 +691,7 @@ function DataNotices({
     notices.push(
       <div key="venues" className="actions">
         <StatusMessage tone="warning">{s.error}</StatusMessage>
-        <button
-          type="button"
-          className="button button--text"
-          onClick={() => goToSection('connection')}
-        >
+        <button type="button" className="button button--text" onClick={openConnection}>
           Go to Connection
         </button>
       </div>,
