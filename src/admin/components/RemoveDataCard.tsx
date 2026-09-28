@@ -1,16 +1,19 @@
 // src/admin/components/RemoveDataCard.tsx
 // Removes the imported venues and activities (and optionally every setting), so the plugin is back
 // to how it looks before any import. Asks for confirmation in a modal dialog first.
-import React, { useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { adminRemoveData } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
 import { useToast } from '@admin/components/Toasts';
+import { reloadWithoutWarning } from '@admin/unload';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 export default function RemoveDataCard() {
-  const { notifyDataChanged } = useAdmin();
+  const { section, goToSection, notifyDataChanged } = useAdmin();
+  // Set by Try again: the dialog opens once the Connection section is showing (see below).
+  const [retryPending, setRetryPending] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const [includeSettings, setIncludeSettings] = useState(false);
@@ -28,6 +31,20 @@ export default function RemoveDataCard() {
     cancelRef.current?.focus();
   };
 
+  // A modal inside a hidden section would open invisibly and block the page, so Try again (whose
+  // toast can be clicked from any section) switches to Connection first and opens it from here,
+  // after the section is shown.
+  useEffect(() => {
+    if (!retryPending || section !== 'connection') return;
+    setRetryPending(false);
+    open(false);
+  }, [retryPending, section]);
+
+  const retry = () => {
+    setRetryPending(true);
+    goToSection('connection');
+  };
+
   const close = () => {
     if (!busy) dialogRef.current?.close();
   };
@@ -40,8 +57,10 @@ export default function RemoveDataCard() {
       const r = await adminRemoveData(includeSettings);
       if (r.settings_removed) {
         // Every section and the page's colours come from the settings, so start again from them.
+        // The settings are already gone, so unsaved edits elsewhere no longer matter: reload
+        // without the unsaved-changes warning, which would leave the page showing them.
         window.location.hash = 'dashboard';
-        window.location.reload();
+        reloadWithoutWarning();
         return;
       }
       dialogRef.current?.close();
@@ -57,7 +76,7 @@ export default function RemoveDataCard() {
       dialogRef.current?.close();
       toast.error('Data could not be removed.', {
         error: e,
-        action: { label: 'Try again', onClick: () => open(false) },
+        action: { label: 'Try again', onClick: retry },
       });
     } finally {
       setBusy(false);
