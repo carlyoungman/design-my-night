@@ -20,7 +20,7 @@ import {
   adminOverview,
   analyticsSummary,
 } from '@admin/api';
-import { defaultFilters, fmtInt, fmtPct } from '@admin/components/analytics/format';
+import { defaultFilters, fmtFullDay, fmtInt, fmtPct } from '@admin/components/analytics/format';
 import { useAdmin, venueHref } from '@admin/AdminContext';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 
@@ -456,6 +456,8 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
 function RecentBookingsCard({ active }: { active: boolean }) {
   const { dataVersion, goToSection } = useAdmin();
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  // Day the latest stored booking was made, to explain an empty 30 days.
+  const [latest, setLatest] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -464,7 +466,11 @@ function RecentBookingsCard({ active }: { active: boolean }) {
     let cancel = false;
     setError(null);
     analyticsSummary(defaultFilters())
-      .then((r) => !cancel && setSummary(r.summary))
+      .then((r) => {
+        if (cancel) return;
+        setSummary(r.summary);
+        setLatest(r.data.range?.created_to ?? null);
+      })
       .catch((e) => !cancel && setError(errorMessage(e, 'Recent bookings could not be loaded.')));
     return () => {
       cancel = true;
@@ -472,6 +478,9 @@ function RecentBookingsCard({ active }: { active: boolean }) {
   }, [active, dataVersion, attempt]);
 
   const c = summary?.current;
+  // Stored bookings, but none made in the last 30 days: say when the latest was made.
+  const olderOnly =
+    !!c && c.bookings === 0 && !!latest && !!summary && latest < summary.period.from;
   return (
     <div className="dmn-admin__card dmn-admin__dashboard-wide">
       <div className="dmn-admin__card-header--split dmn-admin__spacer-bottom">
@@ -508,6 +517,12 @@ function RecentBookingsCard({ active }: { active: boolean }) {
             </dd>
           </div>
         </dl>
+      )}
+      {!error && olderOnly && latest && (
+        <p className="dmn-admin__help dmn-admin__spacer-top dmn-admin__flush">
+          No bookings were made in the last 30 days. The latest was made on {fmtFullDay(latest)};
+          see them in Analytics.
+        </p>
       )}
     </div>
   );

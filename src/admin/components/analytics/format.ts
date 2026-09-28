@@ -27,6 +27,10 @@ export const fmtDay = (ymd: string) => dayFmt.format(new Date(`${ymd}T00:00:00Z`
 export const fmtFullDay = (ymd: string) => fullDayFmt.format(new Date(`${ymd}T00:00:00Z`));
 export const fmtDateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
 
+/** "from 3 Jan 2026 to 14 Aug 2026", or "on 3 Jan 2026" when both are the same day. */
+export const fmtDayRange = (from: string, to: string) =>
+  from === to ? `on ${fmtFullDay(from)}` : `from ${fmtFullDay(from)} to ${fmtFullDay(to)}`;
+
 export const plural = (n: number, one: string, many: string) =>
   `${fmtInt(n)} ${n === 1 ? one : many}`;
 
