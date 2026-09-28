@@ -12,7 +12,15 @@ import {
   ImageOff,
   PackageOpen,
 } from 'lucide-react';
-import { type AdminVenue, type ImportRecord, adminListVenues, adminOverview } from '@admin/api';
+import {
+  type AdminVenue,
+  type AnalyticsSummary,
+  type ImportRecord,
+  adminListVenues,
+  adminOverview,
+  analyticsSummary,
+} from '@admin/api';
+import { defaultFilters, fmtInt, fmtPct } from '@admin/components/analytics/format';
 import { useAdmin, venueHref } from '@admin/AdminContext';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 
@@ -214,6 +222,8 @@ export default function Dashboard() {
               </ol>
             </div>
           )}
+
+          {hasImported && <RecentBookingsCard active={active} />}
 
           <ImportCard last={last} hasVenues={hasImported} />
 
@@ -434,6 +444,70 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
           Imported data is {staleDays} days old. Import again to pick up changes made in
           DesignMyNight.
         </StatusMessage>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The last 30 days from Analytics: bookings, guests and widget conversion. Reads the plugin's
+ * own tables (GET dmn/v1/admin/analytics/summary), so it makes no DesignMyNight request.
+ */
+function RecentBookingsCard({ active }: { active: boolean }) {
+  const { dataVersion, goToSection } = useAdmin();
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancel = false;
+    setError(null);
+    analyticsSummary(defaultFilters())
+      .then((r) => !cancel && setSummary(r.summary))
+      .catch((e) => !cancel && setError(errorMessage(e, 'Recent bookings could not be loaded.')));
+    return () => {
+      cancel = true;
+    };
+  }, [active, dataVersion, attempt]);
+
+  const c = summary?.current;
+  return (
+    <div className="dmn-admin__card dmn-admin__dashboard-wide">
+      <div className="dmn-admin__card-header--split dmn-admin__spacer-bottom">
+        <h3 className="dmn-admin__flush">Last 30 days</h3>
+        <button
+          type="button"
+          className="button button--text"
+          onClick={() => goToSection('analytics')}
+        >
+          View analytics
+        </button>
+      </div>
+      {error ? (
+        <LoadError message={error} onRetry={() => setAttempt((n) => n + 1)} />
+      ) : !c ? (
+        <Loading>Loading recent bookings…</Loading>
+      ) : (
+        <dl className="dmn-admin__stats dmn-admin__flush">
+          <div className="dmn-admin__stat">
+            <dt>Bookings made</dt>
+            <dd>{fmtInt(c.bookings)}</dd>
+          </div>
+          <div className="dmn-admin__stat">
+            <dt>Guests</dt>
+            <dd>{fmtInt(c.covers)}</dd>
+          </div>
+          <div className="dmn-admin__stat">
+            <dt>Widget visitors sent to checkout</dt>
+            <dd>
+              {fmtInt(c.widget_handoffs)}
+              {c.conversion != null && (
+                <span className="dmn-admin__stat-of"> ({fmtPct(c.conversion)} of visitors)</span>
+              )}
+            </dd>
+          </div>
+        </dl>
       )}
     </div>
   );

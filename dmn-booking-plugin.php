@@ -23,6 +23,51 @@ DMN\Booking\Autoloader::register();
 use DMN\Booking\Config\Appearance;
 use DMN\Booking\Config\Settings;
 use DMN\Booking\PostTypes;
+use DMN\Booking\Core\Database;
+use DMN\Booking\Services\Analytics;
+use DMN\Booking\Services\BookingSync;
+
+/** Daily cron hook that deletes analytics data older than the retention period. */
+const DMN_BP_PURGE_HOOK = 'dmn_purge_analytics';
+
+// Analytics tables and scheduled jobs (see src/php/Core/Database.php and BookingSync).
+register_activation_hook(__FILE__, function () {
+  Database::install();
+  BookingSync::schedule();
+  if (!wp_next_scheduled(DMN_BP_PURGE_HOOK)) {
+    wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', DMN_BP_PURGE_HOOK);
+  }
+});
+
+register_deactivation_hook(__FILE__, function () {
+  BookingSync::unschedule();
+  wp_clear_scheduled_hook(DMN_BP_PURGE_HOOK);
+});
+
+// Sites that updated the plugin without reactivating it get the tables and jobs here.
+add_action('init', function () {
+  Database::maybe_upgrade();
+  BookingSync::schedule();
+  if (!wp_next_scheduled(DMN_BP_PURGE_HOOK)) {
+    wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', DMN_BP_PURGE_HOOK);
+  }
+});
+
+add_action(BookingSync::CRON_HOOK, [BookingSync::class, 'cron']);
+add_action(DMN_BP_PURGE_HOOK, [Analytics::class, 'cron_purge']);
+
+/** Settings the widget reads from `window.DMN_PUBLIC_BOOT`. */
+function dmn_bp_public_boot(): array
+{
+  return [
+    'restUrl' => esc_url_raw(rest_url('dmn/v1/')),
+    // Whether to record anonymous widget events for Analytics. A string, because
+    // wp_localize_script() turns false into "".
+    'tracking' => Settings::get_tracking() ? '1' : '0',
+    // The site's time zone, so a visit's day matches the Analytics reports.
+    'timezone' => wp_timezone_string(),
+  ];
+}
 
 function dmn_bp_enqueue_widget_assets(): void
 {
@@ -58,9 +103,7 @@ function dmn_bp_enqueue_widget_assets(): void
     );
   }
 
-  wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
-    'restUrl' => esc_url_raw(rest_url('dmn/v1/')),
-  ]);
+  wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', dmn_bp_public_boot());
 }
 
 // Registers the 'dmn_booking' shortcode to render the DMN booking widget with venue data.
@@ -237,6 +280,8 @@ add_action('admin_enqueue_scripts', function ($hook) {
   wp_localize_script('dmn-admin', 'DMN_ADMIN_BOOT', [
     'restUrl' => esc_url_raw(rest_url('dmn/v1/admin/')),
     'nonce' => wp_create_nonce('wp_rest'),
+    // Today in the site's time zone, which Analytics reports use for their date ranges.
+    'today' => wp_date('Y-m-d'),
   ]);
 
   wp_enqueue_media();
@@ -278,9 +323,7 @@ add_action('wp_enqueue_scripts', function () {
     );
   }
 
-  wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', [
-    'restUrl' => esc_url_raw(rest_url('dmn/v1/')),
-  ]);
+  wp_localize_script('dmn-widget', 'DMN_PUBLIC_BOOT', dmn_bp_public_boot());
 });
 
 // Registers the custom post type for the DMN Booking plugin during the WordPress 'init' action.

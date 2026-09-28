@@ -8,6 +8,7 @@ import PageHeader from '@admin/components/PageHeader';
 import SectionTabs, { panelId, tabId } from '@admin/components/SectionTabs';
 import VenuesPanel from '@admin/components/VenuesPanel';
 import Dashboard from '@admin/components/Dashboard';
+import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
 import SettingsCard from '@admin/components/SettingsCard';
 import ImportDataCard from '@admin/components/ImportDataCard';
 import RemoveDataCard from '@admin/components/RemoveDataCard';
@@ -18,7 +19,7 @@ import { ToastsProvider } from '@admin/components/Toasts';
 
 declare global {
   interface Window {
-    DMN_ADMIN_BOOT: { restUrl: string; nonce: string };
+    DMN_ADMIN_BOOT: { restUrl: string; nonce: string; today?: string };
   }
 }
 
@@ -45,7 +46,8 @@ function App() {
   const [venuesDirty, setVenuesDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
   const [appearanceDirty, setAppearanceDirty] = React.useState(false);
-  const dirty = venuesDirty || paramsDirty || appearanceDirty;
+  const [analyticsDirty, setAnalyticsDirty] = React.useState(false);
+  const dirty = venuesDirty || paramsDirty || appearanceDirty || analyticsDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
@@ -67,10 +69,14 @@ function App() {
             venues: venuesDirty,
             'url-params': paramsDirty,
             appearance: appearanceDirty,
+            analytics: analyticsDirty,
           }}
         />
         <Panel id="dashboard">
           <Dashboard />
+        </Panel>
+        <Panel id="analytics">
+          <AnalyticsPanel onDirty={setAnalyticsDirty} />
         </Panel>
         <Panel id="venues">
           <VenuesPanel onDirty={setVenuesDirty} />

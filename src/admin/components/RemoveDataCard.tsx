@@ -68,9 +68,9 @@ export default function RemoveDataCard() {
     <section className="dmn-admin__card dmn-admin__spacer-top" aria-labelledby={headingId}>
       <h2 id={headingId}>Start over</h2>
       <p>
-        Delete the imported venues and activities, with your edits to them, and the import history,
-        so you can see the plugin as it is before an import. Run step 2 again to bring them back.
-        Images stay in the media library.
+        Delete the imported venues and activities, with your edits to them, the import history, and
+        the analytics data, so you can see the plugin as it is before an import. Run step 2 again to
+        bring them back. Images stay in the media library.
       </p>
       <div className="actions">
         <button type="button" className="button button--danger" onClick={() => open()}>
@@ -91,7 +91,8 @@ export default function RemoveDataCard() {
         <h3 id={titleId}>Remove all data?</h3>
         <p id={descId}>
           Every imported venue and activity, including names, descriptions, prices, images and
-          visibility you set for them, and the import history will be deleted. This can&rsquo;t be
+          visibility you set for them, the import history, and the analytics data (bookings loaded
+          from DesignMyNight and recorded widget activity) will be deleted. This can&rsquo;t be
           undone.
         </p>
         <label className="dmn-admin__checkbox">
@@ -104,8 +105,8 @@ export default function RemoveDataCard() {
           Also reset all settings
         </label>
         <p className="dmn-admin__help">
-          Removes the API credentials, environment and venue group, URL parameters, and appearance,
-          as on a new install. The page reloads afterwards.
+          Removes the API credentials, environment and venue group, URL parameters, appearance, and
+          analytics settings, as on a new install. The page reloads afterwards.
         </p>
         <div className="actions dmn-admin__dialog-actions">
           <button

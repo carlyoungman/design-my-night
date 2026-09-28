@@ -2,6 +2,9 @@
 
 namespace DMN\Booking\Rest;
 
+use DMN\Booking\Config\Settings;
+use DMN\Booking\Core\Database;
+use DMN\Booking\Services\Analytics;
 use DMN\Booking\Services\DmnClient;
 use Throwable;
 use WP_Error;
@@ -52,6 +55,15 @@ class PublicController
       'methods' => 'POST',
       'callback' => [self::class, 'create_booking'],
       'permission_callback' => '__return_true',
+    ]);
+
+    // POST /dmn/v1/events: anonymous booking widget events for the Analytics section. Public
+    // because the widget is used by visitors; pages may be cached, so there is no nonce. It only
+    // writes validated, size-limited rows and is rate limited per visitor.
+    register_rest_route('dmn/v1', '/events', [
+      'methods' => 'POST',
+      'permission_callback' => '__return_true',
+      'callback' => [$this, 'record_events'],
     ]);
 
     // GET /dmn/v1/booking-types
@@ -310,6 +322,106 @@ class PublicController
     $out = array_merge($valid_rows, $invalid_rows);
 
     return new WP_REST_Response(['data' => $out], 200);
+  }
+
+  /**
+   * Events accepted per batch, and per IP address in RATE_WINDOW seconds. The limit is generous
+   * because visitors behind a proxy or CDN can share one address. There is no per-session limit:
+   * a client can make up session IDs, and reports count each session once anyway.
+   */
+  private const EVENTS_PER_BATCH = 20;
+  private const EVENTS_PER_IP = 5000;
+  private const RATE_WINDOW = 600;
+
+  /**
+   * POST /dmn/v1/events
+   *
+   * Body: `{ session: "<32 hex>", events: [{ event, step?, venue_id?, type_id?, num_people? }] }`.
+   * `event` is `view` (the widget opened), `step` (a step was completed; `step` names it),
+   * `handoff` (the customer was sent to DesignMyNight's checkout) or `error` (checkout couldn't
+   * start, for example because the time was no longer available). Nothing that identifies the visitor is stored: the session is a random ID the
+   * widget keeps for the browser tab, and the IP address is only used, hashed, for rate limiting.
+   */
+  public function record_events(WP_REST_Request $req): WP_REST_Response
+  {
+    if (!Settings::get_tracking()) {
+      return new WP_REST_Response(null, 204);
+    }
+
+    // sendBeacon may not send a JSON content type, so read the raw body.
+    $body = json_decode((string)$req->get_body(), true);
+    $session = is_array($body) ? (string)($body['session'] ?? '') : '';
+    $events = is_array($body) && is_array($body['events'] ?? null) ? $body['events'] : null;
+    if (!preg_match('/^[a-f0-9]{32}$/', $session) || $events === null || array_values($events) !== $events) {
+      return new WP_REST_Response(['code' => 'dmn_invalid_events', 'message' => 'Invalid events.'], 400);
+    }
+    $events = array_slice($events, 0, self::EVENTS_PER_BATCH);
+
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : '';
+    $limits = [
+      'dmn_evi_' . substr(hash_hmac('sha256', $ip, wp_salt('nonce')), 0, 32) => self::EVENTS_PER_IP,
+    ];
+    // A best-effort cap against abuse, not an exact quota: concurrent requests can each read the
+    // same count, which only lets a burst go a little over.
+    // Fixed windows: each counter keeps the time its window started, so steady traffic can't
+    // keep extending it (renewing a transient on every write would never let it reset).
+    $now = time();
+    $counters = [];
+    foreach ($limits as $key => $max) {
+      $c = get_transient($key);
+      $c = is_array($c) && isset($c['n'], $c['start']) && $now - (int)$c['start'] < self::RATE_WINDOW
+        ? $c
+        : ['n' => 0, 'start' => $now];
+      if ((int)$c['n'] + count($events) > $max) {
+        return new WP_REST_Response(['code' => 'dmn_rate_limited', 'message' => 'Too many events.'], 429);
+      }
+      $counters[$key] = $c;
+    }
+    foreach ($counters as $key => $c) {
+      $c['n'] = (int)$c['n'] + count($events);
+      set_transient($key, $c, max(1, self::RATE_WINDOW - ($now - (int)$c['start'])));
+    }
+
+    global $wpdb;
+    $table = Database::events_table();
+    $now = current_time('mysql', true);
+    $id = fn($v) => is_string($v) && preg_match('/^[A-Za-z0-9_-]{1,64}$/', $v) ? $v : null;
+    $stored = 0;
+
+    foreach ($events as $e) {
+      if (!is_array($e)) {
+        continue;
+      }
+      $event = (string)($e['event'] ?? '');
+      if (!in_array($event, ['view', 'step', 'handoff', 'error'], true)) {
+        continue;
+      }
+      $step = null;
+      if ($event === 'step') {
+        $step = (string)($e['step'] ?? '');
+        if (!in_array($step, Analytics::STEPS, true)) {
+          continue;
+        }
+      }
+      $people = isset($e['num_people']) && is_int($e['num_people']) && $e['num_people'] >= 1 && $e['num_people'] <= 1000
+        ? $e['num_people']
+        : null;
+
+      $ok = $wpdb->insert($table, [
+        'session_id' => $session,
+        'event' => $event,
+        'step' => $step,
+        'venue_id' => $id($e['venue_id'] ?? null),
+        'type_id' => $id($e['type_id'] ?? null),
+        'num_people' => $people,
+        'created_at' => $now,
+      ]);
+      if ($ok) {
+        $stored++;
+      }
+    }
+
+    return new WP_REST_Response(['stored' => $stored], 200);
   }
 
 }
