@@ -157,6 +157,18 @@
     min-width: 0;
   }
 
+  // Inline confirmation for a setting that saves as soon as it changes.
+  &__saved {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
   &__venue-options {
     display: grid;
     gap: var(--universal-space-half);
