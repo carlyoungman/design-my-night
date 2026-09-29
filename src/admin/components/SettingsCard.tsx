@@ -109,9 +109,10 @@ export default function SettingsCard({ onDirty }: { onDirty?: (dirty: boolean) =
         const s = await getSettings();
         setMask(s.api_key_mask || '');
       }
-      const next = { ...payload, api_key: '' };
-      setForm(next);
-      setSaved(next);
+      setSaved({ ...payload, api_key: '' });
+      // Keep anything typed while the save ran, so it shows as unsaved; clear the key field only
+      // if it still holds the key that was just saved.
+      setForm((f) => ({ ...f, api_key: f.api_key.trim() === payload.api_key ? '' : f.api_key }));
       if (!quiet)
         saveToast.success('Settings saved.', {
           description: 'Test the connection, then import your venues in step 2.',
