@@ -4,7 +4,7 @@
 // overview never loses unsaved edits; opening a different venue asks first.
 import React, { useEffect, useRef, useState } from 'react';
 import { useAdmin } from '@admin/AdminContext';
-import { useVenues } from '@admin/components/useVenues';
+import { useVenues } from '@admin/data';
 import ActivityManagerCard from '@admin/components/ActivityManagerCard';
 import VenuesOverview from '@admin/components/VenuesOverview';
 import { LoadError, Loading } from '@admin/components/ui';

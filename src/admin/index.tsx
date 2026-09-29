@@ -11,6 +11,7 @@ import Dashboard from '@admin/components/Dashboard';
 import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
 import SettingsPanel from '@admin/components/SettingsPanel';
 import { ToastsProvider } from '@admin/components/Toasts';
+import { DataProvider } from '@admin/data';
 import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
@@ -58,32 +59,34 @@ function App() {
 
   return (
     <AdminProvider>
-      <ToastsProvider>
-        <PageHeader />
-        <SectionTabs
-          unsaved={{
-            venues: venuesDirty,
-            analytics: analyticsDirty,
-            settings: paramsDirty || appearanceDirty,
-          }}
-        />
-        <Panel id="dashboard">
-          <Dashboard />
-        </Panel>
-        <Panel id="analytics">
-          <AnalyticsPanel onDirty={setAnalyticsDirty} />
-        </Panel>
-        <Panel id="venues">
-          <VenuesPanel onDirty={setVenuesDirty} />
-        </Panel>
-        <Panel id="settings">
-          <SettingsPanel
-            unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
-            onParamsDirty={setParamsDirty}
-            onAppearanceDirty={setAppearanceDirty}
+      <DataProvider>
+        <ToastsProvider>
+          <PageHeader />
+          <SectionTabs
+            unsaved={{
+              venues: venuesDirty,
+              analytics: analyticsDirty,
+              settings: paramsDirty || appearanceDirty,
+            }}
           />
-        </Panel>
-      </ToastsProvider>
+          <Panel id="dashboard">
+            <Dashboard />
+          </Panel>
+          <Panel id="analytics">
+            <AnalyticsPanel onDirty={setAnalyticsDirty} />
+          </Panel>
+          <Panel id="venues">
+            <VenuesPanel onDirty={setVenuesDirty} />
+          </Panel>
+          <Panel id="settings">
+            <SettingsPanel
+              unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
+              onParamsDirty={setParamsDirty}
+              onAppearanceDirty={setAppearanceDirty}
+            />
+          </Panel>
+        </ToastsProvider>
+      </DataProvider>
     </AdminProvider>
   );
 }

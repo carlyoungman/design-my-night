@@ -2,16 +2,16 @@
 // Step 2 of the Connection tab under Settings: import venues and activities from DesignMyNight with the
 // credentials saved in step 1 (SettingsCard). Shows whether credentials are saved and what the last
 // import brought in, both from the stored overview; opening it makes no DesignMyNight request.
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { type ImportRecord, adminOverview, adminSyncAll } from '@admin/api';
+import { adminSyncAll } from '@admin/api';
 import { useAdmin } from '@admin/AdminContext';
+import { useOverview } from '@admin/data';
 import {
   LoadError,
   Loading,
   ProgressPanel,
   StatusMessage,
-  errorMessage,
   useElapsedSeconds,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
@@ -21,42 +21,23 @@ const seconds = (ms: number) => Math.max(1, Math.round(ms / 1000));
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 export default function ImportDataCard() {
-  const { dataVersion, overviewVersion, notifyDataChanged, notifyOverviewChanged, goToSection } =
-    useAdmin();
+  const { notifyDataChanged, notifyOverviewChanged, goToSection } = useAdmin();
   const [busy, setBusy] = useState(false);
+  // The stored import record and whether credentials are saved (shared, see data.tsx). It reloads
+  // after settings are saved, an import runs or data is removed, keeping the last result on screen.
+  const {
+    overview,
+    loading: overviewLoading,
+    error: overviewError,
+    retry: retryOverview,
+  } = useOverview();
   // Null until the overview loads; the button works meanwhile, and the server checks anyway.
-  const [hasCredentials, setHasCredentials] = useState<boolean | null>(null);
-  const [last, setLast] = useState<ImportRecord | null>(null);
-  const [overviewLoading, setOverviewLoading] = useState(true);
-  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const hasCredentials = overview?.connection.has_credentials ?? null;
+  const last = overview?.last_import ?? null;
   const elapsed = useElapsedSeconds(busy);
   const importToast = useToast();
   // Try again in the toast runs the import as it is then.
   const runImportRef = useRef<() => void>(() => {});
-  // Only the newest overview request may update the card.
-  const overviewRequest = useRef(0);
-
-  // Reads the stored import record and whether credentials are saved; reloads after settings are
-  // saved or an import fails (overviewVersion) or data changes (dataVersion). Later loads keep
-  // the last result on screen while they run.
-  const loadOverview = useCallback(async () => {
-    const request = ++overviewRequest.current;
-    setOverviewError(null);
-    try {
-      const o = await adminOverview();
-      if (request !== overviewRequest.current) return;
-      setHasCredentials(o.connection.has_credentials);
-      setLast(o.last_import);
-    } catch (e) {
-      if (request !== overviewRequest.current) return;
-      setOverviewError(errorMessage(e, 'The last import could not be loaded.'));
-    } finally {
-      if (request === overviewRequest.current) setOverviewLoading(false);
-    }
-  }, []);
-  useEffect(() => {
-    loadOverview();
-  }, [loadOverview, dataVersion, overviewVersion]);
 
   // Leaving the page would lose the outcome of the import, so ask first.
   useEffect(() => {
@@ -136,13 +117,7 @@ export default function ImportDataCard() {
       {overviewLoading ? (
         <Loading>Loading the last import…</Loading>
       ) : overviewError ? (
-        <LoadError
-          message={overviewError}
-          onRetry={() => {
-            setOverviewLoading(true);
-            loadOverview();
-          }}
-        />
+        <LoadError message={overviewError} onRetry={retryOverview} />
       ) : blocked ? (
         <div id="dmn-admin-import-blocked">
           <StatusMessage tone="warning">

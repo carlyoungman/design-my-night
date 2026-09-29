@@ -2,7 +2,7 @@
 // The plugin's first screen: setup progress, the last import from DesignMyNight, totals, the
 // connection, and venues that need attention. Everything shown comes from the plugin's own data
 // (see dmn_admin_overview and dmn_admin_list_venues); opening the dashboard makes no DMN request.
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
@@ -16,15 +16,12 @@ import {
   type AdminVenue,
   type AnalyticsSummary,
   type ImportRecord,
-  adminListVenues,
-  adminOverview,
   analyticsSummary,
 } from '@admin/api';
 import { defaultFilters, fmtFullDay, fmtInt, fmtPct } from '@admin/components/analytics/format';
 import { useAdmin, venueHref } from '@admin/AdminContext';
+import { useOverview, useVenues } from '@admin/data';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
-
-type Overview = Awaited<ReturnType<typeof adminOverview>>;
 
 /** Imported data older than this gets a reminder to import again. */
 const STALE_AFTER_DAYS = 7;
@@ -63,37 +60,20 @@ function formatDuration(ms: number) {
 }
 
 export default function Dashboard() {
-  const { section, dataVersion, overviewVersion, goToSection, openVenue, openSettingsTab } =
-    useAdmin();
+  const { section, goToSection, openVenue, openSettingsTab } = useAdmin();
   const active = section === 'dashboard';
-  const [overview, setOverview] = useState<Overview | null>(null);
-  const [venues, setVenues] = useState<AdminVenue[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async (quiet: boolean) => {
-    if (!quiet) setLoading(true);
-    setError(null);
-    try {
-      const [o, v] = await Promise.all([adminOverview(), adminListVenues()]);
-      setOverview(o);
-      setVenues(v.venues ?? []);
-    } catch (e) {
-      setError(errorMessage(e, 'The dashboard could not be loaded.'));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Load on first view, after an import, and quietly whenever the user comes back to the
-  // dashboard, since edits in other sections change what it shows.
-  const loaded = overview != null;
-  useEffect(() => {
-    if (active) load(loaded);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `loaded` only picks quiet vs full.
-  }, [active, dataVersion, overviewVersion, load]);
-
-  if (!active && !loaded) return null;
+  // Shared with the other sections (data.tsx), which refresh them after saves and imports, so the
+  // dashboard is current whenever it is shown.
+  const venuesData = useVenues();
+  const overviewData = useOverview();
+  const { venues } = venuesData;
+  const { overview } = overviewData;
+  const loading = venuesData.loading || overviewData.loading;
+  const error = venuesData.error || overviewData.error;
+  const retry = () => {
+    if (venuesData.error) venuesData.retry();
+    if (overviewData.error) overviewData.retry();
+  };
 
   const last = overview?.last_import ?? null;
   const connection = overview?.connection;
@@ -151,7 +131,7 @@ export default function Dashboard() {
       </div>
 
       {loading && <Loading>Loading dashboard…</Loading>}
-      {!loading && error && <LoadError message={error} onRetry={() => load(loaded)} />}
+      {!loading && error && <LoadError message={error} onRetry={retry} />}
 
       {!loading && overview && (
         <div className="dmn-admin__dashboard">
