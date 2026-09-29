@@ -260,6 +260,7 @@ export type SyncState = {
     | 'no_credentials'
     | 'bad_credentials'
     | 'request_failed'
+    | 'too_many'
     | null;
   count: number;
   complete: boolean;
