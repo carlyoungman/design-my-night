@@ -82,8 +82,9 @@ export default function Dashboard() {
     attention.push({
       key: 'import-failed',
       icon: <AlertCircle aria-hidden="true" />,
-      content:
-        'The last import from DesignMyNight failed, so your venues are from the last import that worked. The reason is under Last import below.',
+      content: hasImported
+        ? 'The last import from DesignMyNight failed, so your venues are from an earlier import. The reason is under Last import below.'
+        : 'The import from DesignMyNight failed, so no venues have been imported yet. The reason is under Last import below.',
     });
   else if (last && last.issues_count > 0)
     attention.push({
@@ -238,8 +239,8 @@ export default function Dashboard() {
               </div>
               {attention.length === 0 ? (
                 <StatusMessage tone="success">
-                  Nothing needs attention: the last import worked, every venue has activities shown
-                  in the widget, and every activity has an image.
+                  Nothing needs attention: every venue has activities shown in the widget, and every
+                  activity has an image.
                 </StatusMessage>
               ) : (
                 <ul className="dmn-admin__attention">
