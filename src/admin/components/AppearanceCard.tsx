@@ -7,6 +7,8 @@ import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/
 import { useToast } from '@admin/components/Toasts';
 import { DiscardButton } from '@admin/components/Confirm';
 import { Segmented } from '@admin/components/Choices';
+import { Check } from 'lucide-react';
+import { themeCssVars } from '@admin/themeVars';
 
 type FormState = {
   theme_colour: string;
@@ -190,6 +192,7 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
               Used for buttons, links, selection and focus. Where the colour would be hard to read,
               a lighter or darker shade of it is used so text and controls stay readable.
             </p>
+            <ThemePreview colour={pickerValue} />
           </div>
 
           <div className="dmn-admin__form-grid">
@@ -280,5 +283,40 @@ function ModeField({
         {help}
       </p>
     </div>
+  );
+}
+
+/**
+ * How the chosen colour looks in each mode, before it is saved: the same shading the server
+ * applies (themeVars.ts), on sample controls that are only pictures: not focusable, and hidden
+ * from screen readers, which hear what the preview shows from its caption.
+ */
+function ThemePreview({ colour }: { colour: string }) {
+  const vars = themeCssVars(colour) as React.CSSProperties;
+  return (
+    <figure className="dmn-admin__theme-previews" aria-labelledby="dmn-appearance-preview-title">
+      <figcaption id="dmn-appearance-preview-title" className="dmn-admin__label">
+        Preview
+        <span className="screen-reader-text">
+          {' '}
+          of the theme colour on a button, a link and a selected option, in light and dark mode
+        </span>
+      </figcaption>
+      <div className="dmn-admin__theme-preview-row">
+        {(['light', 'dark'] as const).map((mode) => (
+          <div key={mode} className="dmn-admin__theme-preview" data-mode={mode} style={vars}>
+            <p className="dmn-admin__theme-preview-mode">{mode === 'light' ? 'Light' : 'Dark'}</p>
+            <div className="dmn-admin__theme-preview-body" aria-hidden="true">
+              <span className="button">Book now</span>
+              <span className="button button--secondary">Enquire</span>
+              <span className="dmn-admin__theme-preview-link">View details</span>
+              <span className="dmn-admin__theme-preview-selected">
+                <Check aria-hidden="true" />8 guests
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </figure>
   );
 }
