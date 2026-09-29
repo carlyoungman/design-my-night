@@ -1,13 +1,12 @@
 // Bookings, guests, value or widget hand-offs over the period, one metric at a time.
 import React, { useMemo, useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { LineChart } from '@mui/x-charts/LineChart';
 import type { AnalyticsReport } from '@admin/api';
 import { useChartTheme } from './useChartTheme';
 import { DataDisclosure, EmptyChart } from './parts';
 import { fmtDay, fmtFullDay, fmtInt, fmtMoney } from './format';
+import { Segmented } from '@admin/components/Choices';
 
 type Metric = 'bookings' | 'covers' | 'value' | 'handoffs';
 
@@ -53,19 +52,13 @@ export default function TrendChart({
         <span className="dmn-admin__label" id="dmn-trend-metric-label">
           Show
         </span>
-        <ToggleButtonGroup
+        <Segmented
+          compact
           value={metric}
-          exclusive
-          size="small"
-          onChange={(_, next: Metric | null) => next && setMetric(next)}
-          aria-labelledby="dmn-trend-metric-label"
-        >
-          {METRICS.filter((m) => hasValue || m.value !== 'value').map((m) => (
-            <ToggleButton key={m.value} value={m.value}>
-              {m.label}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+          options={METRICS.filter((m) => hasValue || m.value !== 'value')}
+          onChange={setMetric}
+          labelledBy="dmn-trend-metric-label"
+        />
       </div>
 
       {!hasData ? (

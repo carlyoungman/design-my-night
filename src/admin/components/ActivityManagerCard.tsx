@@ -17,6 +17,7 @@ import {
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 import { DiscardButton } from '@admin/components/Confirm';
+import { ChoiceCards } from '@admin/components/Choices';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
 type VisibilityFilter = 'all' | 'shown' | 'hidden';
@@ -48,6 +49,15 @@ type Props = {
 };
 
 const MAX = 200;
+
+const UNAVAILABLE_CHOICES = [
+  {
+    value: 'show',
+    title: 'Show as unavailable',
+    help: 'Customers see it greyed out, with the reason.',
+  },
+  { value: 'hide', title: 'Hide', help: 'Left out of the booking widget.' },
+] as const;
 
 const countLabel = (n: number) => `${n} ${n === 1 ? 'activity' : 'activities'}`;
 
@@ -385,35 +395,11 @@ export default function ActivityManagerCard({
                 Choose what the booking widget does with an activity DesignMyNight can&apos;t take
                 for the chosen date or group size. Changes save straight away.
               </p>
-              <div className="dmn-admin__choices">
-                {(
-                  [
-                    {
-                      value: false,
-                      title: 'Show as unavailable',
-                      help: 'Customers see it greyed out, with the reason.',
-                    },
-                    {
-                      value: true,
-                      title: 'Hide',
-                      help: 'Left out of the booking widget.',
-                    },
-                  ] as const
-                ).map((option) => (
-                  <label key={option.title} className="dmn-admin__choice">
-                    <input
-                      type="radio"
-                      name="dmn-admin-venue-unavailable"
-                      checked={hideUnavailable === option.value}
-                      onChange={() => saveHideUnavailable(option.value)}
-                    />
-                    <span>
-                      <span className="dmn-admin__choice-title">{option.title}</span>
-                      <span className="dmn-admin__choice-help">{option.help}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <ChoiceCards
+                value={hideUnavailable ? 'hide' : 'show'}
+                options={UNAVAILABLE_CHOICES}
+                onChange={(v) => saveHideUnavailable(v === 'hide')}
+              />
             </fieldset>
             {venueSaving && (
               <p className="dmn-admin__help" role="status">
