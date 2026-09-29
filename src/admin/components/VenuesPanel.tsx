@@ -4,7 +4,8 @@
 // overview never loses unsaved edits; opening a different venue asks first.
 import React, { useEffect, useRef, useState } from 'react';
 import { useAdmin } from '@admin/AdminContext';
-import { useVenues } from '@admin/components/useVenues';
+import { useVenues } from '@admin/data';
+import { useConfirm } from '@admin/components/Confirm';
 import ActivityManagerCard from '@admin/components/ActivityManagerCard';
 import VenuesOverview from '@admin/components/VenuesOverview';
 import { LoadError, Loading } from '@admin/components/ui';
@@ -12,6 +13,7 @@ import { LoadError, Loading } from '@admin/components/ui';
 export default function VenuesPanel({ onDirty }: { onDirty: (d: boolean) => void }) {
   const { venueId, openVenue, setVenueGuard } = useAdmin();
   const { venues, loading, error, retry, refresh } = useVenues();
+  const confirm = useConfirm();
   // The venue loaded in the editor: the open venue, or the last one opened while the overview shows.
   // Derived during render so the editor and the route change together (focus relies on it).
   const [lastOpened, setLastOpened] = useState<number | null>(venueId);
@@ -32,14 +34,17 @@ export default function VenuesPanel({ onDirty }: { onDirty: (d: boolean) => void
   useEffect(() => {
     setVenueGuard((next) => {
       if (!dirty || next === editorId) return true;
-      return window.confirm(
-        `You have unsaved changes to ${
+      return confirm({
+        title: 'Discard unsaved changes?',
+        message: `You have unsaved changes to ${
           editorVenue?.title || 'this venue'
-        }'s activities. Discard them and open another venue?`,
-      );
+        }’s activities. Opening another venue discards them.`,
+        confirmLabel: 'Discard and open',
+        danger: true,
+      });
     });
     return () => setVenueGuard(null);
-  }, [dirty, editorId, editorVenue, setVenueGuard]);
+  }, [dirty, editorId, editorVenue, setVenueGuard, confirm]);
 
   // Move focus with the view: to the venue's heading when it opens, and back to its card on return.
   const headingRef = useRef<HTMLHeadingElement>(null);

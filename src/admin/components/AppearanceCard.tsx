@@ -2,11 +2,11 @@
 // Theme colour and light/dark mode for this admin screen and the booking widget, and whether the
 // widget's stylesheet is loaded.
 import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { getAppearance, saveAppearance, type Appearance, type ColourMode } from '@admin/api';
 import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { DiscardButton } from '@admin/components/Confirm';
+import { Segmented } from '@admin/components/Choices';
 
 type FormState = {
   theme_colour: string;
@@ -235,6 +235,15 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
             <button type="submit" className="button" disabled={saving || !dirty} aria-busy={saving}>
               {saving ? 'Saving…' : 'Save appearance'}
             </button>
+            <DiscardButton
+              dirty={dirty}
+              disabled={saving}
+              what="the appearance"
+              onDiscard={() => {
+                if (saved) setForm(saved);
+                setColourErr(null);
+              }}
+            />
           </div>
         </form>
       )}
@@ -260,21 +269,13 @@ function ModeField({
       <span className="dmn-admin__label" id={`${id}-label`}>
         {label}
       </span>
-      <ToggleButtonGroup
+      <Segmented
         value={value}
-        exclusive
-        onChange={(_, next: ColourMode | null) => {
-          if (next) onChange(next); // one option must stay selected
-        }}
-        aria-labelledby={`${id}-label`}
-        aria-describedby={`${id}-help`}
-      >
-        {MODES.map((m) => (
-          <ToggleButton key={m.value} value={m.value}>
-            {m.label}
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
+        options={MODES}
+        onChange={onChange}
+        labelledBy={`${id}-label`}
+        describedBy={`${id}-help`}
+      />
       <p id={`${id}-help`} className="dmn-admin__help">
         {help}
       </p>

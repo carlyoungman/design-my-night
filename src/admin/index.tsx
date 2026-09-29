@@ -11,6 +11,8 @@ import Dashboard from '@admin/components/Dashboard';
 import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
 import SettingsPanel from '@admin/components/SettingsPanel';
 import { ToastsProvider } from '@admin/components/Toasts';
+import { DataProvider } from '@admin/data';
+import { ConfirmProvider } from '@admin/components/Confirm';
 import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
@@ -40,10 +42,11 @@ function Panel({ id, children }: { id: SectionId; children: React.ReactNode }) {
 
 function App() {
   const [venuesDirty, setVenuesDirty] = React.useState(false);
+  const [connectionDirty, setConnectionDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
   const [appearanceDirty, setAppearanceDirty] = React.useState(false);
   const [analyticsDirty, setAnalyticsDirty] = React.useState(false);
-  const dirty = venuesDirty || paramsDirty || appearanceDirty || analyticsDirty;
+  const dirty = venuesDirty || connectionDirty || paramsDirty || appearanceDirty || analyticsDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
@@ -58,32 +61,41 @@ function App() {
 
   return (
     <AdminProvider>
-      <ToastsProvider>
-        <PageHeader />
-        <SectionTabs
-          unsaved={{
-            venues: venuesDirty,
-            analytics: analyticsDirty,
-            settings: paramsDirty || appearanceDirty,
-          }}
-        />
-        <Panel id="dashboard">
-          <Dashboard />
-        </Panel>
-        <Panel id="analytics">
-          <AnalyticsPanel onDirty={setAnalyticsDirty} />
-        </Panel>
-        <Panel id="venues">
-          <VenuesPanel onDirty={setVenuesDirty} />
-        </Panel>
-        <Panel id="settings">
-          <SettingsPanel
-            unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
-            onParamsDirty={setParamsDirty}
-            onAppearanceDirty={setAppearanceDirty}
-          />
-        </Panel>
-      </ToastsProvider>
+      <DataProvider>
+        <ToastsProvider>
+          <ConfirmProvider>
+            <PageHeader />
+            <SectionTabs
+              unsaved={{
+                venues: venuesDirty,
+                analytics: analyticsDirty,
+                settings: connectionDirty || paramsDirty || appearanceDirty,
+              }}
+            />
+            <Panel id="dashboard">
+              <Dashboard />
+            </Panel>
+            <Panel id="analytics">
+              <AnalyticsPanel onDirty={setAnalyticsDirty} />
+            </Panel>
+            <Panel id="venues">
+              <VenuesPanel onDirty={setVenuesDirty} />
+            </Panel>
+            <Panel id="settings">
+              <SettingsPanel
+                unsaved={{
+                  connection: connectionDirty,
+                  'url-params': paramsDirty,
+                  appearance: appearanceDirty,
+                }}
+                onConnectionDirty={setConnectionDirty}
+                onParamsDirty={setParamsDirty}
+                onAppearanceDirty={setAppearanceDirty}
+              />
+            </Panel>
+          </ConfirmProvider>
+        </ToastsProvider>
+      </DataProvider>
     </AdminProvider>
   );
 }

@@ -73,18 +73,6 @@
   &__analytics-metric {
     max-width: 520px;
     margin-bottom: var(--universal-space);
-
-    // Four options have to fit a phone: tighter padding and smaller text there.
-    .MuiToggleButton-root {
-      min-width: 0;
-      padding: 6px 4px;
-      font-size: 13px;
-
-      @include breakpoint.small-screen-min {
-        padding: 6px 12px;
-        font-size: 14px;
-      }
-    }
   }
 
   &__analytics-empty {

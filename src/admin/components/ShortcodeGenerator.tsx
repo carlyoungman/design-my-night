@@ -2,9 +2,9 @@
 // Builds a [dmn_booking] shortcode from the imported venues and activities. Nothing is saved and
 // no DesignMyNight request is made: it only reads what has already been imported.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, RotateCcw } from 'lucide-react';
-import { adminListActivities, getSettings } from '@admin/api';
-import { useVenues } from '@admin/components/useVenues';
+import { Copy, RotateCcw, Trash2 } from 'lucide-react';
+import { adminListActivities } from '@admin/api';
+import { useOverview, useVenues } from '@admin/data';
 import { FieldError, LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 
@@ -123,7 +123,8 @@ function useActivities(venuePostId: number | null) {
 export default function ShortcodeGenerator() {
   const { venues, loading: venuesLoading, error: venuesError, retry: retryVenues } = useVenues();
   const [state, setState] = useState<ShortcodeState>(EMPTY);
-  const [defaultGroup, setDefaultGroup] = useState('');
+  // The venue group saved under Connection, shown as the placeholder; empty until the overview loads.
+  const defaultGroup = useOverview().overview?.connection.venue_group ?? '';
   const [copied, setCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
   const copyError = useToast();
@@ -132,17 +133,6 @@ export default function ShortcodeGenerator() {
     setCopied(false);
     setState((s) => ({ ...s, ...patch }));
   };
-
-  // The Connection setting is only used as the venue group placeholder, so a failure is ignored.
-  useEffect(() => {
-    let cancel = false;
-    getSettings()
-      .then((r) => !cancel && setDefaultGroup(r?.venue_group ?? ''))
-      .catch(() => {});
-    return () => {
-      cancel = true;
-    };
-  }, []);
 
   // Venues can only be preselected by their DesignMyNight ID.
   const pickable = useMemo(() => venues.filter((v) => v.dmn_id), [venues]);
@@ -381,10 +371,11 @@ export default function ShortcodeGenerator() {
                     </div>
                     <button
                       type="button"
-                      className="button button--danger"
+                      className="button button--text"
                       aria-label={`Remove parameter ${p.name || i + 1}`}
                       onClick={() => set({ urlParams: state.urlParams.filter((_, j) => j !== i) })}
                     >
+                      <Trash2 aria-hidden="true" />
                       Remove
                     </button>
                   </fieldset>
