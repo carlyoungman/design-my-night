@@ -41,7 +41,9 @@ export default function Dashboard() {
   const overviewData = useOverview();
   const { venues } = venuesData;
   const { overview } = overviewData;
-  const loading = venuesData.loading || overviewData.loading;
+  // Only the first load replaces the dashboard with the loading state. Later reloads (after an
+  // import, say) keep it on screen, so focus stays on the Import button that started them.
+  const loading = (venuesData.loading && !venuesData.loaded) || (overviewData.loading && !overview);
   const error = venuesData.error || overviewData.error;
   const retry = () => {
     if (venuesData.error) venuesData.retry();
@@ -156,7 +158,7 @@ export default function Dashboard() {
 
       {/* Both are needed: without the venues it would look as if nothing had been imported. A
           failed reload keeps what was loaded on screen, below its error. */}
-      {!loading && overview && venuesData.loaded && (
+      {overview && venuesData.loaded && (
         <div className="dmn-admin__dashboard">
           {!setupDone && (
             <div className="dmn-admin__card dmn-admin__dashboard-wide">
