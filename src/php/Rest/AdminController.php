@@ -505,6 +505,10 @@ class AdminController
 
     }, $posts);
 
+    // A to Z by the name shown in the editor (the plugin's display name, else DMN's), in natural
+    // order so "Room 2" comes before "Room 10"; the type ID breaks ties so the order is stable.
+    usort($rows, fn($a, $b) => strnatcasecmp($a['name'], $b['name']) ?: strcmp($a['dmn_type_id'], $b['dmn_type_id']));
+
     return new WP_REST_Response(['activities' => $rows], 200);
   }
 

@@ -423,6 +423,21 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
         </div>
       </div>
 
+      {/* About loading bookings from DesignMyNight, so beside Refresh bookings rather than under
+          the period filters, which it has nothing to do with. */}
+      {data && (
+        <DataNotices
+          data={data}
+          onSync={sync}
+          syncing={syncing}
+          openConnection={() => openSettingsTab('connection')}
+          // Already there on the Settings tab, where the button would do nothing.
+          openSettings={
+            analyticsTab === 'settings' ? undefined : () => openAnalyticsTab('settings')
+          }
+        />
+      )}
+
       <nav className="dmn-admin__nav dmn-admin__nav--secondary" aria-label="Analytics views">
         <Tabs
           value={analyticsTab}
@@ -560,15 +575,6 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
               {loading && report && ' (updating…)'}
             </p>
           </form>
-          {data && (
-            <DataNotices
-              data={data}
-              onSync={sync}
-              syncing={syncing}
-              openConnection={() => openSettingsTab('connection')}
-              openSettings={() => openAnalyticsTab('settings')}
-            />
-          )}
           {report && !filtered && <PeriodNotice report={report} onShowRange={showRange} />}
         </>
       )}
@@ -673,7 +679,7 @@ function DataNotices({
   onSync: () => void;
   syncing: boolean;
   openConnection: () => void;
-  openSettings: () => void;
+  openSettings?: () => void;
 }) {
   const s: SyncState = data.sync;
   const notices: React.ReactNode[] = [];
@@ -704,8 +710,10 @@ function DataNotices({
     );
   } else if (s.ok === false && s.error) {
     notices.push(
+      // Refresh bookings, beside it, is the way to try again; the line below says how old the
+      // figures are.
       <StatusMessage key="err" tone="error">
-        The last update from DesignMyNight failed: {s.error}
+        Bookings couldn’t be updated from DesignMyNight. {s.error}
       </StatusMessage>,
     );
   }
@@ -737,9 +745,11 @@ function DataNotices({
           Widget activity isn’t being recorded, so the funnel and conversion only cover earlier
           activity.
         </StatusMessage>
-        <button type="button" className="button button--text" onClick={openSettings}>
-          Open settings
-        </button>
+        {openSettings && (
+          <button type="button" className="button button--text" onClick={openSettings}>
+            Open settings
+          </button>
+        )}
       </div>,
     );
   }

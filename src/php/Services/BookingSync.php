@@ -34,6 +34,13 @@ class BookingSync
   private const STATUSES = 'new,in_progress,complete,rejected,deleted,lost';
   private const PAGE_SIZE = 100;
   private const MAX_PAGES = 20;
+  /**
+   * The furthest a search can page: the live API answers HTTP 400 "Start + limit cannot be more
+   * than 10,000" beyond it. The bookings search page doesn't document this limit. Before reaching
+   * it, a run carries on from the created date of the last booking it read, with `start` back at 0
+   * (see next_window()).
+   */
+  private const MAX_WINDOW = 10000;
   /** Seconds a run may spend before leaving the rest to the next run, well inside PHP's usual limit. */
   private const TIME_BUDGET = 20;
   /**
@@ -277,14 +284,20 @@ class BookingSync
       'start' => 0,
       'started_at' => time(),
     ];
+    // Cursors saved before windows existed have neither key.
+    $cursor += ['created_from' => null, 'last_created' => null];
 
     $client = new DmnClient();
     $stored = 0;
 
     $started = microtime(true);
     for ($page = 0; $page < self::MAX_PAGES && microtime(true) - $started < self::TIME_BUDGET; $page++) {
-      // add_query_arg() doesn't encode values, and the range contains spaces and an asterisk.
-      $resp = $client->request('GET', '/bookings', [
+      if ((int)$cursor['start'] + self::PAGE_SIZE > self::MAX_WINDOW) {
+        $cursor = self::next_window($cursor);
+      }
+
+      $query = [
+        // add_query_arg() doesn't encode values, and the ranges contain spaces and an asterisk.
         'venue_id' => rawurlencode(implode(',', $venue_ids)),
         'last_updated' => rawurlencode($cursor['since'] . ' TO *'),
         // Every documented status, listed explicitly: the default isn't documented, and `all`
@@ -293,7 +306,11 @@ class BookingSync
         'sort' => 'created_date_asc',
         'start' => (int)$cursor['start'],
         'limit' => self::PAGE_SIZE,
-      ], null, false);
+      ];
+      if ($cursor['created_from']) {
+        $query['created_date'] = rawurlencode($cursor['created_from'] . ' TO *');
+      }
+      $resp = $client->request('GET', '/bookings', $query, null, false);
 
       if (empty($resp['ok'])) {
         $state['cursor'] = $cursor;
@@ -329,6 +346,11 @@ class BookingSync
       // (stored again, harmlessly); the joining booking was updated after the run started, so the
       // next cycle, from the new watermark, fetches it.
       $cursor['start'] = (int)$cursor['start'] + count($bookings);
+      $last = $bookings ? end($bookings) : null;
+      $last_created = is_array($last) ? self::datetime($last['created_date'] ?? null) : null;
+      if ($last_created) {
+        $cursor['last_created'] = str_replace(' ', 'T', $last_created);
+      }
       if ($bookings && $cursor['start'] < $found) {
         // Saved after every page, so a run cut short by PHP's time limit resumes from here.
         $state['cursor'] = $cursor;
@@ -352,6 +374,27 @@ class BookingSync
     $state['cursor'] = $cursor;
     $state['complete'] = false;
     $this->succeed($state, $stored);
+  }
+
+  /**
+   * The cursor for the next window of the same search: bookings created from the last one read
+   * onward, from the start. The range includes that moment, so bookings made at the same second
+   * are read again (and stored again, harmlessly) rather than skipped. If a whole window was made
+   * in one second, the next starts a second later, so a run always moves on (the rest of that
+   * second can't be listed; it would take over 10,000 bookings made at once). A cursor saved
+   * before windows existed has no last created date, so it starts its window again from the
+   * beginning.
+   */
+  private static function next_window(array $cursor): array
+  {
+    if (!$cursor['last_created']) {
+      return ['start' => 0] + $cursor;
+    }
+    $from = $cursor['last_created'];
+    if ($from === $cursor['created_from']) {
+      $from = gmdate('Y-m-d\TH:i:s', strtotime($from . 'Z') + 1);
+    }
+    return ['created_from' => $from, 'start' => 0] + $cursor;
   }
 
   private function succeed(array $state, int $count): void
@@ -415,6 +458,10 @@ class BookingSync
   {
     $status = (int)($resp['status'] ?? 0);
     $detail = trim((string)($resp['error'] ?? ''));
+    // DMN's messages have no closing full stop; add one so the next sentence doesn't run on.
+    if ($detail !== '' && !preg_match('/[.!?]$/', $detail)) {
+      $detail .= '.';
+    }
     $said = $detail !== '' ? " DesignMyNight said: $detail" : '';
 
     if ($status === 401) {
@@ -431,6 +478,9 @@ class BookingSync
     }
     if ($status === 503) {
       return ['request_failed', 'DesignMyNight is temporarily unavailable. Try again later.'];
+    }
+    if ($status === 400) {
+      return ['request_failed', "DesignMyNight didn't accept the request for bookings (HTTP 400).$said"];
     }
     return ['request_failed', "DesignMyNight returned an error (HTTP $status).$said"];
   }
