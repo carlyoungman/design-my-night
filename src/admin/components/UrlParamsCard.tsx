@@ -1,5 +1,5 @@
 // src/admin/components/UrlParamsCard.tsx
-import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 import { LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
@@ -7,6 +7,10 @@ import { useToast } from '@admin/components/Toasts';
 export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
   const [orig, setOrig] = useState<UrlParamRow[]>([]);
+  // A stable key per row, so removing a row doesn't hand its inputs (and focus) to the next one.
+  const [keys, setKeys] = useState<number[]>([]);
+  const nextKey = useRef(0);
+  const freshKeys = (n: number) => Array.from({ length: n }, () => nextKey.current++);
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -25,6 +29,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
       const res = await getUrlParams();
       setRows(res.items || []);
       setOrig(res.items || []);
+      setKeys(freshKeys((res.items || []).length));
     } catch (e) {
       setLoadErr(errorMessage(e, 'URL parameters could not be loaded.'));
     } finally {
@@ -38,10 +43,12 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
 
   const addRow = () => {
     setRows((prev) => [...prev, { name: '', value: '' }]);
+    setKeys((prev) => [...prev, ...freshKeys(1)]);
   };
 
   const removeRow = (index: number) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
+    setKeys((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateRow = (index: number, patch: Partial<UrlParamRow>) => {
@@ -64,6 +71,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
       const res = await saveUrlParams(cleaned);
       setRows(res.items || []);
       setOrig(res.items || []);
+      setKeys(freshKeys((res.items || []).length));
       saveToast.success('URL parameters saved.');
     } catch (e) {
       saveToast.error('URL parameters could not be saved. Try again.', { error: e });
@@ -97,7 +105,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
           )}
 
           {rows.map((row, i) => (
-            <fieldset key={i} className="dmn-admin__param-row">
+            <fieldset key={keys[i] ?? `new-${i}`} className="dmn-admin__param-row">
               <legend className="screen-reader-text">Parameter {i + 1}</legend>
               <div className="dmn-admin__field">
                 <label htmlFor={`dmn-param-name-${i}`}>Name</label>

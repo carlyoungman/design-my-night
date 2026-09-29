@@ -71,7 +71,7 @@ Use the shared design tokens instead of ad-hoc values. The values below are this
 
 | Token or element                    | Value                                                                                                           |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Font                                | Michroma (`--font-family`), falling back to the system sans-serif stack                                         |
+| Font                                | The WordPress admin's system sans-serif stack (`--font-family`)                                                 |
 | Body text                           | 16 px, line-height 1.6, weight 400 (`--font-base-size`, `--font-base-line-height`, `--font-base-font-weight`)   |
 | Labels, status text, tabs           | 14 px, weight 600 for labels and tabs                                                                           |
 | Supporting / help text and metadata | 13 px (`.dmn-admin__help`)                                                                                      |
@@ -100,7 +100,8 @@ This palette applies to both the admin app and the booking widget. It is defined
 | `--c-outline`       | `#79747E`                                        | `#938F99`              | Input, checkbox, and other control borders                                                                        |
 | `--c-text`          | `#1D1B20`                                        | `#E6E0E9`              | Main headings and body text                                                                                       |
 | `--c-success`       | `#379f70`                                        | `#6fcf9f`              | Success and saved states                                                                                          |
-| `--c-error`         | `#bb3d3d`                                        | `#f2b8b5`              | Errors and unsaved changes                                                                                        |
+| `--c-error`         | `#bb3d3d`                                        | `#f2b8b5`              | Errors                                                                                                            |
+| `--c-warning`       | `#9a6200`                                        | `#e8b64c`              | Warning and unsaved-changes icons and markers, always beside text in `--c-text`                                   |
 
 **Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Settings > Appearance tab (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
 
@@ -109,7 +110,7 @@ Contrast limits (checked against `--c-surface` and `--c-background` in each mode
 - `--c-success` in light mode is only about 3.1–3.3:1, so it fails the 4.5:1 minimum for normal text. Use it for icons, fills, and borders, or for text of at least 24 px (19 px bold). Always pair it with a readable text label in `--c-text`.
 - `--c-divider` is below 3:1 in both modes, so it only works as a decorative divider or surface. Input, checkbox, and other control borders need at least 3:1, so use `--c-outline` for those.
 - `--c-outline` reaches at least 3:1 in both modes (about 4.3–4.6:1 light, 5.1–5.9:1 dark), enough for control borders.
-- `--c-primary-text`, `--c-error`, and `--c-text` pass 4.5:1 on both surfaces in both modes.
+- `--c-primary-text`, `--c-error`, `--c-warning`, and `--c-text` pass 4.5:1 on both surfaces in both modes.
 
 - Distinguish page, section, label, metric, and supporting-text hierarchy through typography before adding decorative elements.
 - Use the named palette variables for every colour. Do not add ad-hoc hex values; if a new colour is needed, add it to the palette first. Use each colour only for the purpose listed in the palette.

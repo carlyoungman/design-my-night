@@ -22,6 +22,7 @@
   --c-text: var(--c-near-black, #1d1b20);
   --c-success: var(--c-green, #379f70);
   --c-error: var(--c-red, #bb3d3d);
+  --c-warning: #9a6200;
 
   // Mixed into a primary fill on hover. It is the opposite of --c-on-primary, so the text on
   // the fill gains contrast, and it follows a site's own --c-primary.
@@ -42,6 +43,7 @@
   --c-text: #e6e0e9;
   --c-success: #6fcf9f;
   --c-error: #f2b8b5;
+  --c-warning: #e8b64c;
   --c-primary-shade: var(--theme-primary-shade-dark, #000);
 
   color-scheme: dark;

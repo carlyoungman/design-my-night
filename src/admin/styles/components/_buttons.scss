@@ -31,8 +31,10 @@
   border-radius: 999px;
   transition: var(--transition);
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled, [aria-disabled='true']) {
     color: var(--c-on-primary);
+    background: var(--c-primary-hover);
+    border-color: var(--c-primary-hover);
     box-shadow: var(--box-shadow-1);
   }
 
@@ -46,9 +48,10 @@
     background: transparent;
     border-color: var(--c-outline);
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled, [aria-disabled='true']) {
       color: var(--c-primary-text);
       background: color-mix(in srgb, var(--c-primary) 8%, transparent);
+      border-color: var(--c-outline);
       box-shadow: none;
     }
   }
@@ -60,9 +63,10 @@
     background: transparent;
     border-color: transparent;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled, [aria-disabled='true']) {
       color: var(--c-primary-text);
       background: color-mix(in srgb, var(--c-primary) 8%, transparent);
+      border-color: transparent;
       box-shadow: none;
     }
 
@@ -76,14 +80,18 @@
     background: transparent;
     border-color: var(--c-outline);
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled, [aria-disabled='true']) {
       color: var(--c-error);
       background: color-mix(in srgb, var(--c-error) 8%, transparent);
+      border-color: var(--c-outline);
       box-shadow: none;
     }
   }
 
-  &:disabled {
+  // aria-disabled keeps a button focusable, for example while it runs, and when an action is
+  // blocked with a reason beside it. Blocked, it must look like a disabled button, not a live one.
+  &:disabled,
+  &[aria-disabled='true']:not([aria-busy='true']) {
     color: color-mix(in srgb, var(--c-text) 50%, transparent);
     cursor: not-allowed;
     background: color-mix(in srgb, var(--c-text) 8%, transparent);

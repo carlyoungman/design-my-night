@@ -224,7 +224,7 @@
   }
 }
 
-.button[aria-disabled='true'] {
+.button[aria-disabled='true'][aria-busy='true'] {
   cursor: progress;
 }
 

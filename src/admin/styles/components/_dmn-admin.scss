@@ -104,7 +104,7 @@
   &__nav-dot {
     width: 8px;
     height: 8px;
-    background: var(--c-error);
+    background: var(--c-warning);
     border-radius: 50%;
   }
 
@@ -220,7 +220,7 @@
     }
 
     &--warning svg {
-      color: var(--c-error);
+      color: var(--c-warning);
     }
 
     &--block {
