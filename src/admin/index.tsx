@@ -65,7 +65,7 @@ function App() {
       <DataProvider>
         <ToastsProvider>
           <ConfirmProvider>
-            <ImportProvider>
+            <ImportProvider unsavedActivities={venuesDirty}>
               <PageHeader />
               <SectionTabs
                 unsaved={{

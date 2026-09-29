@@ -25,6 +25,7 @@ import {
   useElapsedSeconds,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { useConfirm } from '@admin/components/Confirm';
 
 /** Imported data older than this gets a reminder to import again. */
 export const STALE_AFTER_DAYS = 7;
@@ -77,8 +78,18 @@ type ImportCtx = { busy: boolean; elapsed: number; run: () => void };
 
 const ImportContext = createContext<ImportCtx | null>(null);
 
-export function ImportProvider({ children }: { children: React.ReactNode }) {
+export function ImportProvider({
+  unsavedActivities,
+  children,
+}: {
+  /** Whether Venues has unsaved activity edits, which an import reloads and so discards. */
+  unsavedActivities: boolean;
+  children: React.ReactNode;
+}) {
   const { notifyDataChanged, notifyOverviewChanged, goToSection } = useAdmin();
+  const confirm = useConfirm();
+  const unsavedRef = useRef(unsavedActivities);
+  unsavedRef.current = unsavedActivities;
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const elapsed = useElapsedSeconds(busy);
@@ -95,6 +106,18 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
   }, [busy]);
 
   const run = useCallback(async () => {
+    if (busyRef.current) return;
+    if (
+      unsavedRef.current &&
+      !(await confirm({
+        title: 'Import and discard unsaved activity changes?',
+        message:
+          'Importing reloads every venue’s activities, so your unsaved changes to them will be lost. To keep them, save them under Venues first.',
+        confirmLabel: 'Import and discard',
+        danger: true,
+      }))
+    )
+      return;
     if (busyRef.current) return;
     busyRef.current = true;
     setBusy(true);
@@ -128,7 +151,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
       busyRef.current = false;
       setBusy(false);
     }
-  }, [toast, notifyDataChanged, notifyOverviewChanged, goToSection]);
+  }, [toast, confirm, notifyDataChanged, notifyOverviewChanged, goToSection]);
   runRef.current = run;
 
   return <ImportContext.Provider value={{ busy, elapsed, run }}>{children}</ImportContext.Provider>;
