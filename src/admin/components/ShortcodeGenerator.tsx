@@ -2,7 +2,7 @@
 // Builds a [dmn_booking] shortcode from the imported venues and activities. Nothing is saved and
 // no DesignMyNight request is made: it only reads what has already been imported.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, RotateCcw } from 'lucide-react';
+import { Copy, RotateCcw, Trash2 } from 'lucide-react';
 import { adminListActivities } from '@admin/api';
 import { useOverview, useVenues } from '@admin/data';
 import { FieldError, LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
@@ -371,10 +371,11 @@ export default function ShortcodeGenerator() {
                     </div>
                     <button
                       type="button"
-                      className="button button--danger"
+                      className="button button--text"
                       aria-label={`Remove parameter ${p.name || i + 1}`}
                       onClick={() => set({ urlParams: state.urlParams.filter((_, j) => j !== i) })}
                     >
+                      <Trash2 aria-hidden="true" />
                       Remove
                     </button>
                   </fieldset>

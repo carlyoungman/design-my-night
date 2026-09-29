@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
+  ArrowRight,
   CheckCircle2,
   Circle,
   CircleDot,
@@ -81,9 +82,8 @@ export default function Dashboard() {
     (t, v) => ({
       activities: t.activities + v.activities_count,
       visible: t.visible + v.visible_count,
-      withoutImage: t.withoutImage + v.without_image_count,
     }),
-    { activities: 0, visible: 0, withoutImage: 0 },
+    { activities: 0, visible: 0 },
   );
 
   // Venues count as imported even without a record: imports before the record existed left none.
@@ -187,10 +187,12 @@ export default function Dashboard() {
                     )}
                   </div>
                 </li>
+                {/* The plugin can't tell whether a page shows the widget, so this is a pointer, not a
+                    step with a done state. */}
                 <li className="dmn-admin__step">
-                  <Circle aria-hidden="true" />
+                  <ArrowRight aria-hidden="true" />
                   <div>
-                    <p className="dmn-admin__step-title">Add the booking widget to a page</p>
+                    <p className="dmn-admin__step-title">Next: add the booking widget to a page</p>
                     <button
                       type="button"
                       className="button button--text"
@@ -264,10 +266,6 @@ export default function Dashboard() {
                   {totals.visible}
                   <span className="dmn-admin__stat-of"> of {totals.activities}</span>
                 </dd>
-              </div>
-              <div className="dmn-admin__stat">
-                <dt>Without an image</dt>
-                <dd>{totals.withoutImage}</dd>
               </div>
             </dl>
           )}

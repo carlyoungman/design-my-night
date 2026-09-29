@@ -4,6 +4,7 @@ import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 import { LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 import { DiscardButton } from '@admin/components/Confirm';
+import { Trash2 } from 'lucide-react';
 
 export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
@@ -129,10 +130,11 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
 
               <button
                 type="button"
-                className="button button--danger"
+                className="button button--text"
                 onClick={() => removeRow(i)}
                 aria-label={`Remove parameter ${row.name || i + 1}`}
               >
+                <Trash2 aria-hidden="true" />
                 Remove
               </button>
             </fieldset>
