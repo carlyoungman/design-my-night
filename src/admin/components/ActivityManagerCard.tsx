@@ -16,6 +16,7 @@ import {
   useLatestRequest,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { DiscardButton } from '@admin/components/Confirm';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
 type VisibilityFilter = 'all' | 'shown' | 'hidden';
@@ -356,6 +357,12 @@ export default function ActivityManagerCard({
                   : 'Save activities'}
             </button>
           )}
+          <DiscardButton
+            dirty={dirty.size > 0}
+            disabled={saving}
+            what={`${venue.title || 'this venue'}’s activities`}
+            onDiscard={() => setRows(orig)}
+          />
         </div>
       </div>
 

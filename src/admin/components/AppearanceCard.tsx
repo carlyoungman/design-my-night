@@ -7,6 +7,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { getAppearance, saveAppearance, type Appearance, type ColourMode } from '@admin/api';
 import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { DiscardButton } from '@admin/components/Confirm';
 
 type FormState = {
   theme_colour: string;
@@ -235,6 +236,15 @@ export default function AppearanceCard({ onDirty }: { onDirty?: (d: boolean) => 
             <button type="submit" className="button" disabled={saving || !dirty} aria-busy={saving}>
               {saving ? 'Saving…' : 'Save appearance'}
             </button>
+            <DiscardButton
+              dirty={dirty}
+              disabled={saving}
+              what="the appearance"
+              onDiscard={() => {
+                if (saved) setForm(saved);
+                setColourErr(null);
+              }}
+            />
           </div>
         </form>
       )}

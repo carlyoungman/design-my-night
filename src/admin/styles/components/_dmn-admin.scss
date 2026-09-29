@@ -305,6 +305,10 @@
   }
 }
 
+.dmn-admin__dialog-message > :last-child {
+  margin-bottom: 0;
+}
+
 .dmn-admin__dialog-actions {
   justify-content: flex-end;
   margin-top: var(--universal-space-2);

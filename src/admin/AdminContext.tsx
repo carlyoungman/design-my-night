@@ -55,10 +55,10 @@ type Route = {
 };
 
 /**
- * Asked before opening a different venue. Returns false to stay put, for example when the user
- * doesn't want to discard unsaved edits.
+ * Asked before opening a different venue. Returns (or resolves to) false to stay put, for example
+ * when the user doesn't want to discard unsaved edits; a promise lets it ask in a dialog first.
  */
-export type VenueGuard = (nextVenueId: number) => boolean;
+export type VenueGuard = (nextVenueId: number) => boolean | Promise<boolean>;
 
 type Ctx = {
   section: SectionId;
@@ -143,14 +143,28 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const go = useCallback((next: Route) => {
+    if (sameRoute(next, routeRef.current)) return;
+    routeRef.current = next;
+    setRoute(next);
+    if (window.location.hash !== `#${hashFor(next)}`) window.location.hash = hashFor(next);
+  }, []);
+
+  /** Goes to `next` once the guard allows it: now, after its dialog is answered, or never. */
+  const goWhenAllowed = useCallback(
+    (next: Route) => {
+      const ok = allowed(next);
+      if (ok === true) go(next);
+      else if (ok instanceof Promise) ok.then((yes) => yes && go(next));
+    },
+    [allowed, go],
+  );
+
   const navigate = useCallback(
     (next: Route) => {
-      if (sameRoute(next, routeRef.current) || !allowed(next)) return;
-      routeRef.current = next;
-      setRoute(next);
-      if (window.location.hash !== `#${hashFor(next)}`) window.location.hash = hashFor(next);
+      if (!sameRoute(next, routeRef.current)) goWhenAllowed(next);
     },
-    [allowed],
+    [goWhenAllowed],
   );
 
   // Links, and browser back and forward, move between sections and venues.
@@ -166,17 +180,20 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           parsed.section === 'settings' ? parsed.settingsTab : routeRef.current.settingsTab,
       };
       if (sameRoute(next, routeRef.current)) return;
-      if (!allowed(next)) {
-        // Put the address back without adding a history entry.
-        window.history.replaceState(null, '', `#${hashFor(routeRef.current)}`);
+      const ok = allowed(next);
+      if (ok === true) {
+        routeRef.current = next;
+        setRoute(next);
         return;
       }
-      routeRef.current = next;
-      setRoute(next);
+      // Put the address back without adding a history entry; if the guard's dialog then allows
+      // it, go there as if a link had been followed.
+      window.history.replaceState(null, '', `#${hashFor(routeRef.current)}`);
+      if (ok instanceof Promise) ok.then((yes) => yes && go(next));
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, [allowed]);
+  }, [allowed, go]);
 
   // Leaving Analytics or Settings and coming back returns to the same tab.
   const goToSection = useCallback(

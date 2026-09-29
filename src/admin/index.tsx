@@ -12,6 +12,7 @@ import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
 import SettingsPanel from '@admin/components/SettingsPanel';
 import { ToastsProvider } from '@admin/components/Toasts';
 import { DataProvider } from '@admin/data';
+import { ConfirmProvider } from '@admin/components/Confirm';
 import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
@@ -61,30 +62,32 @@ function App() {
     <AdminProvider>
       <DataProvider>
         <ToastsProvider>
-          <PageHeader />
-          <SectionTabs
-            unsaved={{
-              venues: venuesDirty,
-              analytics: analyticsDirty,
-              settings: paramsDirty || appearanceDirty,
-            }}
-          />
-          <Panel id="dashboard">
-            <Dashboard />
-          </Panel>
-          <Panel id="analytics">
-            <AnalyticsPanel onDirty={setAnalyticsDirty} />
-          </Panel>
-          <Panel id="venues">
-            <VenuesPanel onDirty={setVenuesDirty} />
-          </Panel>
-          <Panel id="settings">
-            <SettingsPanel
-              unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
-              onParamsDirty={setParamsDirty}
-              onAppearanceDirty={setAppearanceDirty}
+          <ConfirmProvider>
+            <PageHeader />
+            <SectionTabs
+              unsaved={{
+                venues: venuesDirty,
+                analytics: analyticsDirty,
+                settings: paramsDirty || appearanceDirty,
+              }}
             />
-          </Panel>
+            <Panel id="dashboard">
+              <Dashboard />
+            </Panel>
+            <Panel id="analytics">
+              <AnalyticsPanel onDirty={setAnalyticsDirty} />
+            </Panel>
+            <Panel id="venues">
+              <VenuesPanel onDirty={setVenuesDirty} />
+            </Panel>
+            <Panel id="settings">
+              <SettingsPanel
+                unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
+                onParamsDirty={setParamsDirty}
+                onAppearanceDirty={setAppearanceDirty}
+              />
+            </Panel>
+          </ConfirmProvider>
         </ToastsProvider>
       </DataProvider>
     </AdminProvider>

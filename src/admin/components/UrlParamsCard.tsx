@@ -3,6 +3,7 @@ import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } f
 import { getUrlParams, saveUrlParams, type UrlParamRow } from '@admin/api';
 import { LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { DiscardButton } from '@admin/components/Confirm';
 
 export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => void }) {
   const [rows, setRows] = useState<UrlParamRow[]>([]);
@@ -140,6 +141,15 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
             <button type="submit" className="button" disabled={saving || !dirty} aria-busy={saving}>
               {saving ? 'Saving…' : 'Save URL parameters'}
             </button>
+            <DiscardButton
+              dirty={dirty}
+              disabled={saving}
+              what="the URL parameters"
+              onDiscard={() => {
+                setRows(orig);
+                setKeys(freshKeys(orig.length));
+              }}
+            />
             <button type="button" className="button button--secondary" onClick={addRow}>
               Add parameter
             </button>

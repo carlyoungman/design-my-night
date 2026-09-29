@@ -9,6 +9,7 @@ import {
 } from '@admin/api';
 import { FieldError, LoadError, Loading, SaveState, errorMessage } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
+import { DiscardButton, useConfirm } from '@admin/components/Confirm';
 import { plural } from './format';
 
 export default function AnalyticsSettings({
@@ -29,6 +30,7 @@ export default function AnalyticsSettings({
   const [attempt, setAttempt] = useState(0);
   const saveToast = useToast();
   const deleteToast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     let cancel = false;
@@ -74,9 +76,12 @@ export default function AnalyticsSettings({
       (saved.retention_days === 0 || Number(retention) < saved.retention_days);
     if (
       shorter &&
-      !window.confirm(
-        `Data older than ${plural(Number(retention), 'day', 'days')} will be deleted now, and can’t be restored. Continue?`,
-      )
+      !(await confirm({
+        title: 'Delete older analytics data?',
+        message: `Data older than ${plural(Number(retention), 'day', 'days')} will be deleted now, and can’t be restored.`,
+        confirmLabel: 'Save and delete older data',
+        danger: true,
+      }))
     )
       return;
 
@@ -105,9 +110,13 @@ export default function AnalyticsSettings({
 
   const deleteEvents = async () => {
     if (
-      !window.confirm(
-        'Delete all recorded widget activity? The funnel and conversion figures start again from zero. Bookings from DesignMyNight are kept.',
-      )
+      !(await confirm({
+        title: 'Delete all recorded widget activity?',
+        message:
+          'The funnel and conversion figures start again from zero. Bookings from DesignMyNight are kept.',
+        confirmLabel: 'Delete widget activity',
+        danger: true,
+      }))
     )
       return;
     setDeleting(true);
@@ -198,6 +207,17 @@ export default function AnalyticsSettings({
             <button type="submit" className="button" disabled={saving || !dirty}>
               {saving ? 'Saving…' : 'Save settings'}
             </button>
+            <DiscardButton
+              dirty={dirty}
+              disabled={saving}
+              what="the analytics settings"
+              onDiscard={() => {
+                if (!saved) return;
+                setTracking(saved.tracking);
+                setRetention(String(saved.retention_days));
+                setFieldError(null);
+              }}
+            />
             <button
               type="button"
               className="button button--danger"
