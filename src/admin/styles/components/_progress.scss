@@ -290,3 +290,70 @@
     opacity: 0;
   }
 }
+
+// Loading skeletons (Skeleton in components/ui.tsx): grey shapes in the layout of the content on
+// its way. The pulse stops under prefers-reduced-motion (styles.scss).
+.dmn-admin__skeleton-shapes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--universal-space);
+}
+
+.dmn-admin__skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--universal-space);
+
+  &--two {
+    @include breakpoint.large-screen-min {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &--grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+.dmn-admin__skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--universal-space);
+  background: var(--c-surface);
+  border: 1px solid var(--c-divider);
+  border-radius: var(--border-radius);
+
+  @include breakpoint.medium-screen-min {
+    padding: var(--universal-space-2);
+  }
+}
+
+.dmn-admin__skeleton-block {
+  display: block;
+  width: 100%;
+  height: 12px;
+  background: var(--c-divider);
+  border-radius: 6px;
+  animation: dmn-admin-skeleton-pulse 1.4s ease-in-out infinite;
+
+  &--title {
+    width: 45%;
+    height: 18px;
+  }
+
+  &--short {
+    width: 60%;
+  }
+
+  &--chart {
+    height: 180px;
+    border-radius: var(--universal-space-half);
+  }
+}
+
+@keyframes dmn-admin-skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

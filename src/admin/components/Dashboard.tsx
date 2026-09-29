@@ -28,7 +28,7 @@ import ImportStatus, {
   plural,
   staleDays,
 } from '@admin/components/ImportStatus';
-import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
+import { LoadError, Loading, StatusMessage, errorMessage, Skeleton } from '@admin/components/ui';
 
 type AttentionItem = { key: string; icon: React.ReactNode; content: React.ReactNode };
 
@@ -124,8 +124,10 @@ export default function Dashboard() {
         icon: <EyeOff aria-hidden="true" />,
         content: (
           <>
-            {venueLink(v.id, v.title)}: All{' '}
-            {plural(v.activities_count, 'activity is', 'activities are')} hidden from the widget
+            {venueLink(v.id, v.title)}:{' '}
+            {v.activities_count === 1
+              ? 'Its only activity is hidden from the widget'
+              : `All ${v.activities_count} activities are hidden from the widget`}
           </>
         ),
       });
@@ -153,7 +155,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {loading && <Loading>Loading dashboard…</Loading>}
+      {loading && <Skeleton layout="dashboard" label="Loading dashboard…" />}
       {!loading && error && <LoadError message={error} onRetry={retry} />}
 
       {/* Both are needed: without the venues it would look as if nothing had been imported. A

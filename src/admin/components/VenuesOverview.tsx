@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { type AdminVenue } from '@admin/api';
 import { useAdmin, venueHref } from '@admin/AdminContext';
-import { LoadError, Loading, useMediaQuery } from '@admin/components/ui';
+import { LoadError, useMediaQuery, Skeleton } from '@admin/components/ui';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -125,7 +125,7 @@ export default function VenuesOverview({
         </div>
       </div>
 
-      {loading && <Loading>Loading venues…</Loading>}
+      {loading && <Skeleton layout="cards" label="Loading venues…" />}
       {!loading && error && <LoadError message={error} onRetry={onRetry} />}
       {!loading && !error && venues.length === 0 && (
         <div className="dmn-admin__empty">

@@ -184,3 +184,54 @@ export function useMediaQuery(query: string) {
   }, [query]);
   return matches;
 }
+
+type SkeletonLayout = 'dashboard' | 'cards' | 'records' | 'report';
+
+/**
+ * Loading placeholder shaped like the content on its way, so the page doesn't jump when it
+ * arrives. The shapes are hidden from assistive technologies; `label` is announced instead.
+ */
+export function Skeleton({ layout, label }: { layout: SkeletonLayout; label: string }) {
+  const block = (className = '') => <span className={`dmn-admin__skeleton-block ${className}`} />;
+  const card = (lines: number, key?: number) => (
+    <span key={key} className="dmn-admin__skeleton-card">
+      {block('dmn-admin__skeleton-block--title')}
+      {Array.from({ length: lines }, (_, i) => (
+        <React.Fragment key={i}>
+          {block(i === lines - 1 ? 'dmn-admin__skeleton-block--short' : '')}
+        </React.Fragment>
+      ))}
+    </span>
+  );
+  return (
+    <div className={`dmn-admin__skeleton dmn-admin__skeleton--${layout}`} role="status">
+      <span className="screen-reader-text">{label}</span>
+      <span className="dmn-admin__skeleton-shapes" aria-hidden="true">
+        {layout === 'dashboard' && (
+          <>
+            {card(3)}
+            <span className="dmn-admin__skeleton-row">{[0, 1, 2].map((i) => card(1, i))}</span>
+            <span className="dmn-admin__skeleton-row dmn-admin__skeleton-row--two">
+              {[0, 1].map((i) => card(4, i))}
+            </span>
+          </>
+        )}
+        {layout === 'cards' && (
+          <span className="dmn-admin__skeleton-row dmn-admin__skeleton-row--grid">
+            {[0, 1, 2, 3].map((i) => card(2, i))}
+          </span>
+        )}
+        {layout === 'records' && [0, 1, 2].map((i) => card(1, i))}
+        {layout === 'report' && (
+          <>
+            <span className="dmn-admin__skeleton-row">{[0, 1, 2, 3].map((i) => card(1, i))}</span>
+            <span className="dmn-admin__skeleton-card dmn-admin__skeleton-card--chart">
+              {block('dmn-admin__skeleton-block--title')}
+              {block('dmn-admin__skeleton-block--chart')}
+            </span>
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
