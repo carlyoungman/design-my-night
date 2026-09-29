@@ -1,16 +1,64 @@
 // src/admin/components/VenuesOverview.tsx
 // The plugin's landing view: every imported venue with a summary of its activities. Opening a venue
 // shows its activities (see VenuesPanel).
-import React, { useState } from 'react';
-import { ChevronRight, CircleDot, ImageOff, Search } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronRight,
+  CircleDot,
+  ImageOff,
+  Search,
+} from 'lucide-react';
 import { type AdminVenue } from '@admin/api';
 import { useAdmin, venueHref } from '@admin/AdminContext';
-import { LoadError, Loading } from '@admin/components/ui';
+import { LoadError, Loading, useMediaQuery } from '@admin/components/ui';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /** Search only helps once there are more venues than fit on screen at a glance. */
 const SEARCH_FROM = 7;
+
+/**
+ * From as many venues as need search, a table compares them better than cards: one row each, with
+ * numbers in columns that can be sorted. Below tablet width the cards stay, as a table would
+ * scroll sideways.
+ */
+const TABLE_FROM = SEARCH_FROM;
+
+type SortKey = 'title' | 'activities' | 'shown' | 'hidden' | 'noImage';
+
+const SORT_LABELS: Record<SortKey, string> = {
+  title: 'Venue',
+  activities: 'Activities',
+  shown: 'Shown',
+  hidden: 'Hidden',
+  noImage: 'Without an image',
+};
+
+const COLUMNS: { key: SortKey; numeric: boolean }[] = [
+  { key: 'title', numeric: false },
+  { key: 'activities', numeric: true },
+  { key: 'shown', numeric: true },
+  { key: 'hidden', numeric: true },
+  { key: 'noImage', numeric: true },
+];
+
+const sortValue = (v: AdminVenue, key: SortKey): number | string => {
+  switch (key) {
+    case 'title':
+      return (v.title || '').toLowerCase();
+    case 'activities':
+      return v.activities_count;
+    case 'shown':
+      return v.visible_count;
+    case 'hidden':
+      return v.activities_count - v.visible_count;
+    case 'noImage':
+      return v.without_image_count;
+  }
+};
 
 type Props = {
   venues: AdminVenue[];
@@ -42,6 +90,26 @@ export default function VenuesOverview({
         (v) => v.title.toLowerCase().includes(q) || (v.dmn_id || '').toLowerCase().includes(q),
       )
     : venues;
+
+  const wide = useMediaQuery('(min-width: 768px)');
+  const asTable = wide && venues.length >= TABLE_FROM;
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({
+    key: 'title',
+    dir: 'asc',
+  });
+  const sorted = useMemo(() => {
+    const out = [...filtered];
+    out.sort((a, b) => {
+      const x = sortValue(a, sort.key);
+      const y = sortValue(b, sort.key);
+      const c =
+        typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
+      // Ties keep name order, so rows don't jump about.
+      const t = c || (a.title || '').localeCompare(b.title || '');
+      return sort.dir === 'asc' ? t : -t;
+    });
+    return out;
+  }, [filtered, sort]);
 
   return (
     <section
@@ -115,59 +183,160 @@ export default function VenuesOverview({
             </div>
           )}
 
-          <ul className="dmn-admin__venues">
-            {filtered.map((v) => {
-              const hiddenCount = v.activities_count - v.visible_count;
-              return (
-                <li key={v.id} className="dmn-admin__card dmn-admin__venue">
-                  <div className="dmn-admin__venue-head">
-                    <h3 className="dmn-admin__venue-title">
-                      {/* The link covers the whole card (see _venues.scss), so the card is the click target. */}
-                      <a
-                        href={venueHref(v.id)}
-                        ref={(el) => linkRef(v.id, el)}
-                        className="dmn-admin__venue-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          openVenue(v.id);
-                        }}
+          {asTable && sorted.length > 0 && (
+            <div className="dmn-admin__table-wrap">
+              <table className="dmn-admin__table dmn-admin__venue-table">
+                <caption className="screen-reader-text">
+                  Venues, sorted by {SORT_LABELS[sort.key].toLowerCase()} (
+                  {sort.dir === 'asc' ? 'ascending' : 'descending'})
+                </caption>
+                <thead>
+                  <tr>
+                    {COLUMNS.map((c) => (
+                      <th
+                        key={c.key}
+                        scope="col"
+                        className={c.numeric ? 'dmn-admin__num' : undefined}
+                        aria-sort={
+                          sort.key === c.key
+                            ? sort.dir === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : undefined
+                        }
                       >
-                        {v.title || 'Untitled venue'}
-                      </a>
-                    </h3>
-                    <ChevronRight className="dmn-admin__venue-chevron" aria-hidden="true" />
-                  </div>
-                  {v.dmn_id && <p className="dmn-admin__record-meta">DMN venue ID {v.dmn_id}</p>}
+                        <button
+                          type="button"
+                          className="dmn-admin__sort"
+                          onClick={() =>
+                            setSort((s) =>
+                              s.key === c.key
+                                ? { key: c.key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
+                                : { key: c.key, dir: c.numeric ? 'desc' : 'asc' },
+                            )
+                          }
+                        >
+                          {SORT_LABELS[c.key]}
+                          {sort.key === c.key ? (
+                            sort.dir === 'asc' ? (
+                              <ArrowUp aria-hidden="true" />
+                            ) : (
+                              <ArrowDown aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                    ))}
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((v) => (
+                    <tr key={v.id}>
+                      <th scope="row">
+                        <a
+                          href={venueHref(v.id)}
+                          ref={(el) => linkRef(v.id, el)}
+                          className="dmn-admin__venue-row-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openVenue(v.id);
+                          }}
+                        >
+                          {v.title || 'Untitled venue'}
+                        </a>
+                        {v.dmn_id && (
+                          <span className="dmn-admin__record-meta">DMN venue ID {v.dmn_id}</span>
+                        )}
+                      </th>
+                      <td className="dmn-admin__num">{v.activities_count}</td>
+                      <td className="dmn-admin__num">{v.visible_count}</td>
+                      <td className="dmn-admin__num">{v.activities_count - v.visible_count}</td>
+                      <td className="dmn-admin__num">{v.without_image_count}</td>
+                      <td>
+                        {unsavedVenueId === v.id ? (
+                          <span className="dmn-admin__chip">
+                            <CircleDot
+                              className="dmn-admin__chip-icon--warning"
+                              aria-hidden="true"
+                            />
+                            Unsaved changes
+                          </span>
+                        ) : v.activities_count === 0 ? (
+                          'No activities imported'
+                        ) : v.visible_count === 0 ? (
+                          'All hidden'
+                        ) : (
+                          ''
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-                  {v.activities_count > 0 ? (
-                    <p className="dmn-admin__venue-summary">
-                      {plural(v.activities_count, 'activity', 'activities')}: {v.visible_count}{' '}
-                      shown, {hiddenCount} hidden
-                    </p>
-                  ) : (
-                    <p className="dmn-admin__venue-summary">No activities imported</p>
-                  )}
-
-                  {(v.without_image_count > 0 || unsavedVenueId === v.id) && (
-                    <div className="dmn-admin__chips">
-                      {unsavedVenueId === v.id && (
-                        <span className="dmn-admin__chip">
-                          <CircleDot className="dmn-admin__chip-icon--warning" aria-hidden="true" />
-                          Unsaved changes
-                        </span>
-                      )}
-                      {v.without_image_count > 0 && (
-                        <span className="dmn-admin__chip">
-                          <ImageOff aria-hidden="true" />
-                          {v.without_image_count} without an image
-                        </span>
-                      )}
+          {!asTable && (
+            <ul className="dmn-admin__venues">
+              {filtered.map((v) => {
+                const hiddenCount = v.activities_count - v.visible_count;
+                return (
+                  <li key={v.id} className="dmn-admin__card dmn-admin__venue">
+                    <div className="dmn-admin__venue-head">
+                      <h3 className="dmn-admin__venue-title">
+                        {/* The link covers the whole card (see _venues.scss), so the card is the click target. */}
+                        <a
+                          href={venueHref(v.id)}
+                          ref={(el) => linkRef(v.id, el)}
+                          className="dmn-admin__venue-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openVenue(v.id);
+                          }}
+                        >
+                          {v.title || 'Untitled venue'}
+                        </a>
+                      </h3>
+                      <ChevronRight className="dmn-admin__venue-chevron" aria-hidden="true" />
                     </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                    {v.dmn_id && <p className="dmn-admin__record-meta">DMN venue ID {v.dmn_id}</p>}
+
+                    {v.activities_count > 0 ? (
+                      <p className="dmn-admin__venue-summary">
+                        {plural(v.activities_count, 'activity', 'activities')}: {v.visible_count}{' '}
+                        shown, {hiddenCount} hidden
+                      </p>
+                    ) : (
+                      <p className="dmn-admin__venue-summary">No activities imported</p>
+                    )}
+
+                    {(v.without_image_count > 0 || unsavedVenueId === v.id) && (
+                      <div className="dmn-admin__chips">
+                        {unsavedVenueId === v.id && (
+                          <span className="dmn-admin__chip">
+                            <CircleDot
+                              className="dmn-admin__chip-icon--warning"
+                              aria-hidden="true"
+                            />
+                            Unsaved changes
+                          </span>
+                        )}
+                        {v.without_image_count > 0 && (
+                          <span className="dmn-admin__chip">
+                            <ImageOff aria-hidden="true" />
+                            {v.without_image_count} without an image
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </>
       )}
     </section>
