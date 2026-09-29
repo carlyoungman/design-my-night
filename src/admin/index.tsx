@@ -13,6 +13,7 @@ import SettingsPanel from '@admin/components/SettingsPanel';
 import { ToastsProvider } from '@admin/components/Toasts';
 import { DataProvider } from '@admin/data';
 import { ConfirmProvider } from '@admin/components/Confirm';
+import { ImportProvider } from '@admin/components/ImportStatus';
 import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
@@ -64,35 +65,37 @@ function App() {
       <DataProvider>
         <ToastsProvider>
           <ConfirmProvider>
-            <PageHeader />
-            <SectionTabs
-              unsaved={{
-                venues: venuesDirty,
-                analytics: analyticsDirty,
-                settings: connectionDirty || paramsDirty || appearanceDirty,
-              }}
-            />
-            <Panel id="dashboard">
-              <Dashboard />
-            </Panel>
-            <Panel id="analytics">
-              <AnalyticsPanel onDirty={setAnalyticsDirty} />
-            </Panel>
-            <Panel id="venues">
-              <VenuesPanel onDirty={setVenuesDirty} />
-            </Panel>
-            <Panel id="settings">
-              <SettingsPanel
+            <ImportProvider>
+              <PageHeader />
+              <SectionTabs
                 unsaved={{
-                  connection: connectionDirty,
-                  'url-params': paramsDirty,
-                  appearance: appearanceDirty,
+                  venues: venuesDirty,
+                  analytics: analyticsDirty,
+                  settings: connectionDirty || paramsDirty || appearanceDirty,
                 }}
-                onConnectionDirty={setConnectionDirty}
-                onParamsDirty={setParamsDirty}
-                onAppearanceDirty={setAppearanceDirty}
               />
-            </Panel>
+              <Panel id="dashboard">
+                <Dashboard />
+              </Panel>
+              <Panel id="analytics">
+                <AnalyticsPanel onDirty={setAnalyticsDirty} />
+              </Panel>
+              <Panel id="venues">
+                <VenuesPanel onDirty={setVenuesDirty} />
+              </Panel>
+              <Panel id="settings">
+                <SettingsPanel
+                  unsaved={{
+                    connection: connectionDirty,
+                    'url-params': paramsDirty,
+                    appearance: appearanceDirty,
+                  }}
+                  onConnectionDirty={setConnectionDirty}
+                  onParamsDirty={setParamsDirty}
+                  onAppearanceDirty={setAppearanceDirty}
+                />
+              </Panel>
+            </ImportProvider>
           </ConfirmProvider>
         </ToastsProvider>
       </DataProvider>
