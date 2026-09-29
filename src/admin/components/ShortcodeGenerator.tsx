@@ -405,13 +405,9 @@ export default function ShortcodeGenerator() {
       </form>
 
       <div className="dmn-admin__generator-output">
-        <h3 id="dmn-sc-output-title">Your shortcode</h3>
-        <code
-          ref={codeRef}
-          className="dmn-admin__code-block"
-          aria-labelledby="dmn-sc-output-title"
-          aria-live="polite"
-        >
+        <h3>Your shortcode</h3>
+        {/* Not a live region: it changes on every keystroke. Copying is announced instead. */}
+        <code ref={codeRef} className="dmn-admin__code-block">
           {shortcode}
         </code>
         <div className="actions">

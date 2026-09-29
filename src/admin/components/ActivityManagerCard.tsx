@@ -597,7 +597,25 @@ export default function ActivityManagerCard({
                                 onChange={(e) => onCell(r.id, 'priceText', e.target.value)}
                               />
                               <p id={`${base}-price-help`} className="dmn-admin__help">
-                                For example £25. How it is charged is set under Pricing.
+                                For example £25.
+                              </p>
+                            </div>
+                            <div className="dmn-admin__field">
+                              <label htmlFor={`${base}-price-mode`}>Pricing</label>
+                              <select
+                                id={`${base}-price-mode`}
+                                value={r.price_mode ?? 'per_person'}
+                                aria-describedby={`${base}-price-mode-help`}
+                                onChange={(e) =>
+                                  onCell(r.id, 'price_mode', e.target.value as PriceMode)
+                                }
+                              >
+                                <option value="per_person">Per person</option>
+                                <option value="per_room">Per room</option>
+                                <option value="display">Text only</option>
+                              </select>
+                              <p id={`${base}-price-mode-help`} className="dmn-admin__help">
+                                Text only shows the price text without calculating a total.
                               </p>
                             </div>
                           </div>
@@ -626,25 +644,6 @@ export default function ActivityManagerCard({
                                 {visible ? 'Hide from widget' : 'Show in widget'}
                               </button>
                             </div>
-                          </div>
-
-                          <div className="dmn-admin__field">
-                            <label htmlFor={`${base}-price-mode`}>Pricing</label>
-                            <select
-                              id={`${base}-price-mode`}
-                              value={r.price_mode ?? 'per_person'}
-                              aria-describedby={`${base}-price-mode-help`}
-                              onChange={(e) =>
-                                onCell(r.id, 'price_mode', e.target.value as PriceMode)
-                              }
-                            >
-                              <option value="per_person">Per person</option>
-                              <option value="per_room">Per room</option>
-                              <option value="display">Text only</option>
-                            </select>
-                            <p id={`${base}-price-mode-help`} className="dmn-admin__help">
-                              Text only shows the price text without calculating a total.
-                            </p>
                           </div>
 
                           <div className="dmn-admin__field">
