@@ -84,7 +84,9 @@ export default function RemoveDataCard() {
   };
 
   return (
-    <section className="dmn-admin__card dmn-admin__spacer-top" aria-labelledby={headingId}>
+    // Set apart from the numbered setup steps above it: it undoes them rather than following on.
+    <section className="dmn-admin__card dmn-admin__card--danger" aria-labelledby={headingId}>
+      <p className="dmn-admin__eyebrow">Danger zone</p>
       <h3 id={headingId}>Start over</h3>
       <p>
         Delete the imported venues and activities, with your edits to them, the import history, and
