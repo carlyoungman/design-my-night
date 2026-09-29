@@ -9,11 +9,11 @@ import {
 import { useAdmin } from '@admin/AdminContext';
 import {
   LoadError,
-  Loading,
   SaveState,
   errorMessage,
   errorReason,
   useLatestRequest,
+  Skeleton,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 import { DiscardButton } from '@admin/components/Confirm';
@@ -336,8 +336,31 @@ export default function ActivityManagerCard({
 
   const showList = !loading && !loadErr && rows.length > 0;
 
+  // The sticky header (title and Save) can cover a control that keyboard focus moves to from
+  // below, such as with Shift+Tab (WCAG 2.4.11). When it does, scroll just enough to show it.
+  const sectionRef = useRef<HTMLElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const section = sectionRef.current;
+    const header = stickyRef.current;
+    if (!section || !header) return;
+    const onFocusIn = (e: FocusEvent) => {
+      const el = e.target as HTMLElement;
+      if (header.contains(el) || getComputedStyle(header).position !== 'sticky') return;
+      const covered = header.getBoundingClientRect().bottom - el.getBoundingClientRect().top;
+      if (covered > 0) window.scrollBy({ top: -(covered + 15) });
+    };
+    section.addEventListener('focusin', onFocusIn);
+    return () => section.removeEventListener('focusin', onFocusIn);
+  }, []);
+
   return (
-    <section className="dmn-admin__section" aria-labelledby="dmn-admin-venue-title" hidden={hidden}>
+    <section
+      ref={sectionRef}
+      className="dmn-admin__section"
+      aria-labelledby="dmn-admin-venue-title"
+      hidden={hidden}
+    >
       <nav className="dmn-admin__breadcrumb" aria-label="Breadcrumb">
         <ol>
           <li>
@@ -355,7 +378,7 @@ export default function ActivityManagerCard({
           <li aria-current="page">{venue.title || 'Untitled venue'}</li>
         </ol>
       </nav>
-      <div className="dmn-admin__section-header dmn-admin__section-header--sticky">
+      <div ref={stickyRef} className="dmn-admin__section-header dmn-admin__section-header--sticky">
         <div>
           <h2 id="dmn-admin-venue-title" ref={headingRef} tabIndex={-1}>
             {venue.title || 'Untitled venue'}
@@ -461,7 +484,7 @@ export default function ActivityManagerCard({
             </div>
           )}
 
-          {loading && <Loading>Loading activities…</Loading>}
+          {loading && <Skeleton layout="records" label="Loading activities…" />}
           {!loading && loadErr && <LoadError message={loadErr} onRetry={load} />}
           {!loading && !loadErr && rows.length === 0 && (
             <div className="dmn-admin__empty">

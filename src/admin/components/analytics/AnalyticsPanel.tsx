@@ -18,10 +18,10 @@ import { ANALYTICS_TABS, type AnalyticsTab, useAdmin } from '@admin/AdminContext
 import {
   FieldError,
   LoadError,
-  Loading,
   StatusMessage,
   errorMessage,
   useLatestRequest,
+  Skeleton,
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 import KpiRow from './KpiRow';
@@ -206,7 +206,7 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
   /** Load, error and "no data yet" states shared by the tabs built from the report. */
   const reportState = (): React.ReactNode => {
     if (error) return <LoadError message={error} onRetry={reload} />;
-    if (!report) return <Loading>Loading analytics…</Loading>;
+    if (!report) return <Skeleton layout="report" label="Loading analytics…" />;
     if (noData)
       return (
         <div className="dmn-admin__empty">

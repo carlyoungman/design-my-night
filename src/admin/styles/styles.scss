@@ -9,6 +9,9 @@
 // Colour palette and light/dark mode (see CLAUDE.md section 4).
 @include palette.modes('.dmn-admin');
 
+// The Appearance preview shows each mode whatever mode the admin is in.
+@include palette.modes('.dmn-admin__theme-preview');
+
 .dmn-admin {
   --box-shadow-1: rgb(29 27 32 / 15%) 0 1px 3px 1px, rgb(29 27 32 / 30%) 0 1px 2px 0;
   --box-shadow-2: rgb(29 27 32 / 15%) 0 2px 6px 2px, rgb(29 27 32 / 30%) 0 1px 2px 0;

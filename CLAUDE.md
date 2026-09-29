@@ -103,7 +103,7 @@ This palette applies to both the admin app and the booking widget. It is defined
 | `--c-error`         | `#bb3d3d`                                        | `#f2b8b5`              | Errors                                                                                                            |
 | `--c-warning`       | `#9a6200`                                        | `#e8b64c`              | Warning and unsaved-changes icons and markers, always beside text in `--c-text`                                   |
 
-**Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Settings > Appearance tab (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
+**Theme colour and mode.** The theme colour and the light/dark mode are settings in the admin's Settings > Appearance tab (`Appearance` in `src/php/Config/Appearance.php`, `GET/POST dmn/v1/admin/appearance`), with a light and dark preview of the chosen colour before it is saved (`src/admin/themeVars.ts`, a copy of `Appearance::css_vars()`: change both together). There is one theme colour for both surfaces and a separate mode for each (`light`, `dark`, or `system` to follow the device). The server writes the mode as `data-mode` and the colour as `--theme-*` custom properties on each root element, so pages render in the right colours before any script runs. Because any colour can be picked, `Appearance::css_vars()` shades it per mode (towards black in light mode, white in dark) until fills reach 3:1 against the surfaces with 4.5:1 for the text on them, and `--c-primary-text` reaches 4.5:1. Never use `--c-primary` for text; use `--c-primary-text`. For a hovered primary fill use `--c-primary-hover`, never a mix toward `--c-on-primary` or `--c-text`, which can lower the contrast of the text on it. If you change a surface, background, or text colour, change it in both `_palette.scss` and `Appearance.php`.
 
 Contrast limits (checked against `--c-surface` and `--c-background` in each mode):
 
@@ -156,7 +156,7 @@ Contrast limits (checked against `--c-surface` and `--c-background` in each mode
 ## 8. Accessibility: aim for WCAG 2.2 AA
 
 - Use semantic HTML, appropriately structured headings, real buttons and links, and accessible names for icon-only controls.
-- Support keyboard operation and a visible focus indicator. Ensure focus is not obscured by sticky headers, dialogs, or overlays.
+- Support keyboard operation and a visible focus indicator. Ensure focus is not obscured by sticky headers, dialogs, or overlays. The venue editor's sticky header scrolls a control it would cover back into view when it receives focus (`ActivityManagerCard`); do the same for any new sticky header.
 - Provide at least **4.5:1** contrast for normal text and **3:1** for large text, with applicable WCAG exceptions; provide at least **3:1** contrast for non-text UI components and graphical objects where required.
 - Meet the WCAG 2.2 AA minimum pointer target size of **24 × 24 CSS pixels**, allowing for the specification's exceptions. Prefer larger comfortable hit areas when space permits.
 - Associate labels, descriptions, and error messages with form controls; communicate status changes appropriately to assistive technologies.
@@ -169,7 +169,7 @@ Contrast limits (checked against `--c-surface` and `--c-background` in each mode
 
 Every asynchronous view should account for:
 
-- **Loading:** use a progress indicator or skeleton that reflects the structure of the incoming content; avoid unnecessary layout shifts.
+- **Loading:** use a progress indicator or skeleton that reflects the structure of the incoming content; avoid unnecessary layout shifts. In the admin, an area waiting for its first data (the Dashboard, the venue list, a venue's activities, Analytics) uses `Skeleton` (`src/admin/components/ui.tsx`); small inline loads use `Loading`.
 - **Empty:** explain what is missing and provide the next relevant action when one exists.
 - **Error:** state what failed, preserve useful context and user input, and offer a sensible recovery path.
 - **Success:** confirm completion near the relevant action without interrupting the user unnecessarily.

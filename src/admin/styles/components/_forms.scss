@@ -344,3 +344,69 @@ fieldset.dmn-admin__field > legend {
     top: calc(var(--wp-admin--admin-bar--height, 32px) + var(--universal-space));
   }
 }
+
+// Appearance preview: the theme colour in light and dark, side by side. Each tile carries its own
+// mode and --theme-* values, so the palette tokens inside it are that mode's.
+.dmn-admin__theme-previews {
+  margin: var(--universal-space-half) 0 0;
+}
+
+.dmn-admin__theme-preview-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--universal-space);
+  margin-top: var(--universal-space-half);
+
+  @include breakpoint.medium-screen-min {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.dmn-admin__theme-preview {
+  padding: var(--universal-space);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-divider);
+  border-radius: var(--universal-space-half);
+}
+
+.dmn-admin__theme-preview-mode {
+  margin: 0 0 var(--universal-space-half);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dmn-admin__theme-preview-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--universal-space-half) var(--universal-space);
+  align-items: center;
+  font-size: 14px;
+
+  .button {
+    cursor: default;
+  }
+}
+
+.dmn-admin__theme-preview-link {
+  color: var(--c-primary-text);
+  text-decoration: underline;
+}
+
+.dmn-admin__theme-preview-selected {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--c-primary) 16%, transparent);
+  border: 1px solid var(--c-primary);
+  border-radius: 8px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--c-primary-text);
+  }
+}
