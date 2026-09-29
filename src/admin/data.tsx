@@ -22,6 +22,8 @@ type Resource<T> = {
   data: T | null;
   /** True while there is nothing to show yet: the first load, or a reload after an import. */
   loading: boolean;
+  /** Whether a load has succeeded, so `data` is real rather than empty. */
+  loaded: boolean;
   error: string | null;
   /** Loads again, showing the loading state. For Try again after an error. */
   retry: () => void;
@@ -45,13 +47,15 @@ function useResource<T>(
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const quiet = useRef(false);
+  const loud = useRef(false);
   const latest = useRef(0);
   const hasData = data != null;
 
   useEffect(() => {
     const request = ++latest.current;
-    const silent = quiet.current || (quietOnVersion && hasData);
+    const silent = !loud.current && (quiet.current || (quietOnVersion && hasData));
     quiet.current = false;
+    loud.current = false;
     if (!silent) setLoading(true);
     setError(null);
     load()
@@ -61,15 +65,18 @@ function useResource<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `hasData` only picks quiet vs full.
   }, [load, failure, version, attempt, quietOnVersion]);
 
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  const retry = useCallback(() => {
+    loud.current = true;
+    setAttempt((n) => n + 1);
+  }, []);
   const refresh = useCallback(() => {
     quiet.current = true;
     setAttempt((n) => n + 1);
   }, []);
 
   return useMemo(
-    () => ({ data, loading, error, retry, refresh }),
-    [data, loading, error, retry, refresh],
+    () => ({ data, loading, loaded: hasData, error, retry, refresh }),
+    [data, loading, hasData, error, retry, refresh],
   );
 }
 

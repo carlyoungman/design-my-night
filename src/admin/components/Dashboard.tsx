@@ -133,8 +133,9 @@ export default function Dashboard() {
       {loading && <Loading>Loading dashboard…</Loading>}
       {!loading && error && <LoadError message={error} onRetry={retry} />}
 
-      {/* Both are needed: without the venues it would look as if nothing had been imported. */}
-      {!loading && !error && overview && (
+      {/* Both are needed: without the venues it would look as if nothing had been imported. A
+          failed reload keeps what was loaded on screen, below its error. */}
+      {!loading && overview && venuesData.loaded && (
         <div className="dmn-admin__dashboard">
           {!setupDone && (
             <div className="dmn-admin__card dmn-admin__dashboard-wide">
