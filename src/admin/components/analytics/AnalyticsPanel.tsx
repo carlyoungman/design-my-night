@@ -431,7 +431,10 @@ export default function AnalyticsPanel({ onDirty }: { onDirty?: (dirty: boolean)
           onSync={sync}
           syncing={syncing}
           openConnection={() => openSettingsTab('connection')}
-          openSettings={() => openAnalyticsTab('settings')}
+          // Already there on the Settings tab, where the button would do nothing.
+          openSettings={
+            analyticsTab === 'settings' ? undefined : () => openAnalyticsTab('settings')
+          }
         />
       )}
 
@@ -676,7 +679,7 @@ function DataNotices({
   onSync: () => void;
   syncing: boolean;
   openConnection: () => void;
-  openSettings: () => void;
+  openSettings?: () => void;
 }) {
   const s: SyncState = data.sync;
   const notices: React.ReactNode[] = [];
@@ -742,9 +745,11 @@ function DataNotices({
           Widget activity isn’t being recorded, so the funnel and conversion only cover earlier
           activity.
         </StatusMessage>
-        <button type="button" className="button button--text" onClick={openSettings}>
-          Open settings
-        </button>
+        {openSettings && (
+          <button type="button" className="button button--text" onClick={openSettings}>
+            Open settings
+          </button>
+        )}
       </div>,
     );
   }
