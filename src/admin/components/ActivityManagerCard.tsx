@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronLeft, CircleDot, Eye, EyeOff, Search } from 'lucide-react';
+import { ChevronDown, ChevronLeft, CircleDot, Search } from 'lucide-react';
 import {
   type AdminVenue,
   adminListActivities,
@@ -18,6 +18,7 @@ import {
 import { useToast } from '@admin/components/Toasts';
 import { DiscardButton } from '@admin/components/Confirm';
 import { ChoiceCards } from '@admin/components/Choices';
+import Switch from '@admin/components/Switch';
 
 type PriceMode = 'per_person' | 'per_room' | 'display';
 type VisibilityFilter = 'all' | 'shown' | 'hidden';
@@ -536,14 +537,15 @@ export default function ActivityManagerCard({
                           </p>
                         </div>
                         <div className="dmn-admin__chips">
-                          <span className="dmn-admin__chip">
-                            {visible ? (
-                              <Eye className="dmn-admin__chip-icon--success" aria-hidden="true" />
-                            ) : (
-                              <EyeOff aria-hidden="true" />
-                            )}
-                            {visible ? 'Shown in widget' : 'Hidden from widget'}
-                          </span>
+                          {/* Showing or hiding is the most common edit, so it works without
+                              opening the activity. Sits above the header's click target. */}
+                          <Switch
+                            className="dmn-admin__record-switch"
+                            checked={visible}
+                            onChange={(on) => onCell(r.id, 'visible', on)}
+                            label="Shown in widget"
+                            labelSuffix={`: ${r.name || 'Untitled activity'}`}
+                          />
                           {dirty.has(r.id) && (
                             <span className="dmn-admin__chip">
                               <CircleDot
@@ -615,30 +617,6 @@ export default function ActivityManagerCard({
                         </div>
 
                         <div className="dmn-admin__record-side">
-                          <div className="dmn-admin__field">
-                            <span className="dmn-admin__label">Visibility in the widget</span>
-                            <p id={`${base}-vis-help`} className="dmn-admin__help">
-                              {visible
-                                ? 'Shown: customers can choose it.'
-                                : 'Hidden: customers don’t see it.'}
-                            </p>
-                            <div className="actions">
-                              <button
-                                type="button"
-                                className="button button--secondary"
-                                aria-describedby={`${base}-vis-help`}
-                                onClick={() => onCell(r.id, 'visible', !visible)}
-                              >
-                                {visible ? (
-                                  <EyeOff aria-hidden="true" />
-                                ) : (
-                                  <Eye aria-hidden="true" />
-                                )}
-                                {visible ? 'Hide from widget' : 'Show in widget'}
-                              </button>
-                            </div>
-                          </div>
-
                           <div className="dmn-admin__field">
                             <span className="dmn-admin__label">Image</span>
                             {r.image_url ? (

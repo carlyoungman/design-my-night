@@ -76,6 +76,12 @@
     border-bottom: 1px solid var(--c-divider);
   }
 
+  // Above the header's stretched click target, so it toggles itself rather than the record.
+  &__record-switch {
+    position: relative;
+    z-index: 1;
+  }
+
   &__record-chevron {
     flex-shrink: 0;
     width: 24px;

@@ -1,7 +1,9 @@
 // src/admin/components/Dashboard.tsx
-// The plugin's first screen: setup progress, the last import from DesignMyNight, totals, the
-// connection, and venues that need attention. Everything shown comes from the plugin's own data
-// (see dmn_admin_overview and dmn_admin_list_venues); opening the dashboard makes no DMN request.
+// The plugin's first screen, in order of what needs doing: setup steps until the plugin is
+// connected and imported, then anything that needs attention, the totals, the last 30 days of
+// bookings, and the status of the last import and the connection. Everything shown comes from the
+// plugin's own data (see dmn_admin_overview and dmn_admin_list_venues); opening the dashboard
+// makes no DMN request.
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
@@ -9,56 +11,26 @@ import {
   CheckCircle2,
   Circle,
   CircleDot,
+  Clock,
   EyeOff,
   ImageOff,
   PackageOpen,
+  PlugZap,
 } from 'lucide-react';
-import {
-  type AdminVenue,
-  type AnalyticsSummary,
-  type ImportRecord,
-  analyticsSummary,
-} from '@admin/api';
+import { type AnalyticsSummary, analyticsSummary } from '@admin/api';
 import { defaultFilters, fmtFullDay, fmtInt, fmtPct } from '@admin/components/analytics/format';
 import { useAdmin, venueHref } from '@admin/AdminContext';
 import { useOverview, useVenues } from '@admin/data';
+import ImportStatus, {
+  STALE_AFTER_DAYS,
+  dataEnvironment,
+  envLabel,
+  plural,
+  staleDays,
+} from '@admin/components/ImportStatus';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 
-/** Imported data older than this gets a reminder to import again. */
-const STALE_AFTER_DAYS = 7;
-
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const envLabel = (env: 'prod' | 'qa') => (env === 'qa' ? 'QA / Sandbox' : 'Production');
-
-const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-const relative = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-
-/** "3 hours ago", "yesterday"… for a Unix timestamp in seconds. */
-function ago(seconds: number, now = Date.now()): string {
-  const diff = seconds - now / 1000;
-  const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ['day', 86400],
-    ['hour', 3600],
-    ['minute', 60],
-  ];
-  for (const [unit, size] of units) {
-    if (Math.abs(diff) >= size) return relative.format(Math.round(diff / size), unit);
-  }
-  return 'just now';
-}
-
-function When({ at }: { at: number }) {
-  const d = new Date(at * 1000);
-  return (
-    <time dateTime={d.toISOString()} title={dateTime.format(d)}>
-      {ago(at)} ({dateTime.format(d)})
-    </time>
-  );
-}
-
-function formatDuration(ms: number) {
-  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
-}
+type AttentionItem = { key: string; icon: React.ReactNode; content: React.ReactNode };
 
 export default function Dashboard() {
   const { section, goToSection, openVenue, openSettingsTab } = useAdmin();
@@ -69,7 +41,9 @@ export default function Dashboard() {
   const overviewData = useOverview();
   const { venues } = venuesData;
   const { overview } = overviewData;
-  const loading = venuesData.loading || overviewData.loading;
+  // Only the first load replaces the dashboard with the loading state. Later reloads (after an
+  // import, say) keep it on screen, so focus stays on the Import button that started them.
+  const loading = (venuesData.loading && !venuesData.loaded) || (overviewData.loading && !overview);
   const error = venuesData.error || overviewData.error;
   const retry = () => {
     if (venuesData.error) venuesData.retry();
@@ -88,35 +62,84 @@ export default function Dashboard() {
 
   // Venues count as imported even without a record: imports before the record existed left none.
   const hasImported = venues.length > 0;
-  // Environment the stored venues came from. Older records only have `environment`, which is
-  // right only when that import succeeded.
-  const dataEnv = last ? (last.data_environment ?? (last.ok ? last.environment : null)) : null;
   const setupDone = !!connection?.has_credentials && hasImported;
+  const dataEnv = dataEnvironment(last);
+  const stale = last?.ok ? staleDays(last) : 0;
 
-  const attention = venues.flatMap((v) => {
-    const items: { key: string; venue: AdminVenue; icon: React.ReactNode; text: string }[] = [];
+  const venueLink = (id: number, title: string) => (
+    <a
+      href={venueHref(id)}
+      onClick={(e) => {
+        e.preventDefault();
+        openVenue(id);
+      }}
+    >
+      {title || 'Untitled venue'}
+    </a>
+  );
+
+  // What needs doing: problems with the imported data first, then venue by venue.
+  const attention: AttentionItem[] = [];
+  if (last && !last.ok)
+    attention.push({
+      key: 'import-failed',
+      icon: <AlertCircle aria-hidden="true" />,
+      content: hasImported
+        ? 'The last import from DesignMyNight failed, so your venues are from an earlier import. The reason is under Last import below.'
+        : 'The import from DesignMyNight failed, so no venues have been imported yet. The reason is under Last import below.',
+    });
+  else if (last && last.issues_count > 0)
+    attention.push({
+      key: 'import-issues',
+      icon: <CircleDot aria-hidden="true" />,
+      content: `The last import finished with ${plural(last.issues_count, 'problem', 'problems')}; they are listed under Last import below.`,
+    });
+  if (hasImported && stale >= STALE_AFTER_DAYS)
+    attention.push({
+      key: 'stale',
+      icon: <Clock aria-hidden="true" />,
+      content: `Imported data is ${stale} days old. Import again to pick up changes made in DesignMyNight.`,
+    });
+  if (hasImported && dataEnv && connection && dataEnv !== connection.environment)
+    attention.push({
+      key: 'environment',
+      icon: <PlugZap aria-hidden="true" />,
+      content: `Your venues were imported from ${envLabel(dataEnv)}, but the environment is now set to ${envLabel(connection.environment)}. Import again to load ${envLabel(connection.environment)} venues.`,
+    });
+  venues.forEach((v) => {
     if (v.activities_count === 0)
-      items.push({
+      attention.push({
         key: `${v.id}-none`,
-        venue: v,
         icon: <PackageOpen aria-hidden="true" />,
-        text: 'No activities imported, so it has nothing to book in the widget',
+        content: (
+          <>
+            {venueLink(v.id, v.title)}: No activities imported, so it has nothing to book in the
+            widget
+          </>
+        ),
       });
     else if (v.visible_count === 0)
-      items.push({
+      attention.push({
         key: `${v.id}-hidden`,
-        venue: v,
         icon: <EyeOff aria-hidden="true" />,
-        text: `All ${plural(v.activities_count, 'activity is', 'activities are')} hidden from the widget`,
+        content: (
+          <>
+            {venueLink(v.id, v.title)}: All{' '}
+            {plural(v.activities_count, 'activity is', 'activities are')} hidden from the widget
+          </>
+        ),
       });
     if (v.without_image_count > 0)
-      items.push({
+      attention.push({
         key: `${v.id}-images`,
-        venue: v,
         icon: <ImageOff aria-hidden="true" />,
-        text: `${plural(v.without_image_count, 'activity has', 'activities have')} no image`,
+        content: (
+          <>
+            {venueLink(v.id, v.title)}:{' '}
+            {plural(v.without_image_count, 'activity has', 'activities have')} no image
+          </>
+        ),
       });
-    return items;
   });
 
   return (
@@ -125,7 +148,7 @@ export default function Dashboard() {
         <div>
           <h2 id="dmn-admin-dashboard-title">Dashboard</h2>
           <p className="dmn-admin__help">
-            Your latest import from DesignMyNight and anything that needs attention.
+            What needs your attention, your totals, and the state of your DesignMyNight import.
           </p>
         </div>
       </div>
@@ -135,7 +158,7 @@ export default function Dashboard() {
 
       {/* Both are needed: without the venues it would look as if nothing had been imported. A
           failed reload keeps what was loaded on screen, below its error. */}
-      {!loading && overview && venuesData.loaded && (
+      {overview && venuesData.loaded && (
         <div className="dmn-admin__dashboard">
           {!setupDone && (
             <div className="dmn-admin__card dmn-admin__dashboard-wide">
@@ -178,14 +201,8 @@ export default function Dashboard() {
                         {hasImported ? ' (done)' : ' (to do)'}
                       </span>
                     </p>
-                    {!hasImported && (
-                      <button
-                        type="button"
-                        className="button button--secondary"
-                        onClick={() => openSettingsTab('connection')}
-                      >
-                        Import under Connection
-                      </button>
+                    {!hasImported && connection?.has_credentials && (
+                      <p className="dmn-admin__help">Use Import from DesignMyNight below.</p>
                     )}
                   </div>
                 </li>
@@ -208,9 +225,65 @@ export default function Dashboard() {
             </div>
           )}
 
+          {(hasImported || attention.length > 0) && (
+            <div className="dmn-admin__card dmn-admin__dashboard-wide">
+              <div className="dmn-admin__card-header--split dmn-admin__spacer-bottom">
+                <h3 className="dmn-admin__flush">Needs attention</h3>
+                {hasImported && (
+                  <button
+                    type="button"
+                    className="button button--text"
+                    onClick={() => goToSection('venues')}
+                  >
+                    View all venues
+                  </button>
+                )}
+              </div>
+              {attention.length === 0 ? (
+                <StatusMessage tone="success">
+                  Nothing needs attention: every venue has activities shown in the widget, and every
+                  activity has an image.
+                </StatusMessage>
+              ) : (
+                <ul className="dmn-admin__attention">
+                  {attention.map((a) => (
+                    <li key={a.key}>
+                      {a.icon}
+                      <span>{a.content}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {hasImported && (
+            <dl className="dmn-admin__stats dmn-admin__dashboard-wide">
+              <div className="dmn-admin__stat">
+                <dt>Venues</dt>
+                <dd>{venues.length}</dd>
+              </div>
+              <div className="dmn-admin__stat">
+                <dt>Activities</dt>
+                <dd>{totals.activities}</dd>
+              </div>
+              <div className="dmn-admin__stat">
+                <dt>Shown in widget</dt>
+                <dd>
+                  {totals.visible}
+                  <span className="dmn-admin__stat-of"> of {totals.activities}</span>
+                </dd>
+              </div>
+            </dl>
+          )}
+
           {hasImported && <RecentBookingsCard active={active} />}
 
-          <ImportCard last={last} hasVenues={hasImported} />
+          <section className="dmn-admin__card" aria-labelledby="dmn-admin-dashboard-import">
+            <h3 id="dmn-admin-dashboard-import">Last import</h3>
+            {/* Its warnings are listed under Needs attention above. */}
+            <ImportStatus warnings={false} />
+          </section>
 
           <div className="dmn-admin__card">
             <h3>Connection</h3>
@@ -234,13 +307,6 @@ export default function Dashboard() {
                 <dd>{connection?.venue_group || 'Not set'}</dd>
               </div>
             </dl>
-            {dataEnv && connection && hasImported && dataEnv !== connection.environment && (
-              <StatusMessage tone="warning" block>
-                Your venues were imported from {envLabel(dataEnv)}, but the environment is now set
-                to {envLabel(connection.environment)}. Import again to load{' '}
-                {envLabel(connection.environment)} venues.
-              </StatusMessage>
-            )}
             <div className="actions dmn-admin__spacer-top">
               <button
                 type="button"
@@ -251,182 +317,9 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-
-          {venues.length > 0 && (
-            <dl className="dmn-admin__stats dmn-admin__dashboard-wide">
-              <div className="dmn-admin__stat">
-                <dt>Venues</dt>
-                <dd>{venues.length}</dd>
-              </div>
-              <div className="dmn-admin__stat">
-                <dt>Activities</dt>
-                <dd>{totals.activities}</dd>
-              </div>
-              <div className="dmn-admin__stat">
-                <dt>Shown in widget</dt>
-                <dd>
-                  {totals.visible}
-                  <span className="dmn-admin__stat-of"> of {totals.activities}</span>
-                </dd>
-              </div>
-            </dl>
-          )}
-
-          {venues.length > 0 && (
-            <div className="dmn-admin__card dmn-admin__dashboard-wide">
-              <div className="dmn-admin__card-header--split dmn-admin__spacer-bottom">
-                <h3 className="dmn-admin__flush">Needs attention</h3>
-                <button
-                  type="button"
-                  className="button button--text"
-                  onClick={() => goToSection('venues')}
-                >
-                  View all venues
-                </button>
-              </div>
-              {attention.length === 0 ? (
-                <StatusMessage tone="success">
-                  Every venue has activities shown in the widget, and every activity has an image.
-                </StatusMessage>
-              ) : (
-                <ul className="dmn-admin__attention">
-                  {attention.map((a) => (
-                    <li key={a.key}>
-                      {a.icon}
-                      <span>
-                        <a
-                          href={venueHref(a.venue.id)}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            openVenue(a.venue.id);
-                          }}
-                        >
-                          {a.venue.title || 'Untitled venue'}
-                        </a>
-                        : {a.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
       )}
     </section>
-  );
-}
-
-/** Outcome of the most recent import, and how old the imported data is. */
-function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues: boolean }) {
-  if (!last && hasVenues) {
-    return (
-      <div className="dmn-admin__card">
-        <h3>Last import</h3>
-        <p>
-          Your venues were imported before this version of the plugin recorded imports, so there are
-          no details yet. Import from DesignMyNight again to see them here.
-        </p>
-      </div>
-    );
-  }
-  if (!last) {
-    return (
-      <div className="dmn-admin__card">
-        <h3>Last import</h3>
-        <p>
-          Nothing has been imported yet. Use <strong>Import from DesignMyNight</strong> under
-          Settings &gt; Connection to bring in your venues and activities.
-        </p>
-      </div>
-    );
-  }
-
-  const staleDays =
-    last.last_success_at != null
-      ? Math.floor((Date.now() / 1000 - last.last_success_at) / 86400)
-      : 0;
-  const more = last.issues_count - last.issues.length;
-
-  return (
-    <div className="dmn-admin__card">
-      <h3>Last import</h3>
-      {!last.ok ? (
-        <StatusMessage tone="error">Failed: {last.error}</StatusMessage>
-      ) : last.issues_count > 0 ? (
-        <p className="dmn-admin__status">
-          <CircleDot className="dmn-admin__chip-icon--warning" aria-hidden="true" />
-          <span>Finished with {plural(last.issues_count, 'problem', 'problems')}</span>
-        </p>
-      ) : (
-        <StatusMessage tone="success">Succeeded</StatusMessage>
-      )}
-
-      <dl className="dmn-admin__facts">
-        <div>
-          <dt>{last.ok ? 'Imported' : 'Attempted'}</dt>
-          <dd>
-            <When at={last.finished_at} />
-          </dd>
-        </div>
-        {!last.ok && (
-          <div>
-            <dt>Last successful import</dt>
-            <dd>
-              {last.last_success_at ? (
-                <When at={last.last_success_at} />
-              ) : hasVenues ? (
-                'Not recorded (before this version of the plugin)'
-              ) : (
-                'None yet'
-              )}
-            </dd>
-          </div>
-        )}
-        {last.ok && (
-          <>
-            <div>
-              <dt>Venues</dt>
-              <dd>{last.venues_count}</dd>
-            </div>
-            <div>
-              <dt>Activities</dt>
-              <dd>{last.types_count}</dd>
-            </div>
-          </>
-        )}
-        <div>
-          <dt>Environment</dt>
-          <dd>{envLabel(last.environment)}</dd>
-        </div>
-        <div>
-          <dt>Took</dt>
-          <dd>{formatDuration(last.duration_ms)}</dd>
-        </div>
-      </dl>
-
-      {last.issues.length > 0 && (
-        <details className="dmn-admin__issues">
-          <summary>Show {plural(last.issues_count, 'problem', 'problems')}</summary>
-          <ul>
-            {last.issues.map((issue, i) => (
-              <li key={i}>
-                <AlertCircle aria-hidden="true" />
-                <span>{issue}</span>
-              </li>
-            ))}
-            {more > 0 && <li>…and {more} more.</li>}
-          </ul>
-        </details>
-      )}
-
-      {last.ok && staleDays >= STALE_AFTER_DAYS && (
-        <StatusMessage tone="warning" block>
-          Imported data is {staleDays} days old. Import again to pick up changes made in
-          DesignMyNight.
-        </StatusMessage>
-      )}
-    </div>
   );
 }
 
