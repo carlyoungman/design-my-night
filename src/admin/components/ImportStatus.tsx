@@ -88,6 +88,7 @@ export function ImportProvider({
 }) {
   const { notifyDataChanged, notifyOverviewChanged, goToSection } = useAdmin();
   const confirm = useConfirm();
+  const { refresh: refreshVenues } = useVenues();
   const unsavedRef = useRef(unsavedActivities);
   unsavedRef.current = unsavedActivities;
   const [busy, setBusy] = useState(false);
@@ -107,8 +108,10 @@ export function ImportProvider({
 
   const run = useCallback(async () => {
     if (busyRef.current) return;
+    // Asked here when there are unsaved edits; if the user agrees, they aren't asked again after.
+    const agreedToDiscard = unsavedRef.current;
     if (
-      unsavedRef.current &&
+      agreedToDiscard &&
       !(await confirm({
         title: 'Import and discard unsaved activity changes?',
         message:
@@ -124,6 +127,21 @@ export function ImportProvider({
     toast.clear();
     try {
       const r = await adminSyncAll();
+      // The import is done; don't show it as running while the question below waits.
+      busyRef.current = false;
+      setBusy(false);
+      // Activities may have been edited while the import ran; reloading them would lose that.
+      const reloadEditor =
+        agreedToDiscard ||
+        !unsavedRef.current ||
+        (await confirm({
+          title: 'Reload activities and discard unsaved changes?',
+          message:
+            'The import finished while you had unsaved changes to activities. Reload them now to see what was imported, or keep your changes and save them first.',
+          confirmLabel: 'Reload and discard',
+          cancelLabel: 'Keep my changes',
+          danger: true,
+        }));
       toast.success(
         r.message ||
           `Imported ${plural(r.venues_count ?? 0, 'venue', 'venues')} and ${plural(
@@ -132,13 +150,25 @@ export function ImportProvider({
             'activities',
           )}.`,
         {
-          description: r.duration_ms ? `Took ${seconds(r.duration_ms)} s.` : undefined,
+          description:
+            [
+              r.duration_ms ? `Took ${seconds(r.duration_ms)} s.` : '',
+              reloadEditor ? '' : 'Your unsaved activity changes were kept.',
+            ]
+              .filter(Boolean)
+              .join(' ') || undefined,
           action: r.issues_count
             ? { label: 'See problems on the Dashboard', onClick: () => goToSection('dashboard') }
             : { label: 'Review venues', onClick: () => goToSection('venues') },
         },
       );
-      notifyDataChanged();
+      if (reloadEditor) {
+        notifyDataChanged();
+      } else {
+        // Update the venue list and the import record, but leave the activity editor as it is.
+        refreshVenues();
+        notifyOverviewChanged();
+      }
     } catch (e) {
       toast.error('Import from DesignMyNight failed.', {
         error: e,
@@ -151,7 +181,7 @@ export function ImportProvider({
       busyRef.current = false;
       setBusy(false);
     }
-  }, [toast, confirm, notifyDataChanged, notifyOverviewChanged, goToSection]);
+  }, [toast, confirm, refreshVenues, notifyDataChanged, notifyOverviewChanged, goToSection]);
   runRef.current = run;
 
   return <ImportContext.Provider value={{ busy, elapsed, run }}>{children}</ImportContext.Provider>;
