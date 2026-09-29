@@ -183,6 +183,22 @@
     }
   }
 
+  // A card for actions that delete data, set apart from the cards before it.
+  &__card--danger {
+    margin-top: var(--universal-space-3);
+    border-color: var(--c-error);
+  }
+
+  // Short label above a heading, such as "Danger zone".
+  &__eyebrow {
+    margin: 0 0 var(--universal-space-half);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-error);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
   // Two equal columns on wider screens, one column on narrow ones.
   &__split {
     display: grid;

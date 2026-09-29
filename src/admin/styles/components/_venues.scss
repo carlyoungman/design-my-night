@@ -157,6 +157,37 @@
     min-width: 0;
   }
 
+  // Venues as a table, from as many venues as need search (VenuesOverview).
+  &__venue-table {
+    font-size: 14px;
+
+    tbody th {
+      white-space: normal;
+    }
+
+    .dmn-admin__record-meta {
+      display: block;
+      margin: 2px 0 0;
+    }
+  }
+
+  &__venue-row-link {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  // Inline confirmation for a setting that saves as soon as it changes.
+  &__saved {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
   &__venue-options {
     display: grid;
     gap: var(--universal-space-half);

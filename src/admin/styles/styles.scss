@@ -40,8 +40,10 @@
   font-weight: var(--font-base-font-weight);
   line-height: var(--font-base-line-height);
   color: var(--c-text);
+
+  // The page background, not a bordered frame: the cards inside carry the borders. It stays a
+  // rounded panel so dark mode reads as one surface against the light WordPress admin around it.
   background: var(--c-background);
-  border: 1px solid var(--c-divider);
   border-radius: var(--border-radius);
 
   @include breakpoint.medium-screen-min {

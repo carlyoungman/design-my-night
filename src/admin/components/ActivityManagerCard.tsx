@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronLeft, CircleDot, Search } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronLeft, CircleDot, Search } from 'lucide-react';
 import {
   type AdminVenue,
   adminListActivities,
@@ -107,6 +107,9 @@ export default function ActivityManagerCard({
   // Venue setting, saved as soon as it changes (separately from the activities).
   const [hideUnavailable, setHideUnavailable] = useState(venue.hide_unavailable);
   const [venueSaving, setVenueSaving] = useState(false);
+  // "Saved" beside the setting after a save; it saves as soon as it changes, so the confirmation
+  // belongs where the change was made. A failure is a toast with Try again.
+  const [venueSaved, setVenueSaved] = useState(false);
   const venueToast = useToast();
 
   // The last value the server confirmed, and a change made while a save was running. Arrow keys
@@ -121,6 +124,9 @@ export default function ActivityManagerCard({
     setHideUnavailable(venue.hide_unavailable);
   }, [venue.hide_unavailable]);
 
+  // "Saved" is about this venue's last change only.
+  useEffect(() => setVenueSaved(false), [venueId]);
+
   // Toasts about the previous venue no longer apply.
   useEffect(() => {
     venueToast.clear();
@@ -129,6 +135,7 @@ export default function ActivityManagerCard({
 
   const saveHideUnavailable = async (next: boolean) => {
     setHideUnavailable(next);
+    setVenueSaved(false);
     venueToast.clear();
     if (venueSavingRef.current) {
       venuePendingRef.current = next;
@@ -136,8 +143,8 @@ export default function ActivityManagerCard({
     }
     venueSavingRef.current = true;
     setVenueSaving(true);
+    let value = next;
     try {
-      let value = next;
       for (;;) {
         const r = await adminSaveVenue(venueId, { hide_unavailable: value });
         venueSavedRef.current = r.hide_unavailable;
@@ -147,14 +154,21 @@ export default function ActivityManagerCard({
         value = pending;
       }
       setHideUnavailable(venueSavedRef.current);
-      venueToast.success('Unavailable activities setting saved.');
+      setVenueSaved(true);
       onSaved?.();
     } catch (e) {
+      // Try again sends the latest choice: one made while the failed save ran, or the one that failed.
+      const wanted = venuePendingRef.current ?? value;
       venuePendingRef.current = null;
       setHideUnavailable(venueSavedRef.current);
-      venueToast.error('The unavailable activities setting could not be saved. Try again.', {
-        error: e,
-      });
+      // Named, since the save can fail after the user has moved on to another venue.
+      venueToast.error(
+        `The unavailable activities setting for ${venue.title || 'this venue'} could not be saved.`,
+        {
+          error: e,
+          action: { label: 'Try again', onClick: () => saveHideUnavailable(wanted) },
+        },
+      );
     } finally {
       venueSavingRef.current = false;
       setVenueSaving(false);
@@ -402,11 +416,17 @@ export default function ActivityManagerCard({
                 onChange={(v) => saveHideUnavailable(v === 'hide')}
               />
             </fieldset>
-            {venueSaving && (
-              <p className="dmn-admin__help" role="status">
-                Saving…
-              </p>
-            )}
+            {/* Always present, so both "Saving…" and "Saved" are announced. */}
+            <p className="dmn-admin__help dmn-admin__flush" role="status">
+              {venueSaving ? (
+                'Saving…'
+              ) : venueSaved ? (
+                <span className="dmn-admin__saved">
+                  <CheckCircle2 className="dmn-admin__chip-icon--success" aria-hidden="true" />
+                  Saved
+                </span>
+              ) : null}
+            </p>
           </aside>
         )}
 
