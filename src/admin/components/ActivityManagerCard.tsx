@@ -161,10 +161,14 @@ export default function ActivityManagerCard({
       const wanted = venuePendingRef.current ?? value;
       venuePendingRef.current = null;
       setHideUnavailable(venueSavedRef.current);
-      venueToast.error('The unavailable activities setting could not be saved.', {
-        error: e,
-        action: { label: 'Try again', onClick: () => saveHideUnavailable(wanted) },
-      });
+      // Named, since the save can fail after the user has moved on to another venue.
+      venueToast.error(
+        `The unavailable activities setting for ${venue.title || 'this venue'} could not be saved.`,
+        {
+          error: e,
+          action: { label: 'Try again', onClick: () => saveHideUnavailable(wanted) },
+        },
+      );
     } finally {
       venueSavingRef.current = false;
       setVenueSaving(false);
