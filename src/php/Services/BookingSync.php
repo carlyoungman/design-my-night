@@ -293,13 +293,7 @@ class BookingSync
     $started = microtime(true);
     for ($page = 0; $page < self::MAX_PAGES && microtime(true) - $started < self::TIME_BUDGET; $page++) {
       if ((int)$cursor['start'] + self::PAGE_SIZE > self::MAX_WINDOW) {
-        $next = self::next_window($cursor);
-        if ($next === null) {
-          $state['cursor'] = null;
-          $this->fail($state, 'too_many', 'More than 10,000 bookings were made at the same moment, which DesignMyNight can\'t list. Contact support.');
-          return;
-        }
-        $cursor = $next;
+        $cursor = self::next_window($cursor);
       }
 
       $query = [
@@ -385,19 +379,22 @@ class BookingSync
   /**
    * The cursor for the next window of the same search: bookings created from the last one read
    * onward, from the start. The range includes that moment, so bookings made at the same second
-   * are read again (and stored again, harmlessly) rather than skipped. Null when the window can't
-   * move on, because every booking in it was made at that same moment. A cursor saved before
-   * windows existed has no last created date, so it starts its window again from the beginning.
+   * are read again (and stored again, harmlessly) rather than skipped. If a whole window was made
+   * in one second, the next starts a second later, so a run always moves on (the rest of that
+   * second can't be listed; it would take over 10,000 bookings made at once). A cursor saved
+   * before windows existed has no last created date, so it starts its window again from the
+   * beginning.
    */
-  private static function next_window(array $cursor): ?array
+  private static function next_window(array $cursor): array
   {
     if (!$cursor['last_created']) {
       return ['start' => 0] + $cursor;
     }
-    if ($cursor['last_created'] === $cursor['created_from']) {
-      return null;
+    $from = $cursor['last_created'];
+    if ($from === $cursor['created_from']) {
+      $from = gmdate('Y-m-d\TH:i:s', strtotime($from . 'Z') + 1);
     }
-    return ['created_from' => $cursor['last_created'], 'start' => 0] + $cursor;
+    return ['created_from' => $from, 'start' => 0] + $cursor;
   }
 
   private function succeed(array $state, int $count): void
