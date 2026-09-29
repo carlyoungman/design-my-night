@@ -143,8 +143,8 @@ export default function ActivityManagerCard({
     }
     venueSavingRef.current = true;
     setVenueSaving(true);
+    let value = next;
     try {
-      let value = next;
       for (;;) {
         const r = await adminSaveVenue(venueId, { hide_unavailable: value });
         venueSavedRef.current = r.hide_unavailable;
@@ -157,11 +157,13 @@ export default function ActivityManagerCard({
       setVenueSaved(true);
       onSaved?.();
     } catch (e) {
+      // Try again sends the latest choice: one made while the failed save ran, or the one that failed.
+      const wanted = venuePendingRef.current ?? value;
       venuePendingRef.current = null;
       setHideUnavailable(venueSavedRef.current);
       venueToast.error('The unavailable activities setting could not be saved.', {
         error: e,
-        action: { label: 'Try again', onClick: () => saveHideUnavailable(next) },
+        action: { label: 'Try again', onClick: () => saveHideUnavailable(wanted) },
       });
     } finally {
       venueSavingRef.current = false;
