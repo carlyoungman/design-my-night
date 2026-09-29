@@ -1,5 +1,5 @@
 // src/admin/components/SettingsCard.tsx
-import React, { FormEvent, useCallback, useEffect, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { getSettings, saveSettings, testConnection } from '@admin/api';
 import { Globe, Plug } from 'lucide-react';
 import {
@@ -12,6 +12,7 @@ import {
 } from '@admin/components/ui';
 import { useToast } from '@admin/components/Toasts';
 import { useAdmin } from '@admin/AdminContext';
+import { DiscardButton } from '@admin/components/Confirm';
 
 type Env = 'prod' | 'qa';
 type FormState = {
@@ -22,8 +23,26 @@ type FormState = {
   debug_mode: boolean;
 };
 
-export default function SettingsCard() {
+const EMPTY: FormState = {
+  app_id: '',
+  api_key: '',
+  environment: 'prod',
+  venue_group: '',
+  debug_mode: false,
+};
+
+/** Unsaved when a field differs from the saved settings, or a new API key has been typed. */
+const isDirty = (f: FormState, s: FormState | null) =>
+  !!s &&
+  (f.app_id.trim() !== s.app_id ||
+    f.api_key.trim() !== '' ||
+    f.environment !== s.environment ||
+    f.venue_group.trim() !== s.venue_group ||
+    f.debug_mode !== s.debug_mode);
+
+export default function SettingsCard({ onDirty }: { onDirty?: (dirty: boolean) => void }) {
   const { notifyOverviewChanged } = useAdmin();
+  const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -32,27 +51,30 @@ export default function SettingsCard() {
   const saveToast = useToast();
   const [details, setDetails] = useState<unknown | null>(null);
 
-  const [form, setForm] = useState<FormState>({
-    app_id: '',
-    api_key: '',
-    environment: 'prod',
-    venue_group: '',
-    debug_mode: false,
-  });
+  const [form, setForm] = useState<FormState>(EMPTY);
+  // The settings as last loaded or saved; the API key is write-only, so it is always ''.
+  const [saved, setSaved] = useState<FormState | null>(null);
   const [mask, setMask] = useState('');
+  const dirty = isDirty(form, saved);
+
+  useEffect(() => {
+    onDirty?.(dirty);
+  }, [dirty, onDirty]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadErr(null);
     try {
       const s = await getSettings();
-      setForm({
+      const next = {
         app_id: s.app_id || '',
         api_key: '',
         environment: s.environment,
         venue_group: s.venue_group || '',
         debug_mode: !!s.debug_mode,
-      });
+      };
+      setForm(next);
+      setSaved(next);
       setMask(s.api_key_mask || '');
     } catch (e) {
       setLoadErr(errorMessage(e, 'Settings could not be loaded.'));
@@ -65,8 +87,8 @@ export default function SettingsCard() {
     load();
   }, [load]);
 
-  const onSave = async (e: FormEvent) => {
-    e.preventDefault();
+  /** Saves the form; resolves true when it saved. `quiet` skips the toast (Save and test). */
+  const save = async (quiet = false) => {
     setSaving(true);
     saveToast.clear();
     setTest(null);
@@ -79,29 +101,47 @@ export default function SettingsCard() {
         debug_mode: form.debug_mode,
       };
       await saveSettings(payload);
-      if (form.api_key) {
-        // Refresh the key mask; the write-only key field is cleared by the reload.
+      if (payload.api_key) {
+        // Refresh the key mask; the write-only key field is cleared below.
         const s = await getSettings();
         setMask(s.api_key_mask || '');
       }
-      setForm((f) => ({ ...f, api_key: '' }));
-      saveToast.success('Settings saved.', {
-        description: 'Test the connection, then import your venues in step 2.',
-      });
+      const next = { ...payload, api_key: '' };
+      setForm(next);
+      setSaved(next);
+      if (!quiet)
+        saveToast.success('Settings saved.', {
+          description: 'Test the connection, then import your venues in step 2.',
+        });
       // Step 2 and the Dashboard read whether credentials are saved.
       notifyOverviewChanged();
+      return true;
     } catch (e) {
       saveToast.error('Settings could not be saved. Check your connection and try again.', {
         error: e,
       });
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
+  const onSave = (e: FormEvent) => {
+    e.preventDefault();
+    if (dirty && !saving) save();
+  };
+
+  /**
+   * Tests the saved credentials. With unsaved edits it saves them first, so the result is always
+   * for what the form shows.
+   */
   const onTest = async () => {
     // aria-disabled rather than disabled, so the button keeps focus while the test runs.
-    if (testing) return;
+    if (testing || saving) return;
+    if (dirty) {
+      if (!formRef.current?.reportValidity()) return;
+      if (!(await save(true))) return;
+    }
     setTest({ state: 'running' });
     saveToast.clear();
     setDetails(null);
@@ -138,7 +178,7 @@ export default function SettingsCard() {
 
       {!loading && !loadErr && (
         <>
-          <form onSubmit={onSave} className="dmn-admin__form">
+          <form ref={formRef} onSubmit={onSave} className="dmn-admin__form">
             <div className="dmn-admin__form-grid">
               <div className="dmn-admin__field">
                 <label htmlFor="dmn-settings-app-id">App ID</label>
@@ -193,39 +233,56 @@ export default function SettingsCard() {
               </div>
             </div>
 
-            <label className="dmn-admin__checkbox">
-              <input
-                type="checkbox"
-                checked={form.debug_mode}
-                aria-describedby="dmn-settings-debug-help"
-                onChange={(e) => setForm({ ...form, debug_mode: e.target.checked })}
-              />
-              Debug mode
-            </label>
-            <p id="dmn-settings-debug-help" className="dmn-admin__help dmn-admin__help--flush">
-              Shows request details when you test the connection.
-            </p>
+            <details className="dmn-admin__disclosure" open={form.debug_mode || undefined}>
+              <summary>Advanced</summary>
+              <div className="dmn-admin__form dmn-admin__spacer-top">
+                <label className="dmn-admin__checkbox">
+                  <input
+                    type="checkbox"
+                    checked={form.debug_mode}
+                    aria-describedby="dmn-settings-debug-help"
+                    onChange={(e) => setForm({ ...form, debug_mode: e.target.checked })}
+                  />
+                  Debug mode
+                </label>
+                <p id="dmn-settings-debug-help" className="dmn-admin__help dmn-admin__help--flush">
+                  Shows the request details below the result when you test the connection.
+                </p>
+              </div>
+            </details>
 
             <div className="dmn-admin__form-footer">
               <div className="actions">
-                <button className="button" type="submit" disabled={saving} aria-busy={saving}>
+                <button
+                  className="button"
+                  type="submit"
+                  disabled={saving || !dirty}
+                  aria-busy={saving}
+                >
                   {saving ? 'Saving…' : 'Save settings'}
                 </button>
                 <button
                   className="button button--secondary"
                   type="button"
                   onClick={onTest}
-                  aria-disabled={testing}
+                  aria-disabled={testing || saving}
                   aria-busy={testing}
                   aria-describedby="dmn-settings-test-help"
                 >
                   <Plug aria-hidden="true" className={testing ? 'dmn-admin__pulse' : undefined} />
-                  {testing ? 'Testing…' : 'Test connection'}
+                  {testing ? 'Testing…' : dirty ? 'Save and test' : 'Test connection'}
                 </button>
+                <DiscardButton
+                  dirty={dirty}
+                  disabled={saving || testing}
+                  what="the connection settings"
+                  onDiscard={() => saved && setForm(saved)}
+                />
               </div>
               <p id="dmn-settings-test-help" className="dmn-admin__help">
-                Test connection uses the last <em>saved</em> credentials and environment, so save
-                any changes first.
+                {dirty
+                  ? 'Save and test saves your changes, then tests the connection with them.'
+                  : 'Tests the saved credentials and environment.'}
               </p>
             </div>
           </form>
@@ -257,7 +314,12 @@ export default function SettingsCard() {
             </div>
           )}
           {details != null && (
-            <pre className="dmn-admin__debug-dump">{JSON.stringify(details, null, 2)}</pre>
+            <section className="dmn-admin__spacer-top" aria-labelledby="dmn-settings-debug-title">
+              <h4 id="dmn-settings-debug-title">Request details (debug mode)</h4>
+              <pre className="dmn-admin__debug-dump" tabIndex={0}>
+                {JSON.stringify(details, null, 2)}
+              </pre>
+            </section>
           )}
         </>
       )}

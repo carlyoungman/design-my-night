@@ -42,10 +42,11 @@ function Panel({ id, children }: { id: SectionId; children: React.ReactNode }) {
 
 function App() {
   const [venuesDirty, setVenuesDirty] = React.useState(false);
+  const [connectionDirty, setConnectionDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
   const [appearanceDirty, setAppearanceDirty] = React.useState(false);
   const [analyticsDirty, setAnalyticsDirty] = React.useState(false);
-  const dirty = venuesDirty || paramsDirty || appearanceDirty || analyticsDirty;
+  const dirty = venuesDirty || connectionDirty || paramsDirty || appearanceDirty || analyticsDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
@@ -68,7 +69,7 @@ function App() {
               unsaved={{
                 venues: venuesDirty,
                 analytics: analyticsDirty,
-                settings: paramsDirty || appearanceDirty,
+                settings: connectionDirty || paramsDirty || appearanceDirty,
               }}
             />
             <Panel id="dashboard">
@@ -82,7 +83,12 @@ function App() {
             </Panel>
             <Panel id="settings">
               <SettingsPanel
-                unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
+                unsaved={{
+                  connection: connectionDirty,
+                  'url-params': paramsDirty,
+                  appearance: appearanceDirty,
+                }}
+                onConnectionDirty={setConnectionDirty}
                 onParamsDirty={setParamsDirty}
                 onAppearanceDirty={setAppearanceDirty}
               />

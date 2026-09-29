@@ -32,10 +32,12 @@ function TabPanel({ id, children }: { id: SettingsTab; children: React.ReactNode
 
 export default function SettingsPanel({
   unsaved,
+  onConnectionDirty,
   onParamsDirty,
   onAppearanceDirty,
 }: {
   unsaved: Partial<Record<SettingsTab, boolean>>;
+  onConnectionDirty: (dirty: boolean) => void;
   onParamsDirty: (dirty: boolean) => void;
   onAppearanceDirty: (dirty: boolean) => void;
 }) {
@@ -86,7 +88,7 @@ export default function SettingsPanel({
       </nav>
 
       <TabPanel id="connection">
-        <SettingsCard />
+        <SettingsCard onDirty={onConnectionDirty} />
         <ImportDataCard />
         <RemoveDataCard />
       </TabPanel>
