@@ -125,6 +125,17 @@ export function useConfirm() {
  * "Discard changes" for an editor: shown only while there are unsaved edits, and asks before
  * throwing them away. `what` names the edits, for example "these URL parameters".
  */
+/**
+ * After a discard the button that had focus is gone, so move focus to the heading of the form
+ * or section it was in, rather than letting it fall to the page.
+ */
+function focusHeading(section: Element | null) {
+  const heading = section?.querySelector<HTMLElement>('h2, h3');
+  if (!heading) return;
+  if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+  heading.focus();
+}
+
 export function DiscardButton({
   dirty,
   disabled,
@@ -143,14 +154,22 @@ export function DiscardButton({
       type="button"
       className="button button--text"
       disabled={disabled}
-      onClick={async () => {
+      onClick={async (e) => {
+        const button = e.currentTarget;
+        const section = button.closest('section');
         const yes = await confirm({
           title: 'Discard unsaved changes?',
           message: `Your unsaved changes to ${what} will be lost, and the saved version shown again.`,
           confirmLabel: 'Discard changes',
           danger: true,
         });
-        if (yes) onDiscard();
+        if (!yes) return;
+        onDiscard();
+        // The button disappears once the edits are gone; wait for that render.
+        requestAnimationFrame(() => {
+          if (!button.isConnected || document.activeElement === document.body)
+            focusHeading(section);
+        });
       }}
     >
       <RotateCcw aria-hidden="true" />

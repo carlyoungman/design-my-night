@@ -133,7 +133,8 @@ export default function Dashboard() {
       {loading && <Loading>Loading dashboard…</Loading>}
       {!loading && error && <LoadError message={error} onRetry={retry} />}
 
-      {!loading && overview && (
+      {/* Both are needed: without the venues it would look as if nothing had been imported. */}
+      {!loading && !error && overview && (
         <div className="dmn-admin__dashboard">
           {!setupDone && (
             <div className="dmn-admin__card dmn-admin__dashboard-wide">

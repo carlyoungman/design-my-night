@@ -55,6 +55,8 @@ export default function SettingsCard({ onDirty }: { onDirty?: (dirty: boolean) =
   // The settings as last loaded or saved; the API key is write-only, so it is always ''.
   const [saved, setSaved] = useState<FormState | null>(null);
   const [mask, setMask] = useState('');
+  // Starts open when debug mode is on; after that only the user opens or closes it.
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const dirty = isDirty(form, saved);
 
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function SettingsCard({ onDirty }: { onDirty?: (dirty: boolean) =
       };
       setForm(next);
       setSaved(next);
+      setAdvancedOpen(next.debug_mode);
       setMask(s.api_key_mask || '');
     } catch (e) {
       setLoadErr(errorMessage(e, 'Settings could not be loaded.'));
@@ -233,7 +236,11 @@ export default function SettingsCard({ onDirty }: { onDirty?: (dirty: boolean) =
               </div>
             </div>
 
-            <details className="dmn-admin__disclosure" open={form.debug_mode || undefined}>
+            <details
+              className="dmn-admin__disclosure"
+              open={advancedOpen}
+              onToggle={(e) => setAdvancedOpen(e.currentTarget.open)}
+            >
               <summary>Advanced</summary>
               <div className="dmn-admin__form dmn-admin__spacer-top">
                 <label className="dmn-admin__checkbox">
