@@ -5,6 +5,8 @@ namespace DMN\Booking\Rest;
 use DateInterval;
 use DMN\Booking\Config\Appearance;
 use DMN\Booking\Config\Settings;
+use DMN\Booking\Services\Analytics;
+use DMN\Booking\Services\BookingSync;
 use DMN\Booking\Services\DmnClient;
 use Exception;
 use Throwable;
@@ -246,11 +248,14 @@ class AdminController
         'include_settings' => ['type' => 'boolean', 'required' => false, 'default' => false],
       ],
     ]);
+
+    $this->register_analytics_routes();
   }
 
   /**
-   * Delete every imported venue and activity (with their meta) and the import record. With
-   * 'include_settings', also delete the connection, URL parameter and appearance settings.
+   * Delete every imported venue and activity (with their meta), the import record, and the
+   * analytics data (stored bookings and widget activity). With 'include_settings', also delete
+   * the connection, URL parameter, appearance and analytics settings.
    * Images chosen for activities stay in the media library.
    *
    * @param WP_REST_Request $r Request with optional 'include_settings'.
@@ -258,6 +263,17 @@ class AdminController
    */
   public function dmn_admin_remove_data(WP_REST_Request $r): WP_REST_Response
   {
+    // Widget activity first: it is the step that can fail (Analytics::delete_events() throws when
+    // the database refuses), and failing here leaves everything else untouched.
+    try {
+      $events_removed = Analytics::delete_events();
+    } catch (Throwable $e) {
+      return new WP_REST_Response([
+        'code' => 'dmn_remove_failed',
+        'message' => 'Nothing was removed: the recorded widget activity could not be deleted. ' . $e->getMessage(),
+      ], 500);
+    }
+
     $counts = ['dmn_venue' => 0, 'dmn_activity' => 0];
     foreach (array_keys($counts) as $type) {
       $ids = get_posts([
@@ -273,6 +289,9 @@ class AdminController
 
     delete_option(self::OPT_LAST_IMPORT);
 
+    // The stored analytics bookings belong to the removed venues.
+    $bookings_removed = BookingSync::reset();
+
     $include_settings = rest_sanitize_boolean($r->get_param('include_settings'));
     if ($include_settings) {
       foreach ([
@@ -281,6 +300,8 @@ class AdminController
         Settings::OPT_ENV,
         Settings::OPT_VG,
         Settings::OPT_DEBUG,
+        Settings::OPT_TRACKING,
+        Settings::OPT_RETENTION,
         Appearance::OPT_THEME_COLOUR,
         Appearance::OPT_ADMIN_MODE,
         Appearance::OPT_WIDGET_MODE,
@@ -298,6 +319,8 @@ class AdminController
       'ok' => true,
       'venues_removed' => $counts['dmn_venue'],
       'activities_removed' => $counts['dmn_activity'],
+      'bookings_removed' => $bookings_removed,
+      'events_removed' => $events_removed,
       'settings_removed' => $include_settings,
     ], 200);
   }
@@ -787,7 +810,7 @@ class AdminController
     $this->import_error = null;
 
     if (Settings::get_app_id() === '' || Settings::get_api_key() === '') {
-      $this->import_error = 'Add your App ID and API key under Connection before importing.';
+      $this->import_error = 'Add your App ID and API key under Settings > Connection before importing.';
       $venues_count = 0;
       $types_count = 0;
     } else {
@@ -874,9 +897,9 @@ class AdminController
     if ($status === 0) {
       $hint = 'DesignMyNight could not be reached. Check the site can make outgoing requests, then try again.';
     } elseif ($status === 401 || $status === 403) {
-      $hint = 'DesignMyNight rejected the API credentials. Check the App ID, API key and environment under Connection.';
+      $hint = 'DesignMyNight rejected the API credentials. Check the App ID, API key and environment under Settings > Connection.';
     } elseif ($status === 404) {
-      $hint = 'DesignMyNight could not find it. Check the venue group and environment under Connection.';
+      $hint = 'DesignMyNight could not find it. Check the venue group and environment under Settings > Connection.';
     } elseif ($status === 429) {
       $hint = 'The hourly DesignMyNight request limit was reached. Try again later.';
     } elseif ($status === 503) {
@@ -888,5 +911,132 @@ class AdminController
 
     return sprintf('%s (%s). %s', $context, $status ? "HTTP $status" : 'no response', $hint)
       . ($detail !== '' ? " DesignMyNight said: $detail" : '');
+  }
+
+  /**
+   * Analytics section. Reports read the plugin's own tables (Services\Analytics); only
+   * `analytics/sync` talks to DesignMyNight.
+   */
+  private function register_analytics_routes(): void
+  {
+    $can = fn() => current_user_can('manage_options');
+
+    // Everything above the bookings table: totals, trend, funnel, breakdowns and timing.
+    register_rest_route('dmn/v1/admin', '/analytics/report', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->report() + ['options' => Analytics::filter_options()]
+      ),
+    ]);
+
+    // Totals only, for the Dashboard.
+    register_rest_route('dmn/v1/admin', '/analytics/summary', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => ['summary' => $a->summary(), 'data' => $a->data_status()]
+      ),
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/bookings', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->bookings(
+          (int)($req->get_param('page') ?? 1),
+          (int)($req->get_param('per_page') ?? 25),
+          (string)($req->get_param('sort') ?? 'created_date'),
+          (string)($req->get_param('order') ?? 'desc')
+        )
+      ),
+    ]);
+
+    // CSV as JSON ({filename, csv}), so the request is authenticated like the others.
+    register_rest_route('dmn/v1/admin', '/analytics/export', [
+      'methods' => WP_REST_Server::READABLE,
+      'permission_callback' => $can,
+      'callback' => fn(WP_REST_Request $req) => $this->with_analytics(
+        $req,
+        fn(Analytics $a) => $a->export($req->get_param('kind') === 'timeseries' ? 'timeseries' : 'bookings')
+      ),
+    ]);
+
+    // Fetch bookings from DesignMyNight now, instead of waiting for the hourly run.
+    register_rest_route('dmn/v1/admin', '/analytics/sync', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => $can,
+      'callback' => function () {
+        $state = (new BookingSync())->run();
+        if (!empty($state['busy'])) {
+          return new WP_REST_Response([
+            'code' => 'dmn_sync_busy',
+            'message' => 'Bookings are already being loaded. Try again in a few minutes.',
+          ] + $state, 409);
+        }
+        if ($state['ok'] === false) {
+          return new WP_REST_Response(['code' => 'dmn_sync_failed', 'message' => $state['error']] + $state, 502);
+        }
+        return new WP_REST_Response($state, 200);
+      },
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/settings', [
+      [
+        'methods' => WP_REST_Server::READABLE,
+        'permission_callback' => $can,
+        'callback' => fn() => new WP_REST_Response(self::analytics_settings(), 200),
+      ],
+      [
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => $can,
+        'callback' => function (WP_REST_Request $req) {
+          $errors = Settings::set_analytics($req->get_json_params() ?? []);
+          if ($errors) {
+            return new WP_Error('dmn_invalid_analytics_settings', reset($errors), [
+              'status' => 400,
+              'fields' => $errors,
+            ]);
+          }
+          // Apply a shorter retention period straight away.
+          Analytics::purge(Settings::get_retention_days());
+          return new WP_REST_Response(['ok' => true] + self::analytics_settings(), 200);
+        },
+      ],
+    ]);
+
+    register_rest_route('dmn/v1/admin', '/analytics/delete-events', [
+      'methods' => WP_REST_Server::CREATABLE,
+      'permission_callback' => $can,
+      'callback' => function () {
+        try {
+          return new WP_REST_Response(['ok' => true, 'deleted' => Analytics::delete_events()], 200);
+        } catch (Throwable $e) {
+          return new WP_Error('dmn_delete_failed', $e->getMessage(), ['status' => 500]);
+        }
+      },
+    ]);
+  }
+
+  private static function analytics_settings(): array
+  {
+    return [
+      'tracking' => Settings::get_tracking(),
+      'retention_days' => Settings::get_retention_days(),
+      'retention_max' => Settings::RETENTION_MAX,
+    ];
+  }
+
+  /** Validates the report filters, then runs `$fn` with them. */
+  private function with_analytics(WP_REST_Request $req, callable $fn): WP_Error|WP_REST_Response
+  {
+    [$filters, $errors] = Analytics::filters($req->get_params());
+    if ($errors) {
+      return new WP_Error('dmn_invalid_filters', reset($errors), ['status' => 400, 'fields' => $errors]);
+    }
+    return new WP_REST_Response($fn(new Analytics($filters)), 200);
   }
 }

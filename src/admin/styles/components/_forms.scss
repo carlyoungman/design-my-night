@@ -95,7 +95,9 @@ input:not([type='checkbox'], [type='radio']) {
   box-shadow: none;
   transition: var(--transition);
 
+  // WordPress core colours hovered selects blue (.wp-core-ui select:hover), unreadable in dark mode.
   &:hover:not(:disabled, [readonly]) {
+    color: var(--c-text);
     border-color: var(--c-text);
   }
 
@@ -331,7 +333,7 @@ fieldset.dmn-admin__field > legend {
   gap: var(--universal-space);
   min-width: 0;
 
-  h3,
+  h4,
   .dmn-admin__code-block,
   .dmn-admin__help {
     margin: 0;

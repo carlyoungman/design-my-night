@@ -1,5 +1,6 @@
 // src/frontend/app/helpers/checkout.ts
 import { checkAvailability } from '@api/public';
+import { track } from '@api/track';
 
 // ——— Types ———
 export type BookingCustomer = {
@@ -205,9 +206,25 @@ export async function continueCheckout(opts: {
 
     // IMPORTANT: pass urlParams into the URL builder
     const url = buildRedirectUrl(base, payload, urlParams); // ← use urlParams here
+    // Sent before navigating away, for the Analytics funnel.
+    track(
+      {
+        event: 'handoff',
+        venue_id: required.venue_id,
+        type_id: required.type,
+        num_people: required.num_people,
+      },
+      { immediate: true },
+    );
     window.location.assign(url);
     return;
   } catch (err) {
+    track({
+      event: 'error',
+      venue_id: state.venueId ?? null,
+      type_id: state.bookingType ?? null,
+      num_people: state.partySize ?? null,
+    });
     // Surface a readable reason to the caller, which shows it next to the button.
     const msg =
       err instanceof Error && err.message

@@ -33,7 +33,7 @@ export default function VenuesOverview({
   linkRef,
   hidden,
 }: Props) {
-  const { goToSection, openVenue } = useAdmin();
+  const { openSettingsTab, openVenue } = useAdmin();
   const [query, setQuery] = useState('');
 
   const q = query.trim().toLowerCase();
@@ -63,13 +63,13 @@ export default function VenuesOverview({
       {!loading && !error && venues.length === 0 && (
         <div className="dmn-admin__empty">
           <p>
-            No venues yet. Save your API credentials under Connection, then use{' '}
+            No venues yet. Save your API credentials under Settings &gt; Connection, then use{' '}
             <strong>Import from DesignMyNight</strong> to bring in your venues and activities.
           </p>
           <button
             type="button"
             className="button button--secondary"
-            onClick={() => goToSection('connection')}
+            onClick={() => openSettingsTab('connection')}
           >
             Go to Connection
           </button>

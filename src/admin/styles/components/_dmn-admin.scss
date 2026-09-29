@@ -81,6 +81,20 @@
     }
   }
 
+  // Tabs inside a section (Material 3 secondary tabs): no icons, less space below.
+  &__nav--secondary {
+    margin-bottom: var(--universal-space);
+
+    .MuiTabs-indicator {
+      height: 2px;
+      border-radius: 0;
+    }
+
+    .MuiTab-root.Mui-selected {
+      color: var(--c-text);
+    }
+  }
+
   &__nav-label {
     display: inline-flex;
     gap: var(--universal-space-half);
@@ -146,7 +160,8 @@
   &__card-header {
     margin-bottom: var(--universal-space-2);
 
-    h2 {
+    h2,
+    h3 {
       margin-bottom: 0;
     }
   }

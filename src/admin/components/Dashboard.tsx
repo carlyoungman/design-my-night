@@ -12,7 +12,15 @@ import {
   ImageOff,
   PackageOpen,
 } from 'lucide-react';
-import { type AdminVenue, type ImportRecord, adminListVenues, adminOverview } from '@admin/api';
+import {
+  type AdminVenue,
+  type AnalyticsSummary,
+  type ImportRecord,
+  adminListVenues,
+  adminOverview,
+  analyticsSummary,
+} from '@admin/api';
+import { defaultFilters, fmtFullDay, fmtInt, fmtPct } from '@admin/components/analytics/format';
 import { useAdmin, venueHref } from '@admin/AdminContext';
 import { LoadError, Loading, StatusMessage, errorMessage } from '@admin/components/ui';
 
@@ -55,7 +63,8 @@ function formatDuration(ms: number) {
 }
 
 export default function Dashboard() {
-  const { section, dataVersion, overviewVersion, goToSection, openVenue } = useAdmin();
+  const { section, dataVersion, overviewVersion, goToSection, openVenue, openSettingsTab } =
+    useAdmin();
   const active = section === 'dashboard';
   const [overview, setOverview] = useState<Overview | null>(null);
   const [venues, setVenues] = useState<AdminVenue[]>([]);
@@ -167,7 +176,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="button button--secondary"
-                        onClick={() => goToSection('connection')}
+                        onClick={() => openSettingsTab('connection')}
                       >
                         Go to Connection
                       </button>
@@ -191,7 +200,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="button button--secondary"
-                        onClick={() => goToSection('connection')}
+                        onClick={() => openSettingsTab('connection')}
                       >
                         Import under Connection
                       </button>
@@ -205,7 +214,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       className="button button--text"
-                      onClick={() => goToSection('shortcode')}
+                      onClick={() => openSettingsTab('shortcode')}
                     >
                       See the shortcode
                     </button>
@@ -214,6 +223,8 @@ export default function Dashboard() {
               </ol>
             </div>
           )}
+
+          {hasImported && <RecentBookingsCard active={active} />}
 
           <ImportCard last={last} hasVenues={hasImported} />
 
@@ -250,7 +261,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 className="button button--secondary"
-                onClick={() => goToSection('connection')}
+                onClick={() => openSettingsTab('connection')}
               >
                 Manage connection
               </button>
@@ -345,7 +356,7 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
         <h3>Last import</h3>
         <p>
           Nothing has been imported yet. Use <strong>Import from DesignMyNight</strong> under
-          Connection to bring in your venues and activities.
+          Settings &gt; Connection to bring in your venues and activities.
         </p>
       </div>
     );
@@ -434,6 +445,85 @@ function ImportCard({ last, hasVenues }: { last: ImportRecord | null; hasVenues:
           Imported data is {staleDays} days old. Import again to pick up changes made in
           DesignMyNight.
         </StatusMessage>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The last 30 days from Analytics: bookings, guests and widget conversion. Reads the plugin's
+ * own tables (GET dmn/v1/admin/analytics/summary), so it makes no DesignMyNight request.
+ */
+function RecentBookingsCard({ active }: { active: boolean }) {
+  const { dataVersion, goToSection } = useAdmin();
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  // Day the latest stored booking was made, to explain an empty 30 days.
+  const [latest, setLatest] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancel = false;
+    setError(null);
+    analyticsSummary(defaultFilters())
+      .then((r) => {
+        if (cancel) return;
+        setSummary(r.summary);
+        setLatest(r.data.range?.created_to ?? null);
+      })
+      .catch((e) => !cancel && setError(errorMessage(e, 'Recent bookings could not be loaded.')));
+    return () => {
+      cancel = true;
+    };
+  }, [active, dataVersion, attempt]);
+
+  const c = summary?.current;
+  // Stored bookings, but none made in the last 30 days: say when the latest was made.
+  const olderOnly =
+    !!c && c.bookings === 0 && !!latest && !!summary && latest < summary.period.from;
+  return (
+    <div className="dmn-admin__card dmn-admin__dashboard-wide">
+      <div className="dmn-admin__card-header--split dmn-admin__spacer-bottom">
+        <h3 className="dmn-admin__flush">Last 30 days</h3>
+        <button
+          type="button"
+          className="button button--text"
+          onClick={() => goToSection('analytics')}
+        >
+          View analytics
+        </button>
+      </div>
+      {error ? (
+        <LoadError message={error} onRetry={() => setAttempt((n) => n + 1)} />
+      ) : !c ? (
+        <Loading>Loading recent bookings…</Loading>
+      ) : (
+        <dl className="dmn-admin__stats dmn-admin__flush">
+          <div className="dmn-admin__stat">
+            <dt>Bookings made</dt>
+            <dd>{fmtInt(c.bookings)}</dd>
+          </div>
+          <div className="dmn-admin__stat">
+            <dt>Guests</dt>
+            <dd>{fmtInt(c.covers)}</dd>
+          </div>
+          <div className="dmn-admin__stat">
+            <dt>Widget visitors sent to checkout</dt>
+            <dd>
+              {fmtInt(c.widget_handoffs)}
+              {c.conversion != null && (
+                <span className="dmn-admin__stat-of"> ({fmtPct(c.conversion)} of visitors)</span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
+      {!error && olderOnly && latest && (
+        <p className="dmn-admin__help dmn-admin__spacer-top dmn-admin__flush">
+          No bookings were made in the last 30 days. The latest was made on {fmtFullDay(latest)};
+          see them in Analytics.
+        </p>
       )}
     </div>
   );

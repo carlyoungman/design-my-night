@@ -84,7 +84,7 @@ export default function UrlParamsCard({ onDirty }: { onDirty?: (d: boolean) => v
     <section className="dmn-admin__card" aria-labelledby="dmn-admin-params-title">
       <div className="dmn-admin__card-header dmn-admin__card-header--split">
         <div>
-          <h2 id="dmn-admin-params-title">URL parameters</h2>
+          <h3 id="dmn-admin-params-title">URL parameters</h3>
           <p className="dmn-admin__help">
             Added as query parameters to every DesignMyNight booking URL, for example for campaign
             tracking. Rows without a name are ignored.

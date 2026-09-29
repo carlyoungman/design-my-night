@@ -8,17 +8,14 @@ import PageHeader from '@admin/components/PageHeader';
 import SectionTabs, { panelId, tabId } from '@admin/components/SectionTabs';
 import VenuesPanel from '@admin/components/VenuesPanel';
 import Dashboard from '@admin/components/Dashboard';
-import SettingsCard from '@admin/components/SettingsCard';
-import ImportDataCard from '@admin/components/ImportDataCard';
-import RemoveDataCard from '@admin/components/RemoveDataCard';
-import UrlParamsCard from '@admin/components/UrlParamsCard';
-import ShortcodeCard from '@admin/components/ShortcodeCard';
-import AppearanceCard from '@admin/components/AppearanceCard';
+import AnalyticsPanel from '@admin/components/analytics/AnalyticsPanel';
+import SettingsPanel from '@admin/components/SettingsPanel';
 import { ToastsProvider } from '@admin/components/Toasts';
+import { shouldWarnOnUnload } from '@admin/unload';
 
 declare global {
   interface Window {
-    DMN_ADMIN_BOOT: { restUrl: string; nonce: string };
+    DMN_ADMIN_BOOT: { restUrl: string; nonce: string; today?: string };
   }
 }
 
@@ -45,12 +42,13 @@ function App() {
   const [venuesDirty, setVenuesDirty] = React.useState(false);
   const [paramsDirty, setParamsDirty] = React.useState(false);
   const [appearanceDirty, setAppearanceDirty] = React.useState(false);
-  const dirty = venuesDirty || paramsDirty || appearanceDirty;
+  const [analyticsDirty, setAnalyticsDirty] = React.useState(false);
+  const dirty = venuesDirty || paramsDirty || appearanceDirty || analyticsDirty;
 
   // Warn on page unload if there are unsaved changes
   React.useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!dirty) return;
+      if (!dirty || !shouldWarnOnUnload()) return;
       e.preventDefault();
       e.returnValue = '';
     };
@@ -65,29 +63,25 @@ function App() {
         <SectionTabs
           unsaved={{
             venues: venuesDirty,
-            'url-params': paramsDirty,
-            appearance: appearanceDirty,
+            analytics: analyticsDirty,
+            settings: paramsDirty || appearanceDirty,
           }}
         />
         <Panel id="dashboard">
           <Dashboard />
         </Panel>
+        <Panel id="analytics">
+          <AnalyticsPanel onDirty={setAnalyticsDirty} />
+        </Panel>
         <Panel id="venues">
           <VenuesPanel onDirty={setVenuesDirty} />
         </Panel>
-        <Panel id="connection">
-          <SettingsCard />
-          <ImportDataCard />
-          <RemoveDataCard />
-        </Panel>
-        <Panel id="url-params">
-          <UrlParamsCard onDirty={setParamsDirty} />
-        </Panel>
-        <Panel id="shortcode">
-          <ShortcodeCard />
-        </Panel>
-        <Panel id="appearance">
-          <AppearanceCard onDirty={setAppearanceDirty} />
+        <Panel id="settings">
+          <SettingsPanel
+            unsaved={{ 'url-params': paramsDirty, appearance: appearanceDirty }}
+            onParamsDirty={setParamsDirty}
+            onAppearanceDirty={setAppearanceDirty}
+          />
         </Panel>
       </ToastsProvider>
     </AdminProvider>

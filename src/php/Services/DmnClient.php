@@ -7,7 +7,11 @@ use DMN\Booking\Config\Settings;
 class DmnClient
 {
   
-  public function request(string $method, string $path, array $query = [], $body = null): array
+  /**
+   * @param bool $cache Cache GET responses briefly. Off for callers that must see fresh data,
+   *                    such as the booking sync, whose retries shouldn't get a cached failure.
+   */
+  public function request(string $method, string $path, array $query = [], $body = null, bool $cache = true): array
   {
     $base = rtrim($this->base_url(), '/');
     $path = '/' . ltrim($path, '/');
@@ -37,7 +41,7 @@ class DmnClient
     }
 
     // Cache GETs briefly to ease rate limits
-    $cache_ttl = ($method === 'GET') ? 60 : 0;
+    $cache_ttl = ($method === 'GET' && $cache) ? 60 : 0;
     $cache_key = null;
 
     if ($cache_ttl > 0) {
