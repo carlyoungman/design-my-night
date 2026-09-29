@@ -98,6 +98,12 @@
     border-color: transparent;
   }
 
+  // Text buttons have no fill, disabled or not (after the rule above, which would add one).
+  &--text:disabled,
+  &--text[aria-disabled='true'] {
+    background: transparent;
+  }
+
   svg {
     flex-shrink: 0;
     width: 18px;
