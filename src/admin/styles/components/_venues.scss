@@ -176,42 +176,6 @@
     overflow-wrap: anywhere;
   }
 
-  &__num {
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-
-    .dmn-admin__table & {
-      text-align: right;
-    }
-  }
-
-  // Column heading that sorts the table; the whole heading is the button.
-  &__sort {
-    display: inline-flex;
-    gap: 4px;
-    align-items: center;
-    min-height: 24px;
-    padding: 0;
-    font: inherit;
-    font-weight: 600;
-    color: inherit;
-    white-space: nowrap;
-    cursor: pointer;
-    background: none;
-    border: 0;
-
-    svg {
-      flex-shrink: 0;
-      width: 16px;
-      height: 16px;
-      color: var(--c-primary-text);
-    }
-
-    &:hover {
-      color: var(--c-primary-text);
-    }
-  }
-
   // Inline confirmation for a setting that saves as soon as it changes.
   &__saved {
     display: inline-flex;

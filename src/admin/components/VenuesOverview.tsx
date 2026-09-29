@@ -104,9 +104,8 @@ export default function VenuesOverview({
       const y = sortValue(b, sort.key);
       const c =
         typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y));
-      // Ties keep name order, so rows don't jump about.
-      const t = c || (a.title || '').localeCompare(b.title || '');
-      return sort.dir === 'asc' ? t : -t;
+      // Ties stay in name order (A to Z) either way, so rows don't jump about.
+      return (sort.dir === 'asc' ? c : -c) || (a.title || '').localeCompare(b.title || '');
     });
     return out;
   }, [filtered, sort]);
